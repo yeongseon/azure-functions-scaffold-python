@@ -1,0 +1,11 @@
+from __future__ import annotations
+
+import logging
+
+
+def configure_logging() -> logging.Logger:
+    """Return an application logger configured for local execution."""
+    logger = logging.getLogger("{{ project_name }}")
+    if not logger.handlers:
+        logging.basicConfig(level=logging.INFO)
+    return logger

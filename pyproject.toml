@@ -1,0 +1,78 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "azure-functions-scaffold"
+version = "0.1.0"
+description = "Opinionated scaffolding CLI for Azure Functions Python v2 projects."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "Codex" },
+]
+dependencies = [
+  "jinja2>=3.1.4",
+  "typer>=0.16.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yeongseon/azure-functions-scaffold"
+Repository = "https://github.com/yeongseon/azure-functions-scaffold"
+Issues = "https://github.com/yeongseon/azure-functions-scaffold/issues"
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2.2",
+  "hatch>=1.14.0",
+  "pytest>=8.3.5",
+  "pytest-cov>=6.0.0",
+  "ruff>=0.11.0",
+]
+
+[project.scripts]
+azure-functions-scaffold = "azure_functions_scaffold.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/azure_functions_scaffold"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/tests",
+  "/README.md",
+]
+
+[tool.pytest.ini_options]
+addopts = "-p pytest_cov --cov=azure_functions_scaffold --cov-report=term-missing --cov-report=xml --cov-fail-under=90"
+testpaths = ["tests"]
+
+[tool.hatch.envs.default]
+features = ["dev"]
+
+[tool.hatch.envs.default.env-vars]
+PYTEST_DISABLE_PLUGIN_AUTOLOAD = "1"
+
+[tool.hatch.envs.default.scripts]
+format = "python -m ruff format ."
+lint = "python -m ruff check ."
+test = "python -m pytest"
+build = "python -m build"
+
+[tool.coverage.run]
+branch = true
+parallel = true
+source = ["azure_functions_scaffold"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = false
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
