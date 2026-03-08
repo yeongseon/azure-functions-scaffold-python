@@ -1,20 +1,35 @@
-[build-system]
-requires = ["hatchling>=1.27.0"]
-build-backend = "hatchling.build"
-
 [project]
 name = "azure-functions-scaffold"
-version = "0.1.0"
-description = "Opinionated scaffolding CLI for Azure Functions Python v2 projects."
-readme = "README.md"
-requires-python = ">=3.10"
+description = "Scaffolding CLI for Azure Functions Python v2 projects"
+authors = [{ name = "Yeongseon Choe", email = "yeongseon.choe@gmail.com" }]
 license = { text = "MIT" }
-authors = [
-  { name = "Codex" },
-]
+readme = "README.md"
+requires-python = ">=3.10,<3.15"
+dynamic = ["version"]
+
 dependencies = [
-  "jinja2>=3.1.4",
-  "typer>=0.16.0",
+    "jinja2>=3.1,<4.0",
+    "typer>=0.16,<1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "bandit==1.9.4",
+    "black==26.3.0",
+    "build",
+    "coverage",
+    "git-cliff",
+    "hatch",
+    "mypy==1.19.1",
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "ruff==0.15.5",
+]
+docs = [
+    "mkdocs<2.0",
+    "mkdocs-material<10.0",
+    "mkdocstrings[python]<1.0",
 ]
 
 [project.urls]
@@ -22,57 +37,92 @@ Homepage = "https://github.com/yeongseon/azure-functions-scaffold"
 Repository = "https://github.com/yeongseon/azure-functions-scaffold"
 Issues = "https://github.com/yeongseon/azure-functions-scaffold/issues"
 
-[project.optional-dependencies]
-dev = [
-  "build>=1.2.2",
-  "hatch>=1.14.0",
-  "pytest>=8.3.5",
-  "pytest-cov>=6.0.0",
-  "ruff>=0.11.0",
-]
-
 [project.scripts]
 azure-functions-scaffold = "azure_functions_scaffold.cli:app"
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+sources = ["src"]
+
 [tool.hatch.build.targets.wheel]
-packages = ["src/azure_functions_scaffold"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-  "/src",
-  "/tests",
-  "/README.md",
+    "/src",
+    "/tests",
+    "/docs",
+    "/README.md",
+    "/Makefile",
+    "/pyproject.toml",
 ]
 
-[tool.pytest.ini_options]
-addopts = "-p pytest_cov --cov=azure_functions_scaffold --cov-report=term-missing --cov-report=xml --cov-fail-under=90"
-testpaths = ["tests"]
+[tool.hatch.version]
+path = "src/azure_functions_scaffold/__init__.py"
+
+[tool.hatch.publish.index]
+default = "pypi"
+
+[tool.hatch.publish.index.repos.pypi]
+url = "https://upload.pypi.org/legacy/"
+
+[tool.hatch.publish.index.repos.test]
+url = "https://test.pypi.org/legacy/"
 
 [tool.hatch.envs.default]
-features = ["dev"]
-
-[tool.hatch.envs.default.env-vars]
-PYTEST_DISABLE_PLUGIN_AUTOLOAD = "1"
+python = "3.10"
+features = ["dev", "docs"]
 
 [tool.hatch.envs.default.scripts]
-format = "python -m ruff format ."
-lint = "python -m ruff check ."
-test = "python -m pytest"
-build = "python -m build"
+format = "ruff format src tests && black src tests"
+style = "ruff check src tests"
+typecheck = "mypy src tests"
+lint = "hatch run style && hatch run typecheck"
+test = "pytest -v tests"
+cov = "pytest --cov-report=term-missing --cov-report=html --cov-report=xml tests/"
+docs = "mkdocs serve"
+precommit = "pre-commit run --all-files"
+precommit-install = "pre-commit install"
+security = "python -m bandit -r src"
 
-[tool.coverage.run]
-branch = true
-parallel = true
-source = ["azure_functions_scaffold"]
-
-[tool.coverage.report]
-fail_under = 90
-show_missing = true
-skip_covered = false
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312", "py313", "py314"]
 
 [tool.ruff]
-line-length = 88
+line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP"]
+select = ["E", "F", "I"]
+fixable = ["ALL"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["azure_functions_scaffold"]
+force-sort-within-sections = true
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true
+show_error_codes = true
+pretty = true
+
+[tool.pytest.ini_options]
+addopts = "--cov=src/azure_functions_scaffold --cov-report=xml --cov-report=term-missing -ra -q"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.coverage.run]
+branch = true
+source = ["src/azure_functions_scaffold"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+[tool.bandit]
+exclude_dirs = ["tests"]

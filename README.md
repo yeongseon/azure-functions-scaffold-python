@@ -1,43 +1,44 @@
 # azure-functions-scaffold
 
-`azure-functions-scaffold` is an opinionated scaffolding CLI for production-ready Azure Functions Python v2 projects.
+[![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold.svg)](https://pypi.org/project/azure-functions-scaffold/)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
+[![CI](https://github.com/yeongseon/azure-functions-scaffold/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold/actions/workflows/ci-test.yml)
+[![Security Scans](https://github.com/yeongseon/azure-functions-scaffold/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold/actions/workflows/security.yml)
+[![codecov](https://codecov.io/gh/yeongseon/azure-functions-scaffold/branch/main/graph/badge.svg)](https://codecov.io/gh/yeongseon/azure-functions-scaffold)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
+[![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-scaffold/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-It generates a clean Azure Functions app structure with:
+Scaffolding CLI for production-leaning Azure Functions Python v2 projects.
 
-- Azure Functions Python v2 programming model
-- a default HTTP trigger example
-- `pyproject.toml`
-- `ruff` configuration
-- `pytest` skeleton
-- a small service-oriented application layout
+## Scope
 
-## Status
+- Azure Functions Python **v2 programming model**
+- Decorator-based `func.FunctionApp()` applications
+- Opinionated but lightweight project generation
+- Embedded templates with test and lint defaults
 
-Current MVP scope:
+This project does **not** support the legacy `function.json`-based Python v1 programming model.
+
+## Features
 
 - `azure-functions-scaffold new <project-name>`
-- `azure-functions-scaffold templates`
-- HTTP project template
-- Python 3.10+
-- embedded Jinja2 templates
-
-Planned but not implemented yet:
-
-- additional trigger templates
-- `add` commands
-- interactive setup
-- doctor/integration commands
+- Embedded HTTP-trigger project template
+- Test, lint, and packaging defaults in generated output
+- Small service-oriented application layout
 
 ## Installation
 
 ```bash
-pip install -e .[dev]
+pip install azure-functions-scaffold
 ```
 
-For package consumers:
+For local development:
 
 ```bash
-pip install azure-functions-scaffold
+git clone https://github.com/yeongseon/azure-functions-scaffold.git
+cd azure-functions-scaffold
+make install
 ```
 
 ## Usage
@@ -88,42 +89,25 @@ my-api/
 
 ## Development
 
-Install dependencies:
+Use Makefile commands as the canonical entry points:
 
 ```bash
 make install
-```
-
-Run checks:
-
-```bash
-make format
-make lint
-make test
-make check
+make check-all
+make docs
 make build
 ```
 
-Raw commands are still available when needed:
-
-```bash
-pip install -e .[dev]
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest
-python -m ruff check .
-python -m ruff format --check .
-python -m build
-```
-
-If you run tests from Windows against a WSL UNC path and coverage locks the SQLite data file, point `COVERAGE_FILE` to a local temp path before running `pytest`.
-
 ## Documentation
 
-- [PRD](\\wsl.localhost\Ubuntu-24.04\root\Github\azure-functions-scaffold\PRD.md)
-- [Architecture](\\wsl.localhost\Ubuntu-24.04\root\Github\azure-functions-scaffold\ARCH.md)
-- [Design](\\wsl.localhost\Ubuntu-24.04\root\Github\azure-functions-scaffold\DESIGN.md)
-- [CLI Spec](\\wsl.localhost\Ubuntu-24.04\root\Github\azure-functions-scaffold\docs\CLI.md)
-- [Template Spec](\\wsl.localhost\Ubuntu-24.04\root\Github\azure-functions-scaffold\docs\TEMPLATE_SPEC.md)
-- [Style Guide](\\wsl.localhost\Ubuntu-24.04\root\Github\azure-functions-scaffold\docs\STYLE_GUIDE.md)
-- [Roadmap](\\wsl.localhost\Ubuntu-24.04\root\Github\azure-functions-scaffold\docs\ROADMAP.md)
-- [Contributing](\\wsl.localhost\Ubuntu-24.04\root\Github\azure-functions-scaffold\CONTRIBUTING.md)
-- [Agent Guide](\\wsl.localhost\Ubuntu-24.04\root\Github\azure-functions-scaffold\AGENTS.md)
+- Full docs: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
+- Root planning docs: `AGENT.md`, `DESIGN.md`, `PRD.md`
+- CLI guide: `docs/CLI.md`
+- Template spec: `docs/TEMPLATE_SPEC.md`
+- Style guide: `docs/STYLE_GUIDE.md`
+- Roadmap: `docs/ROADMAP.md`
+- Contributing guide: `CONTRIBUTING.md`
+
+## License
+
+MIT

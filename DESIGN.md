@@ -1,55 +1,50 @@
 # DESIGN.md
 
+Design Principles for `azure-functions-scaffold`
+
 ## Purpose
 
-This document defines the design philosophy of `azure-functions-scaffold`.
+This document defines the architectural boundaries and design principles of the project.
 
-It exists to:
+## Design Goals
 
-- keep the CLI predictable
-- prevent accidental template bloat
-- keep generated projects easy to understand and maintain
-- provide guardrails for AI-assisted development
+- Scaffold Azure Functions Python v2 projects with explicit, maintainable defaults.
+- Keep the CLI predictable and easy to understand.
+- Generate projects that are immediately testable and lint-clean.
+- Stay aligned with the wider Azure Functions Python tooling ecosystem.
 
-## Goals
-
-- provide a small, reliable CLI for bootstrapping Azure Functions Python projects
-- favor explicit scaffolding over hidden automation
-- generate code that is easy to edit by hand after scaffolding
-- keep the initial template close to normal Python application structure
-
-## Anti-Goals
+## Non-Goals
 
 This project does not aim to:
 
-- become a full application framework
-- hide Azure Functions runtime concepts
-- generate highly dynamic or "magic" project structures
-- force large opinion bundles into every generated app
+- Become a full application framework
+- Hide Azure Functions runtime concepts
+- Generate overly dynamic or highly magical project structures
+- Own deployment, infrastructure, or runtime operations
 
-## CLI Design Principles
+## Design Principles
 
-- commands stay small and obvious
-- output paths and side effects must be explicit
-- error messages should be short and actionable
-- existing CLI behavior should remain stable unless there is a strong reason to change it
+- The CLI should stay small and obvious.
+- Template output should be deterministic.
+- Generated code should remain easy to edit by hand.
+- Trigger entrypoints and service logic should stay separated.
+- Public CLI behavior should evolve conservatively.
 
-## Template Design Principles
+## Integration Boundaries
 
-- generated files must be readable without extra tooling
-- trigger code and business logic should be separated
-- project defaults should be production-leaning, not tutorial-only
-- generated code must pass Ruff and tests
+- Runtime validation belongs to `azure-functions-validation`.
+- OpenAPI generation belongs to `azure-functions-openapi`.
+- Project diagnostics belong to `azure-functions-doctor`.
+- This repository owns project generation, template rendering, and scaffold defaults.
 
 ## Compatibility Policy
 
-- minimum supported Python version: 3.10
-- development may use newer Python versions
-- generated runtime code must stay compatible with Python 3.10+
+- Minimum supported Python version: `3.10`
+- Supported runtime target: Azure Functions Python v2 programming model
+- Public APIs and CLI behavior follow semantic versioning expectations
 
 ## Change Discipline
 
-- prefer additive changes over breaking changes
-- keep templates deterministic
-- if a template behavior changes, update tests and docs in the same change
-
+- Template behavior changes require tests and docs updates.
+- Generated-project quality gates are user-facing behavior.
+- Experimental templates or commands must be clearly labeled in code and docs.

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
+import re
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import TemplateContext
@@ -16,9 +16,7 @@ def scaffold_project(
     template_name: str = "http",
 ) -> Path:
     context = build_template_context(project_name)
-    target_dir = resolve_target_dir(
-        destination=destination, project_name=context.project_name
-    )
+    target_dir = resolve_target_dir(destination=destination, project_name=context.project_name)
     if target_dir.exists():
         raise ScaffoldError(f"Target directory already exists: {target_dir}")
 
@@ -26,7 +24,11 @@ def scaffold_project(
     template_root = template.root
     environment = Environment(
         loader=FileSystemLoader(str(template_root)),
-        autoescape=False,
+        autoescape=select_autoescape(
+            enabled_extensions=("html", "xml"),
+            default_for_string=False,
+            default=False,
+        ),
         keep_trailing_newline=True,
     )
 

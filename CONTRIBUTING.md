@@ -2,11 +2,12 @@
 
 ## Scope
 
-This project aims to provide a pragmatic, production-leaning scaffold for Azure Functions Python v2 applications. Contributions should improve one of these areas:
+This project provides a pragmatic scaffold for Azure Functions Python v2 applications.
+Contributions should improve one of these areas:
 
 - CLI usability
 - template quality
-- generated code quality
+- generated project quality
 - test coverage
 - documentation
 
@@ -21,23 +22,9 @@ make install
 Run these before opening a PR:
 
 ```bash
-make format
-make lint
-make test
-make build
+make check-all
+make docs
 ```
-
-Equivalent raw commands are:
-
-```bash
-pip install -e .[dev]
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest
-python -m ruff check .
-python -m ruff format --check .
-python -m build
-```
-
-If you run tests from Windows against a WSL UNC path, set `COVERAGE_FILE` to a local temp path before running `pytest`.
 
 ## Project Layout
 
@@ -72,16 +59,6 @@ When changing files under `src/azure_functions_scaffold/templates/`:
 - verify the generated project passes `ruff format --check .`
 - preserve Azure Functions Python v2 compatibility
 
-## Design Principles
+## Code of Conduct
 
-- prefer explicit, boring defaults
-- avoid premature template complexity
-- keep generated code small but realistic
-- separate trigger entrypoints from service logic
-
-## Pull Request Checklist
-
-- behavior is documented
-- tests cover the change
-- repo checks pass
-- generated template checks pass when relevant
+Be respectful and inclusive. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for details.
