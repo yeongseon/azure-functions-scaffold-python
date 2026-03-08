@@ -34,6 +34,14 @@ Template files are rendered with Jinja2.
 Current context variables:
 
 - `project_name`
+- `project_slug`
+- `python_version`
+- `python_upper_bound`
+- `preset_name`
+- `include_github_actions`
+- `include_ruff`
+- `include_mypy`
+- `include_pytest`
 
 ## HTTP Template Contract
 
@@ -43,7 +51,7 @@ The HTTP template must generate:
 - at least one Blueprint-backed HTTP trigger module
 - one service module
 - one schema or model example
-- one test file
+- one test file when pytest is enabled
 - project-level tooling files
 
 ## Required Output Files
@@ -65,23 +73,40 @@ app/core/logging.py
 tests/test_http.py
 ```
 
+The `minimal` preset intentionally omits `tests/`.
+
+The template now also supports optional output:
+
+```text
+Makefile
+.github/workflows/ci.yml
+```
+
+These files are rendered only when their corresponding options are enabled.
+
 ## Quality Contract
 
-Generated projects must satisfy:
+Generated projects should satisfy the commands implied by their selected preset:
 
 ```bash
-pytest
-ruff check .
-ruff format --check .
+make install
+make check-all
 ```
+
+Preset expectations:
+
+- `minimal`: no extra quality tooling beyond a valid Azure Functions project structure
+- `standard`: Ruff and pytest defaults
+- `strict`: Ruff, mypy, and pytest defaults
 
 ## Template Authoring Rules
 
 - keep files small and readable
 - prefer simple imports and explicit structure
-- avoid placeholders that are not currently populated
+- keep placeholder usage aligned with the actual rendering context
 - avoid environment-specific absolute paths
 - keep examples realistic but minimal
+- keep `function_app.py` update markers stable for post-generation `add` commands
 
 ## Extension Guidelines
 
@@ -91,5 +116,5 @@ When adding a new template:
 2. define the required output contract for that template
 3. add CLI selection logic
 4. add tests that validate rendered output
-5. verify lint, format, and test behavior in the generated project
+5. verify preset-specific lint, type, and test behavior in the generated project
 

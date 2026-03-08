@@ -12,32 +12,57 @@ Delivered:
 - repository tests for CLI behavior
 - generated project quality baseline with `pytest` and `ruff`
 
-## Phase 2: Template Expansion
+## Phase 2: Guided Scaffolding
 
-Planned:
+Status: implemented
 
-- timer trigger template
-- queue trigger template
-- template selection option
-- richer template context
-
-## Phase 3: CLI Expansion
-
-Planned:
+Delivered:
 
 - interactive project setup
-- `add trigger`
+- `minimal`, `standard`, and `strict` presets
+- richer template context for Python version and tooling choices
+- optional generated GitHub Actions CI workflow
+- optional git initialization
+
+## Phase 3: Post-Generation Expansion
+
+Status: partially implemented
+
+Delivered:
+
+- `add http <function-name>`
+- `add timer <function-name>`
+- automatic `function_app.py` registration updates
+
+Planned:
+
+- queue trigger generation
+- Service Bus trigger generation
+- blob trigger generation
+
+## Phase 4: Template Expansion
+
+Planned:
+
+- timer-focused project template
+- queue-focused project template
+- richer project structure variants
+
+## Phase 5: CLI Expansion
+
+Planned:
+
 - dry-run mode
 - overwrite protections with clearer UX
+- finer interactive tooling selection beyond presets
 
-## Phase 4: Ecosystem Integration
+## Phase 6: Product Expansion
 
 Potential:
 
-- handoff hooks to `azure-functions-doctor`
-- OpenAPI-ready HTTP template variants
-- validation-ready template variants
 - CI/CD starter files
+- OpenAPI-ready HTTP variants
+- validation-oriented project variants
 
 ## Out of Scope for Near Term
 

@@ -61,6 +61,13 @@ Generated template code should:
 - `app/services/` contains business logic
 - `app/schemas/` contains simple request/response models
 - `app/core/` contains cross-cutting concerns
+- `Makefile` is the generated local entry point for project checks when enabled
+
+### CLI Terms
+
+- use `preset` for bundled tooling defaults
+- use `template` for the overall project scaffold type
+- use `add` for post-generation function creation
 
 ## Change Discipline
 
