@@ -47,6 +47,47 @@ def test_new_command_creates_timer_project(tmp_path: Path) -> None:
     assert "app.register_functions(timer_blueprint)" in function_app_text
 
 
+@pytest.mark.parametrize(
+    ("template_name", "function_module", "test_module", "import_name"),
+    [
+        ("queue", "app/functions/queue.py", "tests/test_queue.py", "queue_blueprint"),
+        ("blob", "app/functions/blob.py", "tests/test_blob.py", "blob_blueprint"),
+        (
+            "servicebus",
+            "app/functions/servicebus.py",
+            "tests/test_servicebus.py",
+            "servicebus_blueprint",
+        ),
+    ],
+)
+def test_new_command_creates_additional_trigger_projects(
+    tmp_path: Path,
+    template_name: str,
+    function_module: str,
+    test_module: str,
+    import_name: str,
+) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "new",
+            f"{template_name}-app",
+            "--destination",
+            str(tmp_path),
+            "--template",
+            template_name,
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / f"{template_name}-app"
+    function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+    assert (project_dir / function_module).exists()
+    assert (project_dir / test_module).exists()
+    assert f"from app.functions.{template_name} import {import_name}" in function_app_text
+
+
 def test_new_command_fails_when_target_exists(tmp_path: Path) -> None:
     existing_dir = tmp_path / "my-api"
     existing_dir.mkdir()
@@ -60,11 +101,11 @@ def test_new_command_fails_when_target_exists(tmp_path: Path) -> None:
 def test_new_command_rejects_unknown_template(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
-        ["new", "my-api", "--destination", str(tmp_path), "--template", "queue"],
+        ["new", "my-api", "--destination", str(tmp_path), "--template", "durable"],
     )
 
     assert result.exit_code == 1
-    assert "Unknown template 'queue'" in result.stdout
+    assert "Unknown template 'durable'" in result.stdout
 
 
 def test_new_command_supports_minimal_preset(tmp_path: Path) -> None:
@@ -172,11 +213,45 @@ def test_add_command_rejects_invalid_trigger(tmp_path: Path) -> None:
 
     result = runner.invoke(
         app,
-        ["add", "queue", "sync-data", "--project-root", str(tmp_path / "my-api")],
+        ["add", "durable", "sync-data", "--project-root", str(tmp_path / "my-api")],
     )
 
     assert result.exit_code == 1
-    assert "Unsupported trigger 'queue'" in result.stdout
+    assert "Unsupported trigger 'durable'" in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("trigger", "function_name"),
+    [
+        ("queue", "sync-data"),
+        ("blob", "ingest-reports"),
+        ("servicebus", "process-events"),
+    ],
+)
+def test_add_additional_trigger_commands_update_existing_project(
+    tmp_path: Path,
+    trigger: str,
+    function_name: str,
+) -> None:
+    create_result = runner.invoke(app, ["new", "my-api", "--destination", str(tmp_path)])
+    assert create_result.exit_code == 0
+
+    project_dir = tmp_path / "my-api"
+    result = runner.invoke(
+        app,
+        ["add", trigger, function_name, "--project-root", str(project_dir)],
+    )
+
+    assert result.exit_code == 0
+    normalized_name = function_name.replace("-", "_")
+    assert (project_dir / f"app/functions/{normalized_name}.py").exists()
+    assert (project_dir / f"tests/test_{normalized_name}.py").exists()
+    function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+    assert (
+        f"from app.functions.{normalized_name} import {normalized_name}_blueprint"
+        in function_app_text
+    )
+    assert f"app.register_functions({normalized_name}_blueprint)" in function_app_text
 
 
 def test_main_invokes_typer_app(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -198,6 +273,9 @@ def test_templates_command_lists_available_templates() -> None:
     assert result.exit_code == 0
     assert "http: HTTP-trigger Azure Functions Python v2 application." in result.stdout
     assert "timer: Timer-trigger Azure Functions Python v2 application." in result.stdout
+    assert "queue: Queue-trigger Azure Functions Python v2 application." in result.stdout
+    assert "blob: Blob-trigger Azure Functions Python v2 application." in result.stdout
+    assert "servicebus: Service Bus-trigger Azure Functions Python v2 application." in result.stdout
 
 
 def test_version_option_prints_package_version() -> None:

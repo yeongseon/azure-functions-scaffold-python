@@ -23,11 +23,14 @@ This project does **not** support the legacy `function.json`-based Python v1 pro
 ## Features
 
 - `azure-functions-scaffold new <project-name>`
-- `azure-functions-scaffold new <project-name> --template http|timer`
+- `azure-functions-scaffold new <project-name> --template http|timer|queue|blob|servicebus`
 - `azure-functions-scaffold new --interactive`
 - `azure-functions-scaffold new <project-name> --preset minimal|standard|strict`
 - `azure-functions-scaffold add http <function-name>`
 - `azure-functions-scaffold add timer <function-name>`
+- `azure-functions-scaffold add queue <function-name>`
+- `azure-functions-scaffold add blob <function-name>`
+- `azure-functions-scaffold add servicebus <function-name>`
 - Embedded HTTP-trigger project template
 - Configurable test, lint, and packaging defaults in generated output
 - Small service-oriented application layout
@@ -60,6 +63,24 @@ Create a new timer project:
 azure-functions-scaffold new my-job --template timer
 ```
 
+Create a queue-trigger project for local Azurite development:
+
+```bash
+azure-functions-scaffold new my-worker --template queue
+```
+
+Create a blob-trigger project for local Azurite development:
+
+```bash
+azure-functions-scaffold new my-blob-worker --template blob
+```
+
+Create a Service Bus-trigger project:
+
+```bash
+azure-functions-scaffold new my-bus-worker --template servicebus
+```
+
 Create a project interactively:
 
 ```bash
@@ -90,11 +111,14 @@ List available presets:
 azure-functions-scaffold presets
 ```
 
-Add a new HTTP or timer function to an existing scaffolded project:
+Add a new function to an existing scaffolded project:
 
 ```bash
 azure-functions-scaffold add http get-user --project-root ./my-api
 azure-functions-scaffold add timer cleanup --project-root ./my-api
+azure-functions-scaffold add queue sync-jobs --project-root ./my-api
+azure-functions-scaffold add blob ingest-reports --project-root ./my-api
+azure-functions-scaffold add servicebus process-events --project-root ./my-api
 ```
 
 ## Generated Project
@@ -123,8 +147,10 @@ my-api/
    `- test_http.py
 ```
 
-The timer template follows the same top-level layout, but starts with
-`app/functions/timer.py`, `app/services/maintenance_service.py`, and `tests/test_timer.py`.
+The timer, queue, blob, and service bus templates follow the same top-level layout,
+but start with trigger-specific function, service, and test modules. The queue and blob
+templates are ready for local Azurite-based development, while the service bus template
+starts with a development connection placeholder.
 
 ## Development
 

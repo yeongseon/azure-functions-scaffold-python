@@ -1,0 +1,17 @@
+from __future__ import annotations
+
+import azure.functions as func
+
+from app.services.queue_service import decode_queue_message
+
+queue_blueprint = func.Blueprint()
+
+
+@queue_blueprint.queue_trigger(
+    arg_name="message",
+    queue_name="work-items",
+    connection="AzureWebJobsStorage",
+)
+def process_queue_message(message: func.QueueMessage) -> None:
+    payload = decode_queue_message(message)
+    print(f"Processed queue message: {payload}")

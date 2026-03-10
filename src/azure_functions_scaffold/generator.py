@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import re
 
@@ -7,7 +8,7 @@ from azure_functions_scaffold.errors import ScaffoldError
 
 FUNCTION_IMPORT_MARKER = "# azure-functions-scaffold: function imports"
 FUNCTION_REGISTRATION_MARKER = "# azure-functions-scaffold: function registrations"
-SUPPORTED_TRIGGERS = ("http", "timer")
+SUPPORTED_TRIGGERS = ("http", "timer", "queue", "blob", "servicebus")
 
 
 def add_function(
@@ -44,6 +45,7 @@ def add_function(
         import_stmt=f"from app.functions.{normalized_name} import {normalized_name}_blueprint",
         registration_stmt=f"app.register_functions({normalized_name}_blueprint)",
     )
+    _ensure_host_extensions(project_root / "host.json", normalized_trigger)
 
     return function_path
 
@@ -159,7 +161,8 @@ def {function_name}(req: func.HttpRequest) -> func.HttpResponse:
     )
 """
 
-    return f"""from __future__ import annotations
+    if trigger == "timer":
+        return f"""from __future__ import annotations
 
 import logging
 
@@ -179,6 +182,68 @@ def {function_name}(timer: func.TimerRequest) -> None:
         logging.warning("Timer trigger '{function_name}' is running late.")
 
     logging.info("Timer trigger '{function_name}' executed.")
+"""
+
+    if trigger == "queue":
+        return f"""from __future__ import annotations
+
+import logging
+
+import azure.functions as func
+
+{function_name}_blueprint = func.Blueprint()
+
+
+@{function_name}_blueprint.queue_trigger(
+    arg_name="message",
+    queue_name="work-items",
+    connection="AzureWebJobsStorage",
+)
+def {function_name}(message: func.QueueMessage) -> None:
+    payload = message.get_body().decode("utf-8")
+    logging.info("Queue trigger '{function_name}' processed: %s", payload)
+"""
+
+    if trigger == "blob":
+        return f"""from __future__ import annotations
+
+import logging
+
+import azure.functions as func
+
+{function_name}_blueprint = func.Blueprint()
+
+
+@{function_name}_blueprint.blob_trigger(
+    arg_name="blob",
+    path="samples-workitems/{{name}}",
+    connection="AzureWebJobsStorage",
+)
+def {function_name}(blob: func.InputStream) -> None:
+    logging.info(
+        "Blob trigger '{function_name}' processed %s (%s bytes).",
+        blob.name,
+        blob.length,
+    )
+"""
+
+    return f"""from __future__ import annotations
+
+import logging
+
+import azure.functions as func
+
+{function_name}_blueprint = func.Blueprint()
+
+
+@{function_name}_blueprint.service_bus_queue_trigger(
+    arg_name="message",
+    queue_name="work-items",
+    connection="ServiceBusConnection",
+)
+def {function_name}(message: func.ServiceBusMessage) -> None:
+    body = b"".join(message.get_body()).decode("utf-8")
+    logging.info("Service Bus trigger '{function_name}' processed: %s", body)
 """
 
 
@@ -206,7 +271,8 @@ def test_{function_name}_returns_placeholder_response() -> None:
     assert response.get_body() == b"TODO: implement {route_name}"
 """
 
-    return f"""from __future__ import annotations
+    if trigger == "timer":
+        return f"""from __future__ import annotations
 
 from types import SimpleNamespace
 
@@ -218,3 +284,59 @@ def test_{function_name}_runs_without_error() -> None:
 
     {function_name}(timer)
 """
+
+    if trigger == "queue":
+        return f"""from __future__ import annotations
+
+from types import SimpleNamespace
+
+from app.functions.{function_name} import {function_name}
+
+
+def test_{function_name}_runs_without_error() -> None:
+    message = SimpleNamespace(get_body=lambda: b"hello")
+
+    {function_name}(message)
+"""
+
+    if trigger == "blob":
+        return f"""from __future__ import annotations
+
+from types import SimpleNamespace
+
+from app.functions.{function_name} import {function_name}
+
+
+def test_{function_name}_runs_without_error() -> None:
+    blob = SimpleNamespace(name="samples-workitems/input.txt", length=12)
+
+    {function_name}(blob)
+"""
+
+    return f"""from __future__ import annotations
+
+from types import SimpleNamespace
+
+from app.functions.{function_name} import {function_name}
+
+
+def test_{function_name}_runs_without_error() -> None:
+    message = SimpleNamespace(get_body=lambda: [b"hello"])
+
+    {function_name}(message)
+"""
+
+
+def _ensure_host_extensions(host_json_path: Path, trigger: str) -> None:
+    if trigger not in {"queue", "blob", "servicebus"} or not host_json_path.exists():
+        return
+
+    host_config = json.loads(host_json_path.read_text(encoding="utf-8"))
+    if "extensionBundle" in host_config:
+        return
+
+    host_config["extensionBundle"] = {
+        "id": "Microsoft.Azure.Functions.ExtensionBundle",
+        "version": "[4.*, 5.0.0)",
+    }
+    host_json_path.write_text(f"{json.dumps(host_config, indent=2)}\n", encoding="utf-8")

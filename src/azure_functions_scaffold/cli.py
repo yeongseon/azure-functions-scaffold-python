@@ -107,7 +107,7 @@ def new_project(
         ),
     ] = False,
 ) -> None:
-    """Create a new Azure Functions HTTP scaffold."""
+    """Create a new Azure Functions Python v2 scaffold."""
     try:
         resolved_name, resolved_template, resolved_options = _resolve_new_project_inputs(
             project_name=project_name,

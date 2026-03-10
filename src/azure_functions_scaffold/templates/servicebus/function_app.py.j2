@@ -1,0 +1,13 @@
+from __future__ import annotations
+
+import azure.functions as func
+
+from app.core.logging import configure_logging
+from app.functions.servicebus import servicebus_blueprint
+# azure-functions-scaffold: function imports
+
+configure_logging()
+
+app = func.FunctionApp()
+app.register_functions(servicebus_blueprint)
+# azure-functions-scaffold: function registrations

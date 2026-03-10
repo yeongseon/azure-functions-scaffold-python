@@ -1,0 +1,11 @@
+from __future__ import annotations
+
+from types import SimpleNamespace
+
+from app.functions.queue import process_queue_message
+
+
+def test_process_queue_message_runs_without_error() -> None:
+    message = SimpleNamespace(get_body=lambda: b"hello from queue")
+
+    process_queue_message(message)

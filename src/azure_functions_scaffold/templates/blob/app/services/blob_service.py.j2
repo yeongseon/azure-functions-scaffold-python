@@ -1,0 +1,7 @@
+from __future__ import annotations
+
+import azure.functions as func
+
+
+def describe_blob(blob: func.InputStream) -> str:
+    return f"Processed blob {blob.name} ({blob.length} bytes)"

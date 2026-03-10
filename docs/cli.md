@@ -36,7 +36,7 @@ Creates a new Azure Functions Python v2 project from one of the built-in simple 
 
 - optional
 - default: `http`
-- supported values: `http`, `timer`
+- supported values: `http`, `timer`, `queue`, `blob`, `servicebus`
 - selects the scaffold template to render
 
 `--preset`
@@ -96,6 +96,24 @@ Timer template example:
 azure-functions-scaffold new my-job --template timer
 ```
 
+Queue template example:
+
+```bash
+azure-functions-scaffold new my-worker --template queue
+```
+
+Blob template example:
+
+```bash
+azure-functions-scaffold new my-blob-worker --template blob
+```
+
+Service Bus template example:
+
+```bash
+azure-functions-scaffold new my-bus-worker --template servicebus
+```
+
 Result:
 
 - creates `./my-api`
@@ -115,7 +133,7 @@ Adds a new function module to an existing scaffolded project.
 `trigger`
 
 - required
-- supported values: `http`, `timer`
+- supported values: `http`, `timer`, `queue`, `blob`, `servicebus`
 
 `function-name`
 
@@ -142,6 +160,24 @@ Timer example:
 
 ```bash
 azure-functions-scaffold add timer cleanup --project-root ./my-api
+```
+
+Queue example:
+
+```bash
+azure-functions-scaffold add queue sync-jobs --project-root ./my-api
+```
+
+Blob example:
+
+```bash
+azure-functions-scaffold add blob ingest-reports --project-root ./my-api
+```
+
+Service Bus example:
+
+```bash
+azure-functions-scaffold add servicebus process-events --project-root ./my-api
 ```
 
 Result:
@@ -179,6 +215,9 @@ Current output includes:
 ```text
 http: HTTP-trigger Azure Functions Python v2 application.
 timer: Timer-trigger Azure Functions Python v2 application.
+queue: Queue-trigger Azure Functions Python v2 application.
+blob: Blob-trigger Azure Functions Python v2 application.
+servicebus: Service Bus-trigger Azure Functions Python v2 application.
 ```
 
 ## `presets`
@@ -217,12 +256,11 @@ Not currently supported:
 - overwriting existing projects
 - dry-run mode
 - post-generation dependency installation
-- queue, Service Bus, or blob function generation
+- durable orchestrations and activities
 
 ## Future CLI Surface
 
 Likely future additions:
 
-- `azure-functions-scaffold add queue <function-name>`
 - richer interactive tooling selection beyond preset choice
 - additional deployment-oriented templates

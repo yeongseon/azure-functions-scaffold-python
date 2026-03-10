@@ -31,13 +31,19 @@ from azure_functions_scaffold.template_registry import (
 def test_list_templates_returns_http_template() -> None:
     templates = list_templates()
 
-    assert [template.name for template in templates] == ["http", "timer"]
+    assert [template.name for template in templates] == [
+        "http",
+        "timer",
+        "queue",
+        "blob",
+        "servicebus",
+    ]
     assert all(template.root.is_dir() for template in templates)
 
 
 def test_get_template_rejects_unknown_name() -> None:
     with pytest.raises(ScaffoldError, match="Unknown template"):
-        get_template("queue")
+        get_template("durable")
 
 
 @pytest.mark.parametrize(
@@ -158,6 +164,27 @@ def test_scaffold_project_renders_timer_template_option(tmp_path: Path) -> None:
     assert (project_path / "tests/test_timer.py").exists()
     function_app_text = (project_path / "function_app.py").read_text(encoding="utf-8")
     assert "from app.functions.timer import timer_blueprint" in function_app_text
+
+
+@pytest.mark.parametrize(
+    ("template_name", "expected_module", "expected_test"),
+    [
+        ("queue", "app/functions/queue.py", "tests/test_queue.py"),
+        ("blob", "app/functions/blob.py", "tests/test_blob.py"),
+        ("servicebus", "app/functions/servicebus.py", "tests/test_servicebus.py"),
+    ],
+)
+def test_scaffold_project_renders_additional_trigger_templates(
+    tmp_path: Path,
+    template_name: str,
+    expected_module: str,
+    expected_test: str,
+) -> None:
+    project_path = scaffold_project("sample-worker", tmp_path, template_name=template_name)
+
+    assert project_path == tmp_path / "sample-worker"
+    assert (project_path / expected_module).exists()
+    assert (project_path / expected_test).exists()
 
 
 def test_list_presets_returns_supported_presets() -> None:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -14,7 +15,7 @@ def test_add_function_rejects_unknown_trigger(tmp_path: Path) -> None:
     project_root = scaffold_project("sample", tmp_path)
 
     with pytest.raises(ScaffoldError, match="Unsupported trigger"):
-        add_function(project_root=project_root, trigger="queue", function_name="sync-data")
+        add_function(project_root=project_root, trigger="durable", function_name="sync-data")
 
 
 def test_add_function_rejects_non_scaffold_project(tmp_path: Path) -> None:
@@ -94,3 +95,46 @@ def test_add_function_can_skip_test_generation_for_minimal_preset(tmp_path: Path
 
     assert function_path == project_root / "app/functions/sync_data.py"
     assert not (project_root / "tests/test_sync_data.py").exists()
+
+
+@pytest.mark.parametrize(
+    ("trigger", "function_name"),
+    [
+        ("queue", "sync-data"),
+        ("blob", "ingest-reports"),
+        ("servicebus", "process-events"),
+    ],
+)
+def test_add_function_supports_additional_triggers(
+    tmp_path: Path,
+    trigger: str,
+    function_name: str,
+) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+
+    function_path = add_function(
+        project_root=project_root,
+        trigger=trigger,
+        function_name=function_name,
+    )
+
+    normalized_name = function_name.replace("-", "_")
+    assert function_path == project_root / f"app/functions/{normalized_name}.py"
+    assert (project_root / f"tests/test_{normalized_name}.py").exists()
+
+
+@pytest.mark.parametrize("trigger", ["queue", "blob", "servicebus"])
+def test_add_function_adds_extension_bundle_for_binding_triggers(
+    tmp_path: Path,
+    trigger: str,
+) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+
+    add_function(
+        project_root=project_root,
+        trigger=trigger,
+        function_name=f"{trigger}-handler",
+    )
+
+    host_config = json.loads((project_root / "host.json").read_text(encoding="utf-8"))
+    assert host_config["extensionBundle"]["id"] == "Microsoft.Azure.Functions.ExtensionBundle"

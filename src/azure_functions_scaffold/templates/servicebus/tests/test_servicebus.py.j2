@@ -1,0 +1,11 @@
+from __future__ import annotations
+
+from types import SimpleNamespace
+
+from app.functions.servicebus import process_servicebus_message
+
+
+def test_process_servicebus_message_runs_without_error() -> None:
+    message = SimpleNamespace(get_body=lambda: [b"hello from service bus"])
+
+    process_servicebus_message(message)

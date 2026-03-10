@@ -1,0 +1,16 @@
+from __future__ import annotations
+
+import azure.functions as func
+
+from app.services.blob_service import describe_blob
+
+blob_blueprint = func.Blueprint()
+
+
+@blob_blueprint.blob_trigger(
+    arg_name="blob",
+    path="samples-workitems/{name}",
+    connection="AzureWebJobsStorage",
+)
+def process_blob(blob: func.InputStream) -> None:
+    print(describe_blob(blob))

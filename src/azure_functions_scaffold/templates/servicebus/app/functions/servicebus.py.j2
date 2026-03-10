@@ -1,0 +1,17 @@
+from __future__ import annotations
+
+import azure.functions as func
+
+from app.services.servicebus_service import decode_servicebus_message
+
+servicebus_blueprint = func.Blueprint()
+
+
+@servicebus_blueprint.service_bus_queue_trigger(
+    arg_name="message",
+    queue_name="work-items",
+    connection="ServiceBusConnection",
+)
+def process_servicebus_message(message: func.ServiceBusMessage) -> None:
+    payload = decode_servicebus_message(message)
+    print(f"Processed Service Bus message: {payload}")

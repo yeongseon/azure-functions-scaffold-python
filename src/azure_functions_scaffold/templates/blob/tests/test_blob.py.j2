@@ -1,0 +1,11 @@
+from __future__ import annotations
+
+from types import SimpleNamespace
+
+from app.functions.blob import process_blob
+
+
+def test_process_blob_runs_without_error() -> None:
+    blob = SimpleNamespace(name="samples-workitems/input.txt", length=16)
+
+    process_blob(blob)

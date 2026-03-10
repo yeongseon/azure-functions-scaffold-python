@@ -22,6 +22,21 @@ def list_templates() -> list[TemplateSpec]:
             description="Timer-trigger Azure Functions Python v2 application.",
             root=TEMPLATE_ROOT / "timer",
         ),
+        TemplateSpec(
+            name="queue",
+            description="Queue-trigger Azure Functions Python v2 application.",
+            root=TEMPLATE_ROOT / "queue",
+        ),
+        TemplateSpec(
+            name="blob",
+            description="Blob-trigger Azure Functions Python v2 application.",
+            root=TEMPLATE_ROOT / "blob",
+        ),
+        TemplateSpec(
+            name="servicebus",
+            description="Service Bus-trigger Azure Functions Python v2 application.",
+            root=TEMPLATE_ROOT / "servicebus",
+        ),
     ]
 
 

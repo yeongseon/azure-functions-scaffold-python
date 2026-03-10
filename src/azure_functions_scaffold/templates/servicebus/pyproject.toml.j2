@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "{{ project_name }}"
+version = "0.1.0"
+description = "Azure Functions Python v2 app scaffolded by azure-functions-scaffold."
+readme = "README.md"
+requires-python = ">={{ python_version }},<{{ python_upper_bound }}"
+dependencies = [
+  "azure-functions>=1.23.0",
+]
+
+[project.optional-dependencies]
+dev = [
+{% if include_pytest -%}
+  "pytest>=8.3.5",
+{% endif -%}
+{% if include_ruff -%}
+  "ruff>=0.11.0",
+{% endif -%}
+{% if include_mypy -%}
+  "mypy>=1.17.1",
+{% endif -%}
+]
+
+{% if include_pytest -%}
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+{% endif %}
+
+{% if include_ruff -%}
+[tool.ruff]
+line-length = 100
+target-version = "py{{ python_version | replace('.', '') }}"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+{% endif %}
+
+{% if include_mypy -%}
+[tool.mypy]
+python_version = "{{ python_version }}"
+strict = true
+pretty = true
+{% endif %}
