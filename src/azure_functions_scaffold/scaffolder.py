@@ -51,8 +51,8 @@ def scaffold_project(
         output_path = target_dir / rendered_path
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        template_name = relative_path.as_posix()
-        rendered_content = environment.get_template(template_name).render(
+        template_rel_name = relative_path.as_posix()
+        rendered_content = environment.get_template(template_rel_name).render(
             project_name=context.project_name,
             project_slug=context.project_slug,
             python_version=context.python_version,

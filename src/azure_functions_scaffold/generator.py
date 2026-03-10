@@ -242,7 +242,7 @@ import azure.functions as func
     connection="ServiceBusConnection",
 )
 def {function_name}(message: func.ServiceBusMessage) -> None:
-    body = b"".join(message.get_body()).decode("utf-8")
+    body = message.get_body().decode("utf-8")
     logging.info("Service Bus trigger '{function_name}' processed: %s", body)
 """
 
@@ -321,7 +321,7 @@ from app.functions.{function_name} import {function_name}
 
 
 def test_{function_name}_runs_without_error() -> None:
-    message = SimpleNamespace(get_body=lambda: [b"hello"])
+    message = SimpleNamespace(get_body=lambda: b"hello")
 
     {function_name}(message)
 """

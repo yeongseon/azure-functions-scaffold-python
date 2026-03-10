@@ -134,6 +134,7 @@ pythonpath = ["src"]
 [tool.coverage.run]
 branch = true
 source = ["src/azure_functions_scaffold"]
+omit = ["src/azure_functions_scaffold/templates/**/*.j2"]
 
 [tool.coverage.report]
 show_missing = true
