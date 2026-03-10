@@ -14,7 +14,7 @@ azure-functions-scaffold --version
 
 ## `new`
 
-Creates a new Azure Functions Python v2 project from the default HTTP template.
+Creates a new Azure Functions Python v2 project from one of the built-in simple templates.
 
 ### Arguments
 
@@ -36,6 +36,7 @@ Creates a new Azure Functions Python v2 project from the default HTTP template.
 
 - optional
 - default: `http`
+- supported values: `http`, `timer`
 - selects the scaffold template to render
 
 `--preset`
@@ -87,6 +88,12 @@ Preset example:
 
 ```bash
 azure-functions-scaffold new my-api --preset strict --python-version 3.12 --github-actions
+```
+
+Timer template example:
+
+```bash
+azure-functions-scaffold new my-job --template timer
 ```
 
 Result:
@@ -171,6 +178,7 @@ Current output includes:
 
 ```text
 http: HTTP-trigger Azure Functions Python v2 application.
+timer: Timer-trigger Azure Functions Python v2 application.
 ```
 
 ## `presets`
@@ -215,7 +223,6 @@ Not currently supported:
 
 Likely future additions:
 
-- `azure-functions-scaffold new <project-name> --template timer`
 - `azure-functions-scaffold add queue <function-name>`
 - richer interactive tooling selection beyond preset choice
 - additional deployment-oriented templates

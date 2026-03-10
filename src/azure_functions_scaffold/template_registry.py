@@ -16,7 +16,12 @@ def list_templates() -> list[TemplateSpec]:
             name="http",
             description="HTTP-trigger Azure Functions Python v2 application.",
             root=TEMPLATE_ROOT / "http",
-        )
+        ),
+        TemplateSpec(
+            name="timer",
+            description="Timer-trigger Azure Functions Python v2 application.",
+            root=TEMPLATE_ROOT / "timer",
+        ),
     ]
 
 
@@ -34,17 +39,17 @@ def list_presets() -> list[PresetSpec]:
     return [
         PresetSpec(
             name="minimal",
-            description="Minimal HTTP function with no additional quality tooling.",
+            description="Minimal Azure Functions project with no additional quality tooling.",
             tooling=(),
         ),
         PresetSpec(
             name="standard",
-            description="HTTP function with Ruff and pytest defaults.",
+            description="Azure Functions project with Ruff and pytest defaults.",
             tooling=("ruff", "pytest"),
         ),
         PresetSpec(
             name="strict",
-            description="HTTP function with Ruff, mypy, and pytest defaults.",
+            description="Azure Functions project with Ruff, mypy, and pytest defaults.",
             tooling=("ruff", "mypy", "pytest"),
         ),
     ]

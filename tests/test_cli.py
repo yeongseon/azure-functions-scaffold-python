@@ -31,6 +31,22 @@ def test_new_command_creates_http_project(tmp_path: Path) -> None:
     ).read_text(encoding="utf-8")
 
 
+def test_new_command_creates_timer_project(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "my-job", "--destination", str(tmp_path), "--template", "timer"],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "my-job"
+    function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+    assert (project_dir / "app/functions/timer.py").exists()
+    assert (project_dir / "tests/test_timer.py").exists()
+    assert "from app.functions.timer import timer_blueprint" in function_app_text
+    assert "app.register_functions(timer_blueprint)" in function_app_text
+
+
 def test_new_command_fails_when_target_exists(tmp_path: Path) -> None:
     existing_dir = tmp_path / "my-api"
     existing_dir.mkdir()
@@ -44,11 +60,11 @@ def test_new_command_fails_when_target_exists(tmp_path: Path) -> None:
 def test_new_command_rejects_unknown_template(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
-        ["new", "my-api", "--destination", str(tmp_path), "--template", "timer"],
+        ["new", "my-api", "--destination", str(tmp_path), "--template", "queue"],
     )
 
     assert result.exit_code == 1
-    assert "Unknown template 'timer'" in result.stdout
+    assert "Unknown template 'queue'" in result.stdout
 
 
 def test_new_command_supports_minimal_preset(tmp_path: Path) -> None:
@@ -146,8 +162,8 @@ def test_presets_command_lists_available_presets() -> None:
     result = runner.invoke(app, ["presets"])
 
     assert result.exit_code == 0
-    assert "minimal: Minimal HTTP function" in result.stdout
-    assert "strict: HTTP function with Ruff, mypy, and pytest defaults." in result.stdout
+    assert "minimal: Minimal Azure Functions project" in result.stdout
+    assert "strict: Azure Functions project with Ruff, mypy, and pytest defaults." in result.stdout
 
 
 def test_add_command_rejects_invalid_trigger(tmp_path: Path) -> None:
@@ -181,6 +197,7 @@ def test_templates_command_lists_available_templates() -> None:
 
     assert result.exit_code == 0
     assert "http: HTTP-trigger Azure Functions Python v2 application." in result.stdout
+    assert "timer: Timer-trigger Azure Functions Python v2 application." in result.stdout
 
 
 def test_version_option_prints_package_version() -> None:

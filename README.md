@@ -23,6 +23,7 @@ This project does **not** support the legacy `function.json`-based Python v1 pro
 ## Features
 
 - `azure-functions-scaffold new <project-name>`
+- `azure-functions-scaffold new <project-name> --template http|timer`
 - `azure-functions-scaffold new --interactive`
 - `azure-functions-scaffold new <project-name> --preset minimal|standard|strict`
 - `azure-functions-scaffold add http <function-name>`
@@ -47,10 +48,16 @@ make install
 
 ## Usage
 
-Create a new project in the current directory:
+Create a new HTTP project in the current directory:
 
 ```bash
 azure-functions-scaffold new my-api
+```
+
+Create a new timer project:
+
+```bash
+azure-functions-scaffold new my-job --template timer
 ```
 
 Create a project interactively:
@@ -115,6 +122,9 @@ my-api/
 `- tests/
    `- test_http.py
 ```
+
+The timer template follows the same top-level layout, but starts with
+`app/functions/timer.py`, `app/services/maintenance_service.py`, and `tests/test_timer.py`.
 
 ## Development
 

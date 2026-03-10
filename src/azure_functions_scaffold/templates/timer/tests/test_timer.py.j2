@@ -1,0 +1,11 @@
+from __future__ import annotations
+
+from types import SimpleNamespace
+
+from app.functions.timer import cleanup
+
+
+def test_cleanup_runs_without_error() -> None:
+    timer = SimpleNamespace(past_due=False)
+
+    cleanup(timer)

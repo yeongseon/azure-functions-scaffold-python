@@ -31,13 +31,13 @@ from azure_functions_scaffold.template_registry import (
 def test_list_templates_returns_http_template() -> None:
     templates = list_templates()
 
-    assert [template.name for template in templates] == ["http"]
-    assert templates[0].root.is_dir()
+    assert [template.name for template in templates] == ["http", "timer"]
+    assert all(template.root.is_dir() for template in templates)
 
 
 def test_get_template_rejects_unknown_name() -> None:
     with pytest.raises(ScaffoldError, match="Unknown template"):
-        get_template("timer")
+        get_template("queue")
 
 
 @pytest.mark.parametrize(
@@ -148,6 +148,16 @@ def test_scaffold_project_renders_template_option(tmp_path: Path) -> None:
 
     assert project_path == tmp_path / "sample"
     assert (project_path / "README.md").exists()
+
+
+def test_scaffold_project_renders_timer_template_option(tmp_path: Path) -> None:
+    project_path = scaffold_project("sample-job", tmp_path, template_name="timer")
+
+    assert project_path == tmp_path / "sample-job"
+    assert (project_path / "app/functions/timer.py").exists()
+    assert (project_path / "tests/test_timer.py").exists()
+    function_app_text = (project_path / "function_app.py").read_text(encoding="utf-8")
+    assert "from app.functions.timer import timer_blueprint" in function_app_text
 
 
 def test_list_presets_returns_supported_presets() -> None:

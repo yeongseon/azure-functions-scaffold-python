@@ -1,0 +1,22 @@
+from __future__ import annotations
+
+import logging
+
+import azure.functions as func
+
+from app.services.maintenance_service import build_tick_message
+
+timer_blueprint = func.Blueprint()
+
+
+@timer_blueprint.timer_trigger(
+    arg_name="timer",
+    schedule="0 */5 * * * *",
+    run_on_startup=False,
+    use_monitor=True,
+)
+def cleanup(timer: func.TimerRequest) -> None:
+    if timer.past_due:
+        logging.warning("Timer trigger 'cleanup' is running late.")
+
+    logging.info(build_tick_message())
