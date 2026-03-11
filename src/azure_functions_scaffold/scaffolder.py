@@ -8,7 +8,7 @@ import subprocess  # nosec B404
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from azure_functions_scaffold.errors import ScaffoldError
-from azure_functions_scaffold.models import ProjectOptions, TemplateContext
+from azure_functions_scaffold.models import ProjectOptions, TemplateContext, TemplateSpec
 from azure_functions_scaffold.template_registry import build_project_options, get_template
 
 
@@ -19,14 +19,12 @@ def scaffold_project(
     options: ProjectOptions | None = None,
     overwrite: bool = False,
 ) -> Path:
-    resolved_options = options or build_project_options(
-        preset_name="standard",
-        python_version="3.10",
-        include_github_actions=False,
-        initialize_git=False,
+    context, target_dir, template = _resolve_scaffold_inputs(
+        project_name=project_name,
+        destination=destination,
+        template_name=template_name,
+        options=options,
     )
-    context = build_template_context(project_name, resolved_options)
-    target_dir = resolve_target_dir(destination=destination, project_name=context.project_name)
     if target_dir.exists():
         if not overwrite:
             raise ScaffoldError(
@@ -34,7 +32,6 @@ def scaffold_project(
             )
         shutil.rmtree(target_dir)
 
-    template = get_template(template_name)
     template_root = template.root
     environment = Environment(
         loader=FileSystemLoader(str(template_root)),
@@ -83,15 +80,12 @@ def describe_scaffold_project(
     options: ProjectOptions | None = None,
     overwrite: bool = False,
 ) -> list[str]:
-    resolved_options = options or build_project_options(
-        preset_name="standard",
-        python_version="3.10",
-        include_github_actions=False,
-        initialize_git=False,
+    context, target_dir, template = _resolve_scaffold_inputs(
+        project_name=project_name,
+        destination=destination,
+        template_name=template_name,
+        options=options,
     )
-    context = build_template_context(project_name, resolved_options)
-    target_dir = resolve_target_dir(destination=destination, project_name=context.project_name)
-    template = get_template(template_name)
 
     lines = [
         f"Dry run: create project at {target_dir}",
@@ -142,6 +136,12 @@ def validate_project_name(project_name: str) -> str:
     if not normalized_name:
         raise ScaffoldError("Project name must not be empty.")
 
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", normalized_name):
+        raise ScaffoldError(
+            "Project name must start with a letter or number and contain only letters, "
+            "numbers, hyphens, or underscores."
+        )
+
     if normalized_name in {".", ".."}:
         raise ScaffoldError("Project name must be a normal directory name.")
 
@@ -177,7 +177,7 @@ def _should_render_template(relative_path: Path, context: TemplateContext) -> bo
 def _render_path(relative_path: Path, context: TemplateContext) -> Path:
     rendered_parts: list[str] = []
     for part in relative_path.parts:
-        rendered = part.replace("__project_name__", _slugify(context.project_name))
+        rendered = part.replace("__project_name__", context.project_slug)
         if rendered.endswith(".j2"):
             rendered = rendered[:-3]
         rendered_parts.append(rendered)
@@ -192,6 +192,25 @@ def _slugify(value: str) -> str:
 def _next_python_minor(python_version: str) -> str:
     major, minor = python_version.split(".", maxsplit=1)
     return f"{major}.{int(minor) + 1}"
+
+
+def _resolve_scaffold_inputs(
+    *,
+    project_name: str,
+    destination: Path,
+    template_name: str,
+    options: ProjectOptions | None,
+) -> tuple[TemplateContext, Path, TemplateSpec]:
+    resolved_options = options or build_project_options(
+        preset_name="standard",
+        python_version="3.10",
+        include_github_actions=False,
+        initialize_git=False,
+    )
+    context = build_template_context(project_name, resolved_options)
+    target_dir = resolve_target_dir(destination=destination, project_name=context.project_name)
+    template = get_template(template_name)
+    return context, target_dir, template
 
 
 def _initialize_git_repository(project_root: Path) -> None:

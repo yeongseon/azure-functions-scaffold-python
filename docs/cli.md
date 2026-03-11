@@ -23,6 +23,8 @@ Creates a new Azure Functions Python v2 project from one of the built-in simple 
 - optional when `--interactive` is used
 - used as the output directory name
 - also injected into template rendering context as `project_name`
+- must start with an alphanumeric character
+- may contain only letters, numbers, hyphens, and underscores
 
 ### Options
 

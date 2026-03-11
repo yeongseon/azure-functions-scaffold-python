@@ -66,7 +66,7 @@ def test_validate_project_name_accepts_supported_names(
 
 @pytest.mark.parametrize(
     "project_name",
-    ["", "   ", ".", "..", "foo/bar", "foo\\bar", "-name"],
+    ["", "   ", ".", "..", "foo/bar", "foo\\bar", "-name", "my project", "한글이름"],
 )
 def test_validate_project_name_rejects_invalid_values(project_name: str) -> None:
     with pytest.raises(ScaffoldError):
@@ -80,10 +80,10 @@ def test_build_template_context_creates_slug() -> None:
         include_github_actions=False,
         initialize_git=False,
     )
-    context = build_template_context("My API", options)
+    context = build_template_context("My_API", options)
 
     assert context == TemplateContext(
-        project_name="My API",
+        project_name="My_API",
         project_slug="my-api",
         python_version="3.10",
         python_upper_bound="3.11",

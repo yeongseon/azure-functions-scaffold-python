@@ -5,10 +5,11 @@ from pathlib import Path
 import re
 
 from azure_functions_scaffold.errors import ScaffoldError
+from azure_functions_scaffold.template_registry import list_templates
 
 FUNCTION_IMPORT_MARKER = "# azure-functions-scaffold: function imports"
 FUNCTION_REGISTRATION_MARKER = "# azure-functions-scaffold: function registrations"
-SUPPORTED_TRIGGERS = ("http", "timer", "queue", "blob", "servicebus")
+SUPPORTED_TRIGGERS = tuple(template.name for template in list_templates())
 
 
 def add_function(

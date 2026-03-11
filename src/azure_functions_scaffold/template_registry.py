@@ -8,36 +8,54 @@ from azure_functions_scaffold.models import PresetSpec, ProjectOptions, Template
 TEMPLATE_ROOT = Path(__file__).parent / "templates"
 SUPPORTED_PYTHON_VERSIONS = ("3.10", "3.11", "3.12", "3.13", "3.14")
 SUPPORTED_TOOLING = ("ruff", "mypy", "pytest")
+TEMPLATE_SPECS = (
+    TemplateSpec(
+        name="http",
+        description="HTTP-trigger Azure Functions Python v2 application.",
+        root=TEMPLATE_ROOT / "http",
+    ),
+    TemplateSpec(
+        name="timer",
+        description="Timer-trigger Azure Functions Python v2 application.",
+        root=TEMPLATE_ROOT / "timer",
+    ),
+    TemplateSpec(
+        name="queue",
+        description="Queue-trigger Azure Functions Python v2 application.",
+        root=TEMPLATE_ROOT / "queue",
+    ),
+    TemplateSpec(
+        name="blob",
+        description="Blob-trigger Azure Functions Python v2 application.",
+        root=TEMPLATE_ROOT / "blob",
+    ),
+    TemplateSpec(
+        name="servicebus",
+        description="Service Bus-trigger Azure Functions Python v2 application.",
+        root=TEMPLATE_ROOT / "servicebus",
+    ),
+)
+PRESET_SPECS = (
+    PresetSpec(
+        name="minimal",
+        description="Minimal Azure Functions project with no additional quality tooling.",
+        tooling=(),
+    ),
+    PresetSpec(
+        name="standard",
+        description="Azure Functions project with Ruff and pytest defaults.",
+        tooling=("ruff", "pytest"),
+    ),
+    PresetSpec(
+        name="strict",
+        description="Azure Functions project with Ruff, mypy, and pytest defaults.",
+        tooling=("ruff", "mypy", "pytest"),
+    ),
+)
 
 
 def list_templates() -> list[TemplateSpec]:
-    return [
-        TemplateSpec(
-            name="http",
-            description="HTTP-trigger Azure Functions Python v2 application.",
-            root=TEMPLATE_ROOT / "http",
-        ),
-        TemplateSpec(
-            name="timer",
-            description="Timer-trigger Azure Functions Python v2 application.",
-            root=TEMPLATE_ROOT / "timer",
-        ),
-        TemplateSpec(
-            name="queue",
-            description="Queue-trigger Azure Functions Python v2 application.",
-            root=TEMPLATE_ROOT / "queue",
-        ),
-        TemplateSpec(
-            name="blob",
-            description="Blob-trigger Azure Functions Python v2 application.",
-            root=TEMPLATE_ROOT / "blob",
-        ),
-        TemplateSpec(
-            name="servicebus",
-            description="Service Bus-trigger Azure Functions Python v2 application.",
-            root=TEMPLATE_ROOT / "servicebus",
-        ),
-    ]
+    return list(TEMPLATE_SPECS)
 
 
 def get_template(name: str) -> TemplateSpec:
@@ -51,23 +69,7 @@ def get_template(name: str) -> TemplateSpec:
 
 
 def list_presets() -> list[PresetSpec]:
-    return [
-        PresetSpec(
-            name="minimal",
-            description="Minimal Azure Functions project with no additional quality tooling.",
-            tooling=(),
-        ),
-        PresetSpec(
-            name="standard",
-            description="Azure Functions project with Ruff and pytest defaults.",
-            tooling=("ruff", "pytest"),
-        ),
-        PresetSpec(
-            name="strict",
-            description="Azure Functions project with Ruff, mypy, and pytest defaults.",
-            tooling=("ruff", "mypy", "pytest"),
-        ),
-    ]
+    return list(PRESET_SPECS)
 
 
 def get_preset(name: str) -> PresetSpec:

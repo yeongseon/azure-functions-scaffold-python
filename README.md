@@ -11,6 +11,9 @@
 
 Scaffolding CLI for production-leaning Azure Functions Python v2 projects.
 
+Project names must start with an alphanumeric character and use only letters,
+numbers, hyphens, or underscores.
+
 ## Scope
 
 - Azure Functions Python **v2 programming model**

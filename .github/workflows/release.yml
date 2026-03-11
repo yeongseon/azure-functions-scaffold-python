@@ -53,4 +53,4 @@ jobs:
         run: python -m build
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@ed0c539d650490cc3f3bc7e81ddedff400bb7cf5 # v1.13.0
