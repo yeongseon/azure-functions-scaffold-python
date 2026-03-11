@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from azure_functions_scaffold.errors import ScaffoldError
-from azure_functions_scaffold.generator import add_function
+from azure_functions_scaffold.generator import add_function, describe_add_function
 from azure_functions_scaffold.scaffolder import scaffold_project
 from azure_functions_scaffold.template_registry import build_project_options
 
@@ -153,3 +153,19 @@ def test_add_servicebus_function_updates_local_settings_example(tmp_path: Path) 
         (project_root / "local.settings.json.example").read_text(encoding="utf-8")
     )
     assert "ServiceBusConnection" in local_settings["Values"]
+
+
+def test_describe_add_function_reports_expected_changes(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+
+    lines = describe_add_function(
+        project_root=project_root,
+        trigger="servicebus",
+        function_name="process-events",
+    )
+
+    assert lines[0] == "Dry run: add servicebus function 'process_events'"
+    assert "  - app/functions/process_events.py" in lines
+    assert "  - tests/test_process_events.py" in lines
+    assert "  - host.json extensionBundle" in lines
+    assert "  - local.settings.json.example ServiceBusConnection" in lines

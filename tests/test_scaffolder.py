@@ -15,6 +15,7 @@ from azure_functions_scaffold.scaffolder import (
     _render_path,
     _slugify,
     build_template_context,
+    describe_scaffold_project,
     resolve_target_dir,
     scaffold_project,
     validate_project_name,
@@ -149,6 +150,29 @@ def test_scaffold_project_rejects_existing_target(tmp_path: Path) -> None:
 
     with pytest.raises(ScaffoldError, match="Target directory already exists"):
         scaffold_project("sample", tmp_path)
+
+
+def test_describe_scaffold_project_reports_expected_files(tmp_path: Path) -> None:
+    lines = describe_scaffold_project(
+        "sample",
+        tmp_path,
+        template_name="queue",
+        options=build_project_options(
+            preset_name="strict",
+            python_version="3.12",
+            include_github_actions=True,
+            initialize_git=True,
+        ),
+    )
+
+    assert lines[0] == f"Dry run: create project at {tmp_path / 'sample'}"
+    assert "Template: queue" in lines
+    assert "Preset: strict" in lines
+    assert "GitHub Actions: enabled" in lines
+    assert "Git initialization: enabled" in lines
+    assert "  - function_app.py" in lines
+    assert "  - app/functions/queue.py" in lines
+    assert "  - .github/workflows/ci.yml" in lines
 
 
 def test_scaffold_project_renders_template_option(tmp_path: Path) -> None:

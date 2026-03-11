@@ -87,6 +87,12 @@ Create a project interactively:
 azure-functions-scaffold new --interactive
 ```
 
+Preview a generated project without writing files:
+
+```bash
+azure-functions-scaffold new my-api --template queue --preset strict --dry-run
+```
+
 Create a strict project with GitHub Actions enabled:
 
 ```bash
@@ -119,6 +125,12 @@ azure-functions-scaffold add timer cleanup --project-root ./my-api
 azure-functions-scaffold add queue sync-jobs --project-root ./my-api
 azure-functions-scaffold add blob ingest-reports --project-root ./my-api
 azure-functions-scaffold add servicebus process-events --project-root ./my-api
+```
+
+Preview an added function without modifying the project:
+
+```bash
+azure-functions-scaffold add servicebus process-events --project-root ./my-api --dry-run
 ```
 
 ## Generated Project

@@ -51,6 +51,45 @@ def add_function(
     return function_path
 
 
+def describe_add_function(
+    *,
+    project_root: Path,
+    trigger: str,
+    function_name: str,
+) -> list[str]:
+    normalized_trigger = _normalize_trigger(trigger)
+    normalized_name = _normalize_function_name(function_name)
+    _validate_project_root(project_root)
+
+    function_path = project_root / "app" / "functions" / f"{normalized_name}.py"
+    if function_path.exists():
+        raise ScaffoldError(f"Function module already exists: {function_path}")
+
+    lines = [
+        f"Dry run: add {normalized_trigger} function '{normalized_name}'",
+        f"Project root: {project_root}",
+        "Files:",
+        f"  - app/functions/{normalized_name}.py",
+    ]
+
+    if (project_root / "tests").is_dir():
+        lines.append(f"  - tests/test_{normalized_name}.py")
+
+    lines.extend(
+        [
+            "Updates:",
+            "  - function_app.py import registration",
+        ]
+    )
+
+    if normalized_trigger in {"queue", "blob", "servicebus"}:
+        lines.append("  - host.json extensionBundle")
+    if normalized_trigger == "servicebus":
+        lines.append("  - local.settings.json.example ServiceBusConnection")
+
+    return lines
+
+
 def _normalize_trigger(trigger: str) -> str:
     normalized = trigger.strip().lower()
     if normalized not in SUPPORTED_TRIGGERS:

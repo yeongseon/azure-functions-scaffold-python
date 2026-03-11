@@ -71,6 +71,44 @@ def scaffold_project(
     return target_dir
 
 
+def describe_scaffold_project(
+    project_name: str,
+    destination: Path,
+    template_name: str = "http",
+    options: ProjectOptions | None = None,
+) -> list[str]:
+    resolved_options = options or build_project_options(
+        preset_name="standard",
+        python_version="3.10",
+        include_github_actions=False,
+        initialize_git=False,
+    )
+    context = build_template_context(project_name, resolved_options)
+    target_dir = resolve_target_dir(destination=destination, project_name=context.project_name)
+    template = get_template(template_name)
+
+    lines = [
+        f"Dry run: create project at {target_dir}",
+        f"Template: {template.name}",
+        f"Preset: {context.preset_name}",
+        f"Python: {context.python_version}",
+    ]
+    if context.include_github_actions:
+        lines.append("GitHub Actions: enabled")
+    if context.initialize_git:
+        lines.append("Git initialization: enabled")
+
+    lines.append("Files:")
+    for template_path in _iter_template_files(template.root):
+        relative_path = template_path.relative_to(template.root)
+        if not _should_render_template(relative_path, context):
+            continue
+        rendered_path = _render_path(relative_path, context)
+        lines.append(f"  - {rendered_path.as_posix()}")
+
+    return lines
+
+
 def build_template_context(project_name: str, options: ProjectOptions) -> TemplateContext:
     normalized_name = validate_project_name(project_name)
     python_version = options.python_version

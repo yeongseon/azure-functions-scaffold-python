@@ -105,6 +105,30 @@ def test_new_command_rejects_unknown_template(tmp_path: Path) -> None:
     assert "Unknown template 'durable'" in result.stdout
 
 
+def test_new_command_supports_dry_run(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "new",
+            "preview-api",
+            "--destination",
+            str(tmp_path),
+            "--template",
+            "queue",
+            "--preset",
+            "strict",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Dry run: create project at" in result.stdout
+    assert "Template: queue" in result.stdout
+    assert "Preset: strict" in result.stdout
+    assert "app/functions/queue.py" in result.stdout
+    assert not (tmp_path / "preview-api").exists()
+
+
 def test_new_command_supports_minimal_preset(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
@@ -194,6 +218,23 @@ def test_add_timer_command_updates_existing_project(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert (project_dir / "app/functions/cleanup.py").exists()
     assert (project_dir / "tests/test_cleanup.py").exists()
+
+
+def test_add_command_supports_dry_run(tmp_path: Path) -> None:
+    create_result = runner.invoke(app, ["new", "my-api", "--destination", str(tmp_path)])
+    assert create_result.exit_code == 0
+
+    project_dir = tmp_path / "my-api"
+    result = runner.invoke(
+        app,
+        ["add", "servicebus", "process-events", "--project-root", str(project_dir), "--dry-run"],
+    )
+
+    assert result.exit_code == 0
+    assert "Dry run: add servicebus function 'process_events'" in result.stdout
+    assert "app/functions/process_events.py" in result.stdout
+    assert "local.settings.json.example ServiceBusConnection" in result.stdout
+    assert not (project_dir / "app/functions/process_events.py").exists()
 
 
 def test_presets_command_lists_available_presets() -> None:

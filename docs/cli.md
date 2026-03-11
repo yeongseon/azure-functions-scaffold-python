@@ -70,6 +70,11 @@ Creates a new Azure Functions Python v2 project from one of the built-in simple 
 - optional
 - when enabled, prompts for project name, template, preset, Python version, GitHub Actions, git initialization, and individual tooling selection
 
+`--dry-run`
+
+- optional
+- previews the generated project without writing files
+
 ### Behavior
 
 Example:
@@ -114,6 +119,12 @@ Service Bus template example:
 azure-functions-scaffold new my-bus-worker --template servicebus
 ```
 
+Dry-run example:
+
+```bash
+azure-functions-scaffold new my-api --template queue --preset strict --dry-run
+```
+
 Result:
 
 - creates `./my-api`
@@ -122,6 +133,7 @@ Result:
 - optionally omits tests for the `minimal` preset
 - optionally includes `.github/workflows/ci.yml`
 - optionally initializes a git repository
+- supports dry-run previews of the target directory and rendered file set
 - prints `Created project at <path>`
 
 ## `add`
@@ -147,6 +159,11 @@ Adds a new function module to an existing scaffolded project.
 - optional
 - default: current directory
 - points to an existing scaffolded Azure Functions project
+
+`--dry-run`
+
+- optional
+- previews the files and project updates without modifying the project
 
 ### Behavior
 
@@ -180,11 +197,19 @@ Service Bus example:
 azure-functions-scaffold add servicebus process-events --project-root ./my-api
 ```
 
+Dry-run example:
+
+```bash
+azure-functions-scaffold add servicebus process-events --project-root ./my-api --dry-run
+```
+
 Result:
 
 - creates `app/functions/<name>.py`
 - updates `function_app.py` to import and register the new Blueprint
 - creates `tests/test_<name>.py` when the project includes a `tests/` directory
+- updates `host.json` for binding-based triggers
+- updates `local.settings.json.example` for Service Bus additions when needed
 
 ### Failure Conditions
 
@@ -254,7 +279,6 @@ Not currently supported:
 
 - selecting multiple templates in one command
 - overwriting existing projects
-- dry-run mode
 - post-generation dependency installation
 - durable orchestrations and activities
 

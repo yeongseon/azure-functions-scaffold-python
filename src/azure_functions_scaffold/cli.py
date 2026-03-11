@@ -7,9 +7,16 @@ import typer
 
 from azure_functions_scaffold import __version__
 from azure_functions_scaffold.errors import ScaffoldError
-from azure_functions_scaffold.generator import SUPPORTED_TRIGGERS, add_function
+from azure_functions_scaffold.generator import (
+    SUPPORTED_TRIGGERS,
+    add_function,
+    describe_add_function,
+)
 from azure_functions_scaffold.models import ProjectOptions
-from azure_functions_scaffold.scaffolder import scaffold_project
+from azure_functions_scaffold.scaffolder import (
+    describe_scaffold_project,
+    scaffold_project,
+)
 from azure_functions_scaffold.template_registry import (
     build_project_options,
     get_preset,
@@ -106,6 +113,13 @@ def new_project(
             help="Prompt for project options interactively.",
         ),
     ] = False,
+    dry_run: Annotated[
+        bool,
+        typer.Option(
+            "--dry-run",
+            help="Preview the generated project without writing files.",
+        ),
+    ] = False,
 ) -> None:
     """Create a new Azure Functions Python v2 scaffold."""
     try:
@@ -118,6 +132,15 @@ def new_project(
             initialize_git=initialize_git,
             interactive=interactive or project_name is None,
         )
+        if dry_run:
+            for line in describe_scaffold_project(
+                project_name=resolved_name,
+                destination=destination,
+                template_name=resolved_template,
+                options=resolved_options,
+            ):
+                typer.echo(line)
+            return
         project_path = scaffold_project(
             project_name=resolved_name,
             destination=destination,
@@ -152,9 +175,24 @@ def add_project_function(
             help="Existing scaffolded project directory.",
         ),
     ] = Path("."),
+    dry_run: Annotated[
+        bool,
+        typer.Option(
+            "--dry-run",
+            help="Preview the added files without modifying the project.",
+        ),
+    ] = False,
 ) -> None:
     """Add a new function module to an existing scaffolded project."""
     try:
+        if dry_run:
+            for line in describe_add_function(
+                project_root=project_root,
+                trigger=trigger,
+                function_name=function_name,
+            ):
+                typer.echo(line)
+            return
         function_path = add_function(
             project_root=project_root,
             trigger=trigger,
