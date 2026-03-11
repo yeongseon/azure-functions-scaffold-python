@@ -4,10 +4,8 @@ import azure.functions as func
 
 from app.core.logging import configure_logging
 from app.functions.blob import blob_blueprint
-# azure-functions-scaffold: function imports
 
 configure_logging()
 
 app = func.FunctionApp()
 app.register_functions(blob_blueprint)
-# azure-functions-scaffold: function registrations

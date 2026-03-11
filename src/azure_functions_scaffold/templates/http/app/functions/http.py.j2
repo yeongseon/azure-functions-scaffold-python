@@ -4,7 +4,7 @@ import azure.functions as func
 
 from app.services.hello_service import build_greeting
 
-http_blueprint = func.Blueprint()
+http_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 
 @http_blueprint.route(

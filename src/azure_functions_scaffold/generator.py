@@ -46,6 +46,7 @@ def add_function(
         registration_stmt=f"app.register_functions({normalized_name}_blueprint)",
     )
     _ensure_host_extensions(project_root / "host.json", normalized_trigger)
+    _ensure_local_settings_values(project_root, normalized_trigger)
 
     return function_path
 
@@ -146,7 +147,7 @@ def _render_function_module(trigger: str, function_name: str) -> str:
 
 import azure.functions as func
 
-{function_name}_blueprint = func.Blueprint()
+{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 
 @{function_name}_blueprint.route(
@@ -168,7 +169,7 @@ import logging
 
 import azure.functions as func
 
-{function_name}_blueprint = func.Blueprint()
+{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 
 @{function_name}_blueprint.timer_trigger(
@@ -191,7 +192,7 @@ import logging
 
 import azure.functions as func
 
-{function_name}_blueprint = func.Blueprint()
+{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 
 @{function_name}_blueprint.queue_trigger(
@@ -211,7 +212,7 @@ import logging
 
 import azure.functions as func
 
-{function_name}_blueprint = func.Blueprint()
+{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 
 @{function_name}_blueprint.blob_trigger(
@@ -233,7 +234,7 @@ import logging
 
 import azure.functions as func
 
-{function_name}_blueprint = func.Blueprint()
+{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 
 @{function_name}_blueprint.service_bus_queue_trigger(
@@ -340,3 +341,23 @@ def _ensure_host_extensions(host_json_path: Path, trigger: str) -> None:
         "version": "[4.*, 5.0.0)",
     }
     host_json_path.write_text(f"{json.dumps(host_config, indent=2)}\n", encoding="utf-8")
+
+
+def _ensure_local_settings_values(project_root: Path, trigger: str) -> None:
+    if trigger != "servicebus":
+        return
+
+    local_settings_path = project_root / "local.settings.json.example"
+    if not local_settings_path.exists():
+        return
+
+    local_settings = json.loads(local_settings_path.read_text(encoding="utf-8"))
+    values = local_settings.setdefault("Values", {})
+    values.setdefault(
+        "ServiceBusConnection",
+        "Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=replace-me",
+    )
+    local_settings_path.write_text(
+        f"{json.dumps(local_settings, indent=2)}\n",
+        encoding="utf-8",
+    )

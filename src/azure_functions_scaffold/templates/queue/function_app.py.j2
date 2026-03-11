@@ -4,10 +4,8 @@ import azure.functions as func
 
 from app.core.logging import configure_logging
 from app.functions.queue import queue_blueprint
-# azure-functions-scaffold: function imports
 
 configure_logging()
 
 app = func.FunctionApp()
 app.register_functions(queue_blueprint)
-# azure-functions-scaffold: function registrations

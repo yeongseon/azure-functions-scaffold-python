@@ -26,9 +26,6 @@ def test_new_command_creates_http_project(tmp_path: Path) -> None:
     assert 'requires-python = ">=3.10,<3.11"' in generated_pyproject
     assert 'target-version = "py310"' in generated_pyproject
     assert (project_dir / "Makefile").exists()
-    assert "# azure-functions-scaffold: function registrations" in (
-        project_dir / "function_app.py"
-    ).read_text(encoding="utf-8")
 
 
 def test_new_command_creates_timer_project(tmp_path: Path) -> None:

@@ -31,7 +31,7 @@ This project does **not** support the legacy `function.json`-based Python v1 pro
 - `azure-functions-scaffold add queue <function-name>`
 - `azure-functions-scaffold add blob <function-name>`
 - `azure-functions-scaffold add servicebus <function-name>`
-- Embedded HTTP-trigger project template
+- Embedded trigger-specific project templates
 - Configurable test, lint, and packaging defaults in generated output
 - Small service-oriented application layout
 

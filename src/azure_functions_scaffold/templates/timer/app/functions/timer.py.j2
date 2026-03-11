@@ -6,7 +6,7 @@ import azure.functions as func
 
 from app.services.maintenance_service import build_tick_message
 
-timer_blueprint = func.Blueprint()
+timer_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 
 @timer_blueprint.timer_trigger(

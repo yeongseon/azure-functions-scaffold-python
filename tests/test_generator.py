@@ -138,3 +138,18 @@ def test_add_function_adds_extension_bundle_for_binding_triggers(
 
     host_config = json.loads((project_root / "host.json").read_text(encoding="utf-8"))
     assert host_config["extensionBundle"]["id"] == "Microsoft.Azure.Functions.ExtensionBundle"
+
+
+def test_add_servicebus_function_updates_local_settings_example(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+
+    add_function(
+        project_root=project_root,
+        trigger="servicebus",
+        function_name="process-events",
+    )
+
+    local_settings = json.loads(
+        (project_root / "local.settings.json.example").read_text(encoding="utf-8")
+    )
+    assert "ServiceBusConnection" in local_settings["Values"]

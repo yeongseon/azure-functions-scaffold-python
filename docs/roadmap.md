@@ -27,26 +27,30 @@ Delivered:
 
 ## Phase 3: Post-Generation Expansion
 
-Status: partially implemented
+Status: implemented
 
 Delivered:
 
 - `add http <function-name>`
 - `add timer <function-name>`
+- `add queue <function-name>`
+- `add blob <function-name>`
+- `add servicebus <function-name>`
 - automatic `function_app.py` registration updates
-
-Planned:
-
-- queue trigger generation
-- Service Bus trigger generation
-- blob trigger generation
 
 ## Phase 4: Template Expansion
 
-Planned:
+Status: implemented for simple local-first triggers
+
+Delivered:
 
 - timer-focused project template
 - queue-focused project template
+- blob-focused project template
+- service bus-focused project template
+
+Planned:
+
 - richer project structure variants
 
 ## Phase 5: CLI Expansion

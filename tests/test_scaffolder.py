@@ -328,3 +328,43 @@ def test_initialize_git_repository_rejects_missing_git(
 
     with pytest.raises(ScaffoldError, match="Git is not installed"):
         _initialize_git_repository(tmp_path)
+
+
+@pytest.mark.parametrize(
+    ("template_name", "preset_name"),
+    [
+        ("http", "strict"),
+        ("queue", "standard"),
+    ],
+)
+def test_representative_scaffold_output_passes_generated_checks(
+    tmp_path: Path,
+    template_name: str,
+    preset_name: str,
+) -> None:
+    project_path = scaffold_project(
+        f"{template_name}-e2e",
+        tmp_path,
+        template_name=template_name,
+        options=build_project_options(
+            preset_name=preset_name,
+            python_version="3.10",
+            include_github_actions=False,
+            initialize_git=False,
+        ),
+    )
+
+    subprocess.run(
+        ["make", "install"],
+        cwd=project_path,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        ["make", "check-all"],
+        cwd=project_path,
+        check=True,
+        capture_output=True,
+        text=True,
+    )

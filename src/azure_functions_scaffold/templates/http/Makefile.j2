@@ -1,56 +1,60 @@
 VENV_DIR := .venv
 PYTHON := $(VENV_DIR)/bin/python
 PIP := $(VENV_DIR)/bin/pip
+DEV_EXTRAS := {% if include_ruff or include_mypy or include_pytest %}[dev]{% endif %}
+INCLUDE_RUFF := {% if include_ruff %}1{% else %}0{% endif %}
+INCLUDE_MYPY := {% if include_mypy %}1{% else %}0{% endif %}
+INCLUDE_PYTEST := {% if include_pytest %}1{% else %}0{% endif %}
 
 .PHONY: install
 install:
 	python3 -m venv $(VENV_DIR)
 	$(PIP) install --upgrade pip
-	$(PIP) install -e .{% if include_ruff or include_mypy or include_pytest %}[dev]{% endif %}
+	$(PIP) install -e .$(DEV_EXTRAS)
 
 .PHONY: lint
 lint:
-{% if include_ruff -%}
+ifeq ($(INCLUDE_RUFF),1)
 	$(PYTHON) -m ruff check .
-{% else -%}
+else
 	@echo "Ruff is not enabled for the {{ preset_name }} preset."
-{% endif %}
+endif
 
 .PHONY: format
 format:
-{% if include_ruff -%}
+ifeq ($(INCLUDE_RUFF),1)
 	$(PYTHON) -m ruff format .
-{% else -%}
+else
 	@echo "Ruff is not enabled for the {{ preset_name }} preset."
-{% endif %}
+endif
 
 .PHONY: typecheck
 typecheck:
-{% if include_mypy -%}
+ifeq ($(INCLUDE_MYPY),1)
 	$(PYTHON) -m mypy .
-{% else -%}
+else
 	@echo "mypy is not enabled for the {{ preset_name }} preset."
-{% endif %}
+endif
 
 .PHONY: test
 test:
-{% if include_pytest -%}
+ifeq ($(INCLUDE_PYTEST),1)
 	$(PYTHON) -m pytest
-{% else -%}
+else
 	@echo "pytest is not enabled for the {{ preset_name }} preset."
-{% endif %}
+endif
 
 .PHONY: check-all
 check-all:
-{% if include_ruff -%}
+ifeq ($(INCLUDE_RUFF),1)
 	$(PYTHON) -m ruff check .
-{% endif -%}
-{% if include_mypy -%}
+endif
+ifeq ($(INCLUDE_MYPY),1)
 	$(PYTHON) -m mypy .
-{% endif -%}
-{% if include_pytest -%}
+endif
+ifeq ($(INCLUDE_PYTEST),1)
 	$(PYTHON) -m pytest
-{% endif -%}
-{% if not include_ruff and not include_mypy and not include_pytest -%}
+endif
+ifeq ($(INCLUDE_RUFF)$(INCLUDE_MYPY)$(INCLUDE_PYTEST),000)
 	@echo "No extra quality tooling is enabled for the {{ preset_name }} preset."
-{% endif %}
+endif

@@ -1,6 +1,10 @@
 VENV_DIR := .venv
 PYTHON := $(VENV_DIR)/bin/python
 PIP := $(VENV_DIR)/bin/pip
+DEV_EXTRAS := {% if include_ruff or include_mypy or include_pytest %}[dev]{% endif %}
+INCLUDE_RUFF := {% if include_ruff %}1{% else %}0{% endif %}
+INCLUDE_MYPY := {% if include_mypy %}1{% else %}0{% endif %}
+INCLUDE_PYTEST := {% if include_pytest %}1{% else %}0{% endif %}
 
 .PHONY: bootstrap
 bootstrap:
@@ -11,33 +15,32 @@ bootstrap:
 
 .PHONY: install
 install: bootstrap
-	@$(PIP) install -e .{% if include_ruff or include_mypy or include_pytest %}[dev]{% endif %}
+	@$(PIP) install -e .$(DEV_EXTRAS)
 
 .PHONY: lint
 lint:
-{% if include_ruff -%}
+ifeq ($(INCLUDE_RUFF),1)
 	@$(VENV_DIR)/bin/ruff check .
 	@$(VENV_DIR)/bin/ruff format --check .
-{% else -%}
+else
 	@echo "No lint tooling configured."
-{% endif %}
+endif
 
 .PHONY: typecheck
 typecheck:
-{% if include_mypy -%}
+ifeq ($(INCLUDE_MYPY),1)
 	@$(VENV_DIR)/bin/mypy .
-{% else -%}
+else
 	@echo "No type checker configured."
-{% endif %}
+endif
 
 .PHONY: test
 test:
-{% if include_pytest -%}
+ifeq ($(INCLUDE_PYTEST),1)
 	@$(VENV_DIR)/bin/pytest
-{% else -%}
+else
 	@echo "No test suite configured."
-{% endif %}
+endif
 
 .PHONY: check-all
 check-all: lint typecheck test
-

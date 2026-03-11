@@ -4,7 +4,7 @@ import azure.functions as func
 
 from app.services.queue_service import decode_queue_message
 
-queue_blueprint = func.Blueprint()
+queue_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 
 @queue_blueprint.queue_trigger(
