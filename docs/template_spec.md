@@ -6,14 +6,18 @@ Templates define the generated project structure and default source files for sc
 
 ## Current Template Set
 
-Current built-in template:
+Current built-in templates:
 
 - `http`
+- `timer`
+- `queue`
+- `blob`
+- `servicebus`
 
 Location:
 
 ```text
-src/azure_functions_scaffold/templates/http/
+src/azure_functions_scaffold/templates/<template-name>/
 ```
 
 ## Rendering Rules
@@ -85,6 +89,23 @@ Makefile
 ```
 
 These files are rendered only when their corresponding options are enabled.
+
+## Trigger Template Contract
+
+All non-HTTP trigger templates must generate:
+
+- Azure Functions Python v2 `function_app.py`
+- one Blueprint-backed trigger module
+- one service/helper module
+- one test file when pytest is enabled
+- project-level tooling files
+
+Additional expectations:
+
+- `timer` must run without external emulators
+- `queue` and `blob` must be ready for Azurite-backed local development
+- `servicebus` must generate a clear development connection placeholder
+- binding-based trigger templates must include `extensionBundle` in `host.json`
 
 ## Quality Contract
 

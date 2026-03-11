@@ -47,10 +47,11 @@ Without a scaffold, each team reinvents these decisions and quality drifts acros
 ## Core Use Cases
 
 - Create a new HTTP-trigger Azure Functions project from a single command
+- Create queue-, blob-, and Service Bus-trigger projects for local-first development
 - Create a new project interactively without memorizing flags
 - Choose between `minimal`, `standard`, and `strict` presets
 - Generate project files that already include tests and linting defaults
-- Add new HTTP and timer functions to an existing scaffolded codebase
+- Add new HTTP, timer, queue, blob, and Service Bus functions to an existing scaffolded codebase
 - Standardize project layout across repositories
 
 ## Success Criteria

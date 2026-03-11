@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import subprocess
 
@@ -154,6 +155,63 @@ def test_scaffold_project_renders_template_option(tmp_path: Path) -> None:
 
     assert project_path == tmp_path / "sample"
     assert (project_path / "README.md").exists()
+
+
+@pytest.mark.parametrize(
+    ("template_name", "expected_function", "expected_service"),
+    [
+        ("http", "app/functions/http.py", "app/services/hello_service.py"),
+        ("timer", "app/functions/timer.py", "app/services/maintenance_service.py"),
+        ("queue", "app/functions/queue.py", "app/services/queue_service.py"),
+        ("blob", "app/functions/blob.py", "app/services/blob_service.py"),
+        ("servicebus", "app/functions/servicebus.py", "app/services/servicebus_service.py"),
+    ],
+)
+def test_scaffold_project_generates_expected_project_contract(
+    tmp_path: Path,
+    template_name: str,
+    expected_function: str,
+    expected_service: str,
+) -> None:
+    project_path = scaffold_project(
+        f"{template_name}-sample",
+        tmp_path,
+        template_name=template_name,
+        options=build_project_options(
+            preset_name="strict",
+            python_version="3.12",
+            include_github_actions=True,
+            initialize_git=False,
+        ),
+    )
+
+    pyproject_text = (project_path / "pyproject.toml").read_text(encoding="utf-8")
+    readme_text = (project_path / "README.md").read_text(encoding="utf-8")
+
+    assert (project_path / "function_app.py").exists()
+    assert (project_path / "host.json").exists()
+    assert (project_path / "local.settings.json.example").exists()
+    assert (project_path / "Makefile").exists()
+    assert (project_path / ".github/workflows/ci.yml").exists()
+    assert (project_path / expected_function).exists()
+    assert (project_path / expected_service).exists()
+    assert 'requires-python = ">=3.12,<3.13"' in pyproject_text
+    assert "ruff>=0.11.0" in pyproject_text
+    assert "mypy>=1.17.1" in pyproject_text
+    assert "pytest>=8.3.5" in pyproject_text
+    assert "Preset: `strict`" in readme_text
+
+
+@pytest.mark.parametrize("template_name", ["queue", "blob", "servicebus"])
+def test_binding_templates_include_extension_bundle(tmp_path: Path, template_name: str) -> None:
+    project_path = scaffold_project(
+        f"{template_name}-sample",
+        tmp_path,
+        template_name=template_name,
+    )
+
+    host_config = json.loads((project_path / "host.json").read_text(encoding="utf-8"))
+    assert host_config["extensionBundle"]["id"] == "Microsoft.Azure.Functions.ExtensionBundle"
 
 
 def test_scaffold_project_renders_timer_template_option(tmp_path: Path) -> None:

@@ -35,6 +35,8 @@ This project does not aim to:
 - This repository owns project generation, preset handling, and scaffold defaults.
 - It may generate code that teams later extend by hand.
 - It should not become a deployment framework or runtime abstraction layer.
+- It may include local-development guidance for emulator-backed triggers when that keeps
+  the generated project directly runnable by a developer.
 
 ## Compatibility Policy
 
