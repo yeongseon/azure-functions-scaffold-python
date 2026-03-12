@@ -197,7 +197,7 @@ def test_new_command_supports_interactive_mode(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="interactive-api\nhttp\nstrict\n3.12\ny\nn\ny\ny\ny\n",
+        input="interactive-api\nhttp\nstrict\n3.12\ny\nn\ny\ny\ny\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -212,7 +212,7 @@ def test_new_command_supports_interactive_custom_tooling(tmp_path: Path) -> None
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="custom-api\nhttp\nstandard\n3.11\nn\nn\ny\ny\nn\n",
+        input="custom-api\nhttp\nstandard\n3.11\nn\nn\ny\ny\nn\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -230,7 +230,7 @@ def test_new_command_reprompts_invalid_interactive_choices(tmp_path: Path) -> No
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="\ninvalid-template\nhttp\ninvalid-preset\nstandard\n3.9\n3.12\nn\nn\ny\nn\ny\n",
+        input="\ninvalid-template\nhttp\ninvalid-preset\nstandard\n3.9\n3.12\nn\nn\ny\nn\ny\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -240,6 +240,138 @@ def test_new_command_reprompts_invalid_interactive_choices(tmp_path: Path) -> No
     assert "Unsupported preset 'invalid-preset'" in result.stdout
     assert "Unsupported Python version '3.9'" in result.stdout
 
+
+def test_new_command_with_openapi_flag(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "openapi-api", "--destination", str(tmp_path), "--with-openapi"],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "openapi-api"
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+    http_text = (project_dir / "app/functions/http.py").read_text(encoding="utf-8")
+    assert "azure-functions-openapi>=0.13.0" in pyproject_text
+    assert "azure-functions-validation" not in pyproject_text
+    assert "get_openapi_json" in function_app_text
+    assert "get_openapi_yaml" in function_app_text
+    assert "render_swagger_ui" in function_app_text
+    assert "@openapi(" in http_text
+    assert "validate_http" not in http_text
+
+
+def test_new_command_with_validation_flag(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "validation-api", "--destination", str(tmp_path), "--with-validation"],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "validation-api"
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    http_text = (project_dir / "app/functions/http.py").read_text(encoding="utf-8")
+    models_text = (project_dir / "app/schemas/request_models.py").read_text(encoding="utf-8")
+    assert "azure-functions-validation>=0.5.0" in pyproject_text
+    assert "pydantic>=2.0.0" in pyproject_text
+    assert "azure-functions-openapi" not in pyproject_text
+    assert "@validate_http(" in http_text
+    assert "methods=[\"POST\"]" in http_text
+    assert "class HelloRequest(BaseModel):" in models_text
+    assert "class HelloResponse(BaseModel):" in models_text
+
+
+def test_new_command_with_openapi_and_validation_flags(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "new",
+            "full-api",
+            "--destination",
+            str(tmp_path),
+            "--with-openapi",
+            "--with-validation",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "full-api"
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    http_text = (project_dir / "app/functions/http.py").read_text(encoding="utf-8")
+    function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+    assert "azure-functions-openapi>=0.13.0" in pyproject_text
+    assert "azure-functions-validation>=0.5.0" in pyproject_text
+    assert "pydantic>=2.0.0" in pyproject_text
+    assert "@openapi(" in http_text
+    assert "request_model=HelloRequest" in http_text
+    assert "response_model=HelloResponse" in http_text
+    assert "@validate_http(" in http_text
+    assert "get_openapi_json" in function_app_text
+
+
+def test_new_command_without_flags_excludes_openapi_and_validation(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "plain-api", "--destination", str(tmp_path)],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "plain-api"
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    http_text = (project_dir / "app/functions/http.py").read_text(encoding="utf-8")
+    function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+    assert "azure-functions-openapi" not in pyproject_text
+    assert "azure-functions-validation" not in pyproject_text
+    assert "pydantic" not in pyproject_text
+    assert "@openapi(" not in http_text
+    assert "validate_http" not in http_text
+    assert "get_openapi_json" not in function_app_text
+    assert 'methods=["GET"]' in http_text
+
+
+def test_new_command_interactive_with_openapi_and_validation(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "--destination", str(tmp_path), "--interactive"],
+        input="full-interactive-api\nhttp\nstandard\n3.10\nn\nn\ny\nn\ny\ny\ny\n",
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "full-interactive-api"
+    assert project_dir.exists()
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+    http_text = (project_dir / "app/functions/http.py").read_text(encoding="utf-8")
+    assert "azure-functions-openapi>=0.13.0" in pyproject_text
+    assert "azure-functions-validation>=0.5.0" in pyproject_text
+    assert "@openapi(" in http_text
+    assert "@validate_http(" in http_text
+    assert "get_openapi_json" in function_app_text
+
+
+def test_new_command_dry_run_reports_openapi_and_validation(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "new",
+            "dry-api",
+            "--destination",
+            str(tmp_path),
+            "--with-openapi",
+            "--with-validation",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "OpenAPI: enabled" in result.stdout
+    assert "Validation: enabled" in result.stdout
+    assert not (tmp_path / "dry-api").exists()
 
 def test_add_http_command_updates_existing_project(tmp_path: Path) -> None:
     create_result = runner.invoke(app, ["new", "my-api", "--destination", str(tmp_path)])

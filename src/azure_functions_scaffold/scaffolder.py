@@ -64,6 +64,8 @@ def scaffold_project(
             include_ruff=context.include_ruff,
             include_mypy=context.include_mypy,
             include_pytest=context.include_pytest,
+            include_openapi=context.include_openapi,
+            include_validation=context.include_validation,
         )
         output_path.write_text(rendered_content, encoding="utf-8")
 
@@ -102,6 +104,10 @@ def describe_scaffold_project(
         lines.append("GitHub Actions: enabled")
     if context.initialize_git:
         lines.append("Git initialization: enabled")
+    if context.include_openapi:
+        lines.append("OpenAPI: enabled")
+    if context.include_validation:
+        lines.append("Validation: enabled")
 
     lines.append("Files:")
     for template_path in _iter_template_files(template.root):
@@ -128,6 +134,8 @@ def build_template_context(project_name: str, options: ProjectOptions) -> Templa
         include_ruff="ruff" in options.tooling,
         include_mypy="mypy" in options.tooling,
         include_pytest="pytest" in options.tooling,
+        include_openapi=options.include_openapi,
+        include_validation=options.include_validation,
     )
 
 

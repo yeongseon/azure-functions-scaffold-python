@@ -67,10 +67,26 @@ Creates a new Azure Functions Python v2 project from one of the built-in simple 
 - default: `--no-git`
 - controls whether the generated project runs `git init`
 
+`--with-openapi`, `--no-openapi`
+
+- optional
+- default: `--no-openapi`
+- includes OpenAPI documentation support in the generated project (HTTP template only)
+- adds `/api/openapi.json`, `/api/openapi.yaml`, and `/api/docs` endpoints
+- requires `azure-functions-openapi>=0.13.0`
+
+`--with-validation`, `--no-validation`
+
+- optional
+- default: `--no-validation`
+- includes request/response validation in the generated project (HTTP template only)
+- switches the hello endpoint from GET to POST with Pydantic body parsing
+- requires `azure-functions-validation>=0.5.0` and `pydantic>=2.0.0`
+
 `--interactive`, `-i`
 
 - optional
-- when enabled, prompts for project name, template, preset, Python version, GitHub Actions, git initialization, and individual tooling selection
+- when enabled, prompts for project name, template, preset, Python version, GitHub Actions, git initialization, individual tooling selection, OpenAPI documentation, and request validation
 - invalid project names, templates, presets, and Python versions are rejected at the prompt and re-requested immediately
 
 `--dry-run`
@@ -139,6 +155,24 @@ Overwrite example:
 azure-functions-scaffold new my-api --overwrite
 ```
 
+OpenAPI example:
+
+```bash
+azure-functions-scaffold new my-api --with-openapi
+```
+
+Validation example:
+
+```bash
+azure-functions-scaffold new my-api --with-validation
+```
+
+OpenAPI + validation example:
+
+```bash
+azure-functions-scaffold new my-api --with-openapi --with-validation
+```
+
 Result:
 
 - creates `./my-api`
@@ -150,6 +184,8 @@ Result:
 - supports dry-run previews of the target directory and rendered file set
 - only replaces an existing target directory when `--overwrite` is provided
 - prints `Created project at <path>`
+- includes OpenAPI endpoints when `--with-openapi` is provided (HTTP template)
+- includes request validation when `--with-validation` is provided (HTTP template)
 
 ## `add`
 

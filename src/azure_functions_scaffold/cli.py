@@ -107,6 +107,20 @@ def new_project(
             help="Initialize a git repository in the generated project.",
         ),
     ] = False,
+    with_openapi: Annotated[
+        bool,
+        typer.Option(
+            "--with-openapi/--no-openapi",
+            help="Include OpenAPI documentation support (HTTP template only).",
+        ),
+    ] = False,
+    with_validation: Annotated[
+        bool,
+        typer.Option(
+            "--with-validation/--no-validation",
+            help="Include request validation support (HTTP template only).",
+        ),
+    ] = False,
     interactive: Annotated[
         bool,
         typer.Option(
@@ -139,6 +153,8 @@ def new_project(
             python_version=python_version,
             include_github_actions=include_github_actions,
             initialize_git=initialize_git,
+            include_openapi=with_openapi,
+            include_validation=with_validation,
             interactive=interactive or project_name is None,
         )
         if dry_run:
@@ -247,6 +263,8 @@ def _resolve_new_project_inputs(
     python_version: str,
     include_github_actions: bool,
     initialize_git: bool,
+    include_openapi: bool,
+    include_validation: bool,
     interactive: bool,
 ) -> tuple[str, str, ProjectOptions]:
     if interactive:
@@ -272,6 +290,14 @@ def _resolve_new_project_inputs(
         )
         preset_spec = get_preset(resolved_preset)
         resolved_tooling = _prompt_tooling_selection(preset_spec.tooling)
+        resolved_include_openapi = typer.confirm(
+            "Include OpenAPI documentation? (HTTP template only)",
+            default=include_openapi,
+        )
+        resolved_include_validation = typer.confirm(
+            "Include request validation? (HTTP template only)",
+            default=include_validation,
+        )
     else:
         if project_name is None:
             raise ScaffoldError("Project name is required unless --interactive is used.")
@@ -282,6 +308,8 @@ def _resolve_new_project_inputs(
         resolved_include_github_actions = include_github_actions
         resolved_initialize_git = initialize_git
         resolved_tooling = None
+        resolved_include_openapi = include_openapi
+        resolved_include_validation = include_validation
 
     options = build_project_options(
         preset_name=resolved_preset,
@@ -289,6 +317,8 @@ def _resolve_new_project_inputs(
         include_github_actions=resolved_include_github_actions,
         initialize_git=resolved_initialize_git,
         tooling=resolved_tooling,
+        include_openapi=resolved_include_openapi,
+        include_validation=resolved_include_validation,
     )
 
     return resolved_name, resolved_template, options

@@ -3,8 +3,26 @@ from __future__ import annotations
 import azure.functions as func
 
 from app.functions.http import hello
+{% if include_validation %}
+from app.schemas.request_models import HelloRequest
+{% endif %}
 
 
+{% if include_validation %}
+def test_hello_returns_named_greeting() -> None:
+    body = HelloRequest(name="Azure")
+    request = func.HttpRequest(
+        method="POST",
+        url="http://localhost/api/hello",
+        params={},
+        body=body.model_dump_json().encode(),
+        headers={"Content-Type": "application/json"},
+    )
+
+    response = hello(request, body=body)
+
+    assert response.message == "Hello, Azure!"
+{% else %}
 def test_hello_returns_named_greeting() -> None:
     request = func.HttpRequest(
         method="GET",
@@ -17,3 +35,4 @@ def test_hello_returns_named_greeting() -> None:
 
     assert response.status_code == 200
     assert response.get_body() == b"Hello, Azure!"
+{% endif %}

@@ -1,18 +1,50 @@
 from __future__ import annotations
 
 import azure.functions as func
+{% if include_openapi %}
+from azure_functions_openapi.decorator import openapi
+{% endif %}
+{% if include_validation %}
+from azure_functions_validation import validate_http
+
+from app.schemas.request_models import HelloRequest, HelloResponse
+{% endif %}
 
 from app.services.hello_service import build_greeting
 
 http_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 
+{% if include_openapi %}
+@openapi(
+    summary="Greet a user",
+    description="Returns a greeting message for the given name.",
+    tags=["greetings"],
+{% if include_validation %}
+    request_model=HelloRequest,
+    response_model=HelloResponse,
+{% endif %}
+)
+{% endif %}
+{% if include_validation %}
+@validate_http(body=HelloRequest, response_model=HelloResponse)
+{% endif %}
 @http_blueprint.route(
     route="hello",
+{% if include_validation %}
+    methods=["POST"],
+{% else %}
     methods=["GET"],
+{% endif %}
     auth_level=func.AuthLevel.ANONYMOUS,
 )
+{% if include_validation %}
+def hello(req: func.HttpRequest, body: HelloRequest) -> HelloResponse:
+    message = build_greeting(body.name)
+    return HelloResponse(message=message)
+{% else %}
 def hello(req: func.HttpRequest) -> func.HttpResponse:
     name = req.params.get("name", "world")
     message = build_greeting(name)
     return func.HttpResponse(message, status_code=200)
+{% endif %}

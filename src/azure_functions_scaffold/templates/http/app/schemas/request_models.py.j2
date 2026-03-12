@@ -1,8 +1,20 @@
 from __future__ import annotations
 
+{% if include_validation %}
+from pydantic import BaseModel
+
+
+class HelloRequest(BaseModel):
+    name: str
+
+
+class HelloResponse(BaseModel):
+    message: str
+{% else %}
 from dataclasses import dataclass
 
 
 @dataclass(slots=True)
 class HelloRequest:
     name: str
+{% endif %}

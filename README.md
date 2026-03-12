@@ -29,6 +29,9 @@ This project does **not** support the legacy `function.json`-based Python v1 pro
 - `azure-functions-scaffold new <project-name> --template http|timer|queue|blob|servicebus`
 - `azure-functions-scaffold new --interactive`
 - `azure-functions-scaffold new <project-name> --preset minimal|standard|strict`
+- `azure-functions-scaffold new <project-name> --with-openapi` — include OpenAPI docs (Swagger UI, JSON, YAML)
+- `azure-functions-scaffold new <project-name> --with-validation` — include request/response validation
+- `azure-functions-scaffold new <project-name> --with-openapi --with-validation` — both features combined
 - `azure-functions-scaffold add http <function-name>`
 - `azure-functions-scaffold add timer <function-name>`
 - `azure-functions-scaffold add queue <function-name>`
@@ -105,6 +108,24 @@ Replace an existing scaffolded project explicitly:
 azure-functions-scaffold new my-api --overwrite
 ```
 
+Create an HTTP project with OpenAPI documentation (Swagger UI, JSON, YAML endpoints):
+
+```bash
+azure-functions-scaffold new my-api --with-openapi
+```
+
+Create an HTTP project with request/response validation:
+
+```bash
+azure-functions-scaffold new my-api --with-validation
+```
+
+Create an HTTP project with both OpenAPI and validation:
+
+```bash
+azure-functions-scaffold new my-api --with-openapi --with-validation
+```
+
 Create a strict project with GitHub Actions enabled:
 
 ```bash
@@ -175,6 +196,15 @@ The timer, queue, blob, and service bus templates follow the same top-level layo
 but start with trigger-specific function, service, and test modules. The queue and blob
 templates are ready for local Azurite-based development, while the service bus template
 starts with a development connection placeholder.
+
+When `--with-openapi` is used, three additional endpoints are registered:
+
+- `/api/docs` — Swagger UI
+- `/api/openapi.json` — OpenAPI 3.0 specification (JSON)
+- `/api/openapi.yaml` — OpenAPI 3.0 specification (YAML)
+
+When `--with-validation` is used, the hello endpoint switches to POST with
+Pydantic request/response models (`HelloRequest`, `HelloResponse`).
 
 ## Development
 

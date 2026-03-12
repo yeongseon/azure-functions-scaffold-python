@@ -89,6 +89,8 @@ def build_project_options(
     include_github_actions: bool,
     initialize_git: bool,
     tooling: tuple[str, ...] | None = None,
+    include_openapi: bool = False,
+    include_validation: bool = False,
 ) -> ProjectOptions:
     preset = get_preset(preset_name)
     validate_python_version(python_version)
@@ -100,6 +102,8 @@ def build_project_options(
         tooling=resolved_tooling,
         include_github_actions=include_github_actions,
         initialize_git=initialize_git,
+        include_openapi=include_openapi,
+        include_validation=include_validation,
     )
 
 

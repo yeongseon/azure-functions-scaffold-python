@@ -93,6 +93,8 @@ def test_build_template_context_creates_slug() -> None:
         include_ruff=True,
         include_mypy=False,
         include_pytest=True,
+        include_openapi=False,
+        include_validation=False,
     )
 
 
@@ -125,6 +127,8 @@ def test_render_path_strips_jinja_suffix_and_replaces_placeholders() -> None:
         include_ruff=True,
         include_mypy=False,
         include_pytest=True,
+        include_openapi=False,
+        include_validation=False,
     )
 
     rendered = _render_path(Path("__project_name__/README.md.j2"), context)

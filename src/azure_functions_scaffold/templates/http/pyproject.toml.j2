@@ -25,6 +25,15 @@ readme = "README.md"
 requires-python = ">={{ python_version }},<{{ python_upper_bound }}"
 dependencies = [
   "azure-functions>=1.23.0",
+{% if include_openapi -%}
+  "azure-functions-openapi>=0.13.0",
+{% endif -%}
+{% if include_validation -%}
+  "azure-functions-validation>=0.5.0",
+{% endif -%}
+{% if include_validation -%}
+  "pydantic>=2.0.0",
+{% endif -%}
 ]
 
 [project.optional-dependencies]

@@ -16,6 +16,8 @@ class TemplateContext:
     include_ruff: bool
     include_mypy: bool
     include_pytest: bool
+    include_openapi: bool
+    include_validation: bool
 
 
 @dataclass(frozen=True)
@@ -39,3 +41,5 @@ class ProjectOptions:
     tooling: tuple[str, ...]
     include_github_actions: bool
     initialize_git: bool
+    include_openapi: bool
+    include_validation: bool
