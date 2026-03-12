@@ -26,6 +26,7 @@ def test_new_command_creates_http_project(tmp_path: Path) -> None:
     assert 'requires-python = ">=3.10,<3.11"' in generated_pyproject
     assert 'target-version = "py310"' in generated_pyproject
     assert (project_dir / "Makefile").exists()
+    assert "azure-functions-logging>=0.2.0" in generated_pyproject
 
 
 def test_new_command_creates_timer_project(tmp_path: Path) -> None:
@@ -197,7 +198,7 @@ def test_new_command_supports_interactive_mode(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="interactive-api\nhttp\nstrict\n3.12\ny\nn\ny\ny\ny\nn\nn\n",
+        input="interactive-api\nhttp\nstrict\n3.12\ny\nn\ny\ny\ny\nn\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -212,7 +213,7 @@ def test_new_command_supports_interactive_custom_tooling(tmp_path: Path) -> None
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="custom-api\nhttp\nstandard\n3.11\nn\nn\ny\ny\nn\nn\nn\n",
+        input="custom-api\nhttp\nstandard\n3.11\nn\nn\ny\ny\nn\nn\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -230,7 +231,7 @@ def test_new_command_reprompts_invalid_interactive_choices(tmp_path: Path) -> No
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="\ninvalid-template\nhttp\ninvalid-preset\nstandard\n3.9\n3.12\nn\nn\ny\nn\ny\nn\nn\n",
+        input="\ninvalid-template\nhttp\ninvalid-preset\nstandard\n3.9\n3.12\nn\nn\ny\nn\ny\nn\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -337,7 +338,7 @@ def test_new_command_interactive_with_openapi_and_validation(tmp_path: Path) -> 
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="full-interactive-api\nhttp\nstandard\n3.10\nn\nn\ny\nn\ny\ny\ny\n",
+        input="full-interactive-api\nhttp\nstandard\n3.10\nn\nn\ny\nn\ny\ny\ny\nn\n",
     )
 
     assert result.exit_code == 0
@@ -371,6 +372,54 @@ def test_new_command_dry_run_reports_openapi_and_validation(tmp_path: Path) -> N
     assert result.exit_code == 0
     assert "OpenAPI: enabled" in result.stdout
     assert "Validation: enabled" in result.stdout
+    assert not (tmp_path / "dry-api").exists()
+
+
+def test_new_command_with_doctor_flag(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "doctor-api", "--destination", str(tmp_path), "--with-doctor"],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "doctor-api"
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    makefile_text = (project_dir / "Makefile").read_text(encoding="utf-8")
+    assert "azure-functions-doctor>=0.15.0" in pyproject_text
+    assert "make doctor" in makefile_text or "doctor:" in makefile_text
+
+
+def test_new_command_without_doctor_excludes_doctor(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "no-doctor-api", "--destination", str(tmp_path)],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "no-doctor-api"
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    makefile_text = (project_dir / "Makefile").read_text(encoding="utf-8")
+    assert "azure-functions-doctor" not in pyproject_text
+    assert "doctor:" not in makefile_text
+
+
+def test_new_command_dry_run_reports_doctor(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "new",
+            "dry-api",
+            "--destination",
+            str(tmp_path),
+            "--with-doctor",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Doctor: enabled" in result.stdout
     assert not (tmp_path / "dry-api").exists()
 
 def test_add_http_command_updates_existing_project(tmp_path: Path) -> None:

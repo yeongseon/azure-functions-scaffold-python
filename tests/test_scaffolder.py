@@ -95,6 +95,7 @@ def test_build_template_context_creates_slug() -> None:
         include_pytest=True,
         include_openapi=False,
         include_validation=False,
+        include_doctor=False,
     )
 
 
@@ -129,6 +130,7 @@ def test_render_path_strips_jinja_suffix_and_replaces_placeholders() -> None:
         include_pytest=True,
         include_openapi=False,
         include_validation=False,
+        include_doctor=False,
     )
 
     rendered = _render_path(Path("__project_name__/README.md.j2"), context)
@@ -253,6 +255,7 @@ def test_scaffold_project_generates_expected_project_contract(
     assert "mypy>=1.17.1" in pyproject_text
     assert "pytest>=8.3.5" in pyproject_text
     assert "Preset: `strict`" in readme_text
+    assert "azure-functions-logging>=0.2.0" in pyproject_text
 
 
 @pytest.mark.parametrize("template_name", ["queue", "blob", "servicebus"])
