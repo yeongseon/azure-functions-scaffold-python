@@ -38,6 +38,51 @@ The `add` command allows users to extend existing projects with new functions, m
 4. The system renders function, service, and test modules from the specific trigger templates, ensuring that each new function comes with its own isolated logic and tests.
 5. The system appends the new function registration to the existing `function_app.py` file, integrating it into the project's runtime without overwriting existing registrations.
 
+## Rendered Pipeline Examples
+
+The rendering pipeline produces plain Python modules that are ready to run. The examples below show generated output artifacts at each stage.
+
+### Stage 1: Generated app entrypoint (`function_app.py`)
+
+```python
+import azure.functions as func
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+
+@app.route(route="hello", methods=["GET"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    name = req.params.get("name", "World")
+    return func.HttpResponse(f"Hello, {name}!", status_code=200)
+```
+
+### Stage 2: Generated trigger module (`app/functions/http.py`)
+
+```python
+import azure.functions as func
+
+from app.services.hello_service import build_hello_message
+
+bp = func.Blueprint()
+
+
+@bp.route(route="hello", methods=["GET"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    name = req.params.get("name", "World")
+    message = build_hello_message(name)
+    return func.HttpResponse(message, status_code=200)
+```
+
+### Stage 3: Generated test module (`tests/test_http.py`)
+
+```python
+from app.services.hello_service import build_hello_message
+
+
+def test_build_hello_message_defaults_to_world() -> None:
+    assert build_hello_message("World") == "Hello, World!"
+```
+
 ## Module Boundaries
 
 The codebase is organized into specialized modules with clear responsibilities and minimal overlap:

@@ -107,6 +107,121 @@ Additional expectations:
 - `servicebus` must generate a clear development connection placeholder
 - binding-based trigger templates must include `extensionBundle` in `host.json`
 
+## Generated Python Examples by Pattern
+
+### `http-basic` (`function_app.py`)
+
+```python
+import azure.functions as func
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+
+@app.route(route="hello", methods=["GET"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    name = req.params.get("name", "World")
+    return func.HttpResponse(f"Hello, {name}!", status_code=200)
+```
+
+### `http-openapi` (`function_app.py`)
+
+```python
+import azure.functions as func
+from azure_functions_openapi import OpenAPI
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+openapi = OpenAPI(title="Sample API", version="1.0.0")
+
+
+@app.route(route="hello", methods=["GET"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    name = req.params.get("name", "World")
+    return func.HttpResponse(f"Hello, {name}!", status_code=200)
+
+
+@app.route(route="openapi.json", methods=["GET"])
+def openapi_json(req: func.HttpRequest) -> func.HttpResponse:
+    spec = openapi.render_openapi_json()
+    return func.HttpResponse(spec, mimetype="application/json", status_code=200)
+```
+
+### `http-validation` (`function_app.py`)
+
+```python
+import azure.functions as func
+from pydantic import BaseModel, Field
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+
+class HelloRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=64)
+
+
+class HelloResponse(BaseModel):
+    message: str
+
+
+@app.route(route="hello", methods=["POST"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    payload = HelloRequest.model_validate_json(req.get_body())
+    response = HelloResponse(message=f"Hello, {payload.name}!")
+    return func.HttpResponse(response.model_dump_json(), mimetype="application/json", status_code=200)
+```
+
+### `timer` (`app/functions/cleanup.py`)
+
+```python
+import azure.functions as func
+
+bp = func.Blueprint()
+
+
+@bp.timer_trigger(schedule="0 */5 * * * *", arg_name="timer", run_on_startup=False, use_monitor=True)
+def cleanup(timer: func.TimerRequest) -> None:
+    if timer.past_due:
+        return
+```
+
+### `queue` (`app/functions/sync_jobs.py`)
+
+```python
+import azure.functions as func
+
+bp = func.Blueprint()
+
+
+@bp.queue_trigger(arg_name="msg", queue_name="jobs", connection="AzureWebJobsStorage")
+def sync_jobs(msg: func.QueueMessage) -> None:
+    _ = msg.get_body().decode("utf-8")
+```
+
+### `blob` (`app/functions/ingest_reports.py`)
+
+```python
+import azure.functions as func
+
+bp = func.Blueprint()
+
+
+@bp.blob_trigger(arg_name="blob", path="incoming/{name}", connection="AzureWebJobsStorage")
+def ingest_reports(blob: func.InputStream) -> None:
+    _ = blob.name
+```
+
+### `servicebus` (`app/functions/process_events.py`)
+
+```python
+import azure.functions as func
+
+bp = func.Blueprint()
+
+
+@bp.service_bus_queue_trigger(arg_name="msg", queue_name="events", connection="SERVICEBUS_CONNECTION")
+def process_events(msg: func.ServiceBusMessage) -> None:
+    _ = msg.get_body().decode("utf-8")
+```
+
 ## Quality Contract
 
 Generated projects should satisfy the commands implied by their selected preset:

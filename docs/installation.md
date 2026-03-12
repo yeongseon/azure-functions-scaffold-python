@@ -32,6 +32,18 @@ Expected output:
 0.3.0
 ```
 
+You can also verify that the package imports correctly from Python:
+
+```bash
+python -c "from azure_functions_scaffold import cli; print('OK')"
+```
+
+Expected output:
+
+```text
+OK
+```
+
 ## Installation in a Virtual Environment
 
 We recommend installing the tool within a virtual environment to keep your global Python installation clean and avoid dependency conflicts.

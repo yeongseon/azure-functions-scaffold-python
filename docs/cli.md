@@ -107,10 +107,37 @@ Example:
 azure-functions-scaffold new my-api
 ```
 
+Generated Output (`function_app.py`):
+
+```python
+import azure.functions as func
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+
+@app.route(route="hello", methods=["GET"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    name = req.params.get("name", "World")
+    return func.HttpResponse(f"Hello, {name}!", status_code=200)
+```
+
 Interactive example:
 
 ```bash
 azure-functions-scaffold new --interactive
+```
+
+Generated Output (default interactive HTTP selection):
+
+```python
+import azure.functions as func
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+
+@app.route(route="hello", methods=["GET"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse("Hello, World!", status_code=200)
 ```
 
 Preset example:
@@ -119,10 +146,34 @@ Preset example:
 azure-functions-scaffold new my-api --preset strict --python-version 3.12 --github-actions
 ```
 
+Generated Output (`tests/test_http.py` included by strict preset):
+
+```python
+from app.services.hello_service import build_hello_message
+
+
+def test_build_hello_message() -> None:
+    assert build_hello_message("Azure") == "Hello, Azure!"
+```
+
 Timer template example:
 
 ```bash
 azure-functions-scaffold new my-job --template timer
+```
+
+Generated Output (`function_app.py` for timer template):
+
+```python
+import azure.functions as func
+
+app = func.FunctionApp()
+
+
+@app.timer_trigger(schedule="0 */5 * * * *", arg_name="timer", run_on_startup=False, use_monitor=True)
+def cleanup(timer: func.TimerRequest) -> None:
+    if timer.past_due:
+        return
 ```
 
 Queue template example:
@@ -131,10 +182,36 @@ Queue template example:
 azure-functions-scaffold new my-worker --template queue
 ```
 
+Generated Output (`function_app.py` for queue template):
+
+```python
+import azure.functions as func
+
+app = func.FunctionApp()
+
+
+@app.queue_trigger(arg_name="msg", queue_name="jobs", connection="AzureWebJobsStorage")
+def sync_jobs(msg: func.QueueMessage) -> None:
+    _ = msg.get_body().decode("utf-8")
+```
+
 Blob template example:
 
 ```bash
 azure-functions-scaffold new my-blob-worker --template blob
+```
+
+Generated Output (`function_app.py` for blob template):
+
+```python
+import azure.functions as func
+
+app = func.FunctionApp()
+
+
+@app.blob_trigger(arg_name="blob", path="incoming/{name}", connection="AzureWebJobsStorage")
+def ingest_reports(blob: func.InputStream) -> None:
+    _ = blob.name
 ```
 
 Service Bus template example:
@@ -143,10 +220,36 @@ Service Bus template example:
 azure-functions-scaffold new my-bus-worker --template servicebus
 ```
 
+Generated Output (`function_app.py` for service bus template):
+
+```python
+import azure.functions as func
+
+app = func.FunctionApp()
+
+
+@app.service_bus_queue_trigger(arg_name="msg", queue_name="events", connection="SERVICEBUS_CONNECTION")
+def process_events(msg: func.ServiceBusMessage) -> None:
+    _ = msg.get_body().decode("utf-8")
+```
+
 Dry-run example:
 
 ```bash
 azure-functions-scaffold new my-api --template queue --preset strict --dry-run
+```
+
+Generated Output (previewed, not written):
+
+```python
+import azure.functions as func
+
+app = func.FunctionApp()
+
+
+@app.queue_trigger(arg_name="msg", queue_name="jobs", connection="AzureWebJobsStorage")
+def sync_jobs(msg: func.QueueMessage) -> None:
+    _ = msg.get_body().decode("utf-8")
 ```
 
 Overwrite example:
@@ -155,10 +258,38 @@ Overwrite example:
 azure-functions-scaffold new my-api --overwrite
 ```
 
+Generated Output (same baseline HTTP app after replacement):
+
+```python
+import azure.functions as func
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+
+@app.route(route="hello", methods=["GET"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse("Hello, World!", status_code=200)
+```
+
 OpenAPI example:
 
 ```bash
 azure-functions-scaffold new my-api --with-openapi
+```
+
+Generated Output (`function_app.py` with OpenAPI endpoints):
+
+```python
+import azure.functions as func
+from azure_functions_openapi import OpenAPI
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+openapi = OpenAPI(title="My API", version="1.0.0")
+
+
+@app.route(route="openapi.json", methods=["GET"])
+def openapi_json(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse(openapi.render_openapi_json(), mimetype="application/json", status_code=200)
 ```
 
 Validation example:
@@ -167,10 +298,50 @@ Validation example:
 azure-functions-scaffold new my-api --with-validation
 ```
 
+Generated Output (`function_app.py` with request validation):
+
+```python
+import azure.functions as func
+from pydantic import BaseModel
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+
+class HelloRequest(BaseModel):
+    name: str
+
+
+@app.route(route="hello", methods=["POST"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    payload = HelloRequest.model_validate_json(req.get_body())
+    return func.HttpResponse(f"Hello, {payload.name}!", status_code=200)
+```
+
 OpenAPI + validation example:
 
 ```bash
 azure-functions-scaffold new my-api --with-openapi --with-validation
+```
+
+Generated Output (`function_app.py` with both features):
+
+```python
+import azure.functions as func
+from azure_functions_openapi import OpenAPI
+from pydantic import BaseModel
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+openapi = OpenAPI(title="My API", version="1.0.0")
+
+
+class HelloRequest(BaseModel):
+    name: str
+
+
+@app.route(route="hello", methods=["POST"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    payload = HelloRequest.model_validate_json(req.get_body())
+    return func.HttpResponse(f"Hello, {payload.name}!", status_code=200)
 ```
 
 Result:
@@ -224,10 +395,38 @@ HTTP example:
 azure-functions-scaffold add http get-user --project-root ./my-api
 ```
 
+Generated Output (`app/functions/get_user.py`):
+
+```python
+import azure.functions as func
+
+bp = func.Blueprint()
+
+
+@bp.route(route="get-user", methods=["GET"])
+def get_user(req: func.HttpRequest) -> func.HttpResponse:
+    user_id = req.params.get("id", "unknown")
+    return func.HttpResponse(f"user={user_id}", status_code=200)
+```
+
 Timer example:
 
 ```bash
 azure-functions-scaffold add timer cleanup --project-root ./my-api
+```
+
+Generated Output (`app/functions/cleanup.py`):
+
+```python
+import azure.functions as func
+
+bp = func.Blueprint()
+
+
+@bp.timer_trigger(schedule="0 */5 * * * *", arg_name="timer", run_on_startup=False, use_monitor=True)
+def cleanup(timer: func.TimerRequest) -> None:
+    if timer.past_due:
+        return
 ```
 
 Queue example:
@@ -236,10 +435,36 @@ Queue example:
 azure-functions-scaffold add queue sync-jobs --project-root ./my-api
 ```
 
+Generated Output (`app/functions/sync_jobs.py`):
+
+```python
+import azure.functions as func
+
+bp = func.Blueprint()
+
+
+@bp.queue_trigger(arg_name="msg", queue_name="jobs", connection="AzureWebJobsStorage")
+def sync_jobs(msg: func.QueueMessage) -> None:
+    _ = msg.get_body().decode("utf-8")
+```
+
 Blob example:
 
 ```bash
 azure-functions-scaffold add blob ingest-reports --project-root ./my-api
+```
+
+Generated Output (`app/functions/ingest_reports.py`):
+
+```python
+import azure.functions as func
+
+bp = func.Blueprint()
+
+
+@bp.blob_trigger(arg_name="blob", path="incoming/{name}", connection="AzureWebJobsStorage")
+def ingest_reports(blob: func.InputStream) -> None:
+    _ = blob.name
 ```
 
 Service Bus example:
@@ -248,10 +473,36 @@ Service Bus example:
 azure-functions-scaffold add servicebus process-events --project-root ./my-api
 ```
 
+Generated Output (`app/functions/process_events.py`):
+
+```python
+import azure.functions as func
+
+bp = func.Blueprint()
+
+
+@bp.service_bus_queue_trigger(arg_name="msg", queue_name="events", connection="SERVICEBUS_CONNECTION")
+def process_events(msg: func.ServiceBusMessage) -> None:
+    _ = msg.get_body().decode("utf-8")
+```
+
 Dry-run example:
 
 ```bash
 azure-functions-scaffold add servicebus process-events --project-root ./my-api --dry-run
+```
+
+Generated Output (previewed function module):
+
+```python
+import azure.functions as func
+
+bp = func.Blueprint()
+
+
+@bp.service_bus_queue_trigger(arg_name="msg", queue_name="events", connection="SERVICEBUS_CONNECTION")
+def process_events(msg: func.ServiceBusMessage) -> None:
+    _ = msg.get_body().decode("utf-8")
 ```
 
 Result:

@@ -55,6 +55,22 @@ my-api/
     └── test_http_trigger.py
 ```
 
+## Generated Code Preview
+
+When you run `azure-functions-scaffold new my-api --template http`, the generated `function_app.py` starts as executable Azure Functions Python v2 code:
+
+```python
+import azure.functions as func
+
+app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+
+
+@app.route(route="hello", methods=["GET"])
+def hello(req: func.HttpRequest) -> func.HttpResponse:
+    name = req.params.get("name", "World")
+    return func.HttpResponse(f"Hello, {name}!", status_code=200)
+```
+
 ## Navigation Guide
 
 Explore these sections to learn more about using and extending the scaffold:
