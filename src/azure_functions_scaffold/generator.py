@@ -166,6 +166,11 @@ def _insert_near_marker(
     after_anchor: bool = False,
 ) -> str:
     if marker in content:
+        # Insert new import before the blank line that separates imports from
+        # the marker comment, keeping all imports in one contiguous block.
+        blank_then_marker = f"\n\n{marker}"
+        if blank_then_marker in content:
+            return content.replace(blank_then_marker, f"\n{line}\n\n{marker}", 1)
         return content.replace(marker, f"{line}\n{marker}", 1)
 
     if fallback_anchor not in content:
