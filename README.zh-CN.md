@@ -1,4 +1,4 @@
-# azure-functions-scaffold
+# Azure Functions Scaffold
 
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold.svg)](https://pypi.org/project/azure-functions-scaffold/)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
@@ -10,9 +10,38 @@
 [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-scaffold/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Read this in: [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md)
+其他语言: [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md)
 
 用于生产级 Azure Functions Python v2 项目的脚手架 CLI.
+
+## 为什么使用它
+
+启动新的 Azure Functions 项目意味着设置样板文件：`host.json`、`function_app.py`、目录结构、工具配置和测试。`azure-functions-scaffold` 通过一个命令生成生产级项目布局，让你从一开始就专注于业务逻辑。
+
+## 范围
+
+- Azure Functions Python **v2 编程模型**
+- 基于装饰器的 `func.FunctionApp()` 应用
+- CLI 驱动的项目生成与扩展
+- HTTP、Timer、Queue、Blob 和 Service Bus 触发器模板
+
+此工具用于生成项目脚手架，**不**提供运行时库。
+
+## 功能
+
+- 用于项目生成的 `azure-functions-scaffold new` 命令
+- 5 个内置模板: HTTP、Timer、Queue、Blob、Service Bus
+- 用于扩展现有项目的 `azure-functions-scaffold add` 命令
+- 可选集成: `--with-openapi`、`--with-validation`、`--with-doctor`
+- 预设工具级别: `--preset minimal|standard|strict`
+- 通过 `--interactive` 进行引导式设置
+- 短别名: `afs` 可替代 `azure-functions-scaffold`
+
+## 安装
+
+```bash
+pip install azure-functions-scaffold
+```
 
 ## 快速开始
 
@@ -24,7 +53,6 @@ Read this in: [English](README.md) | [한국어](README.ko.md) | [日本語](REA
 4. 启动本地 Functions 运行时。
 
 ```bash
-pip install azure-functions-scaffold
 azure-functions-scaffold new my-api
 cd my-api
 pip install -e .
@@ -149,14 +177,6 @@ func azure functionapp publish <APP_NAME>
 - 运行项目检查（`pytest`、lint 和格式化）。
 - 使用 `func start` 在本地验证启动。
 
-## 生态系统
-
-- Validation: [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation)
-- OpenAPI: [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi)
-- Logging: [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging)
-- Doctor: [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor)
-- Cookbook: [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook)
-
 ## 文档
 
 - 完整文档: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
@@ -176,6 +196,14 @@ make check-all
 make docs
 make build
 ```
+
+## 生态系统
+
+- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — 请求与响应校验
+- [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) — OpenAPI 与 Swagger UI
+- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — 结构化日志
+- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — 诊断 CLI
+- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — 食谱与示例
 
 ## 免责声明
 

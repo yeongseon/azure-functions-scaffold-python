@@ -1,4 +1,4 @@
-# azure-functions-scaffold
+# Azure Functions Scaffold
 
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold.svg)](https://pypi.org/project/azure-functions-scaffold/)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
@@ -10,9 +10,38 @@
 [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-scaffold/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Read this in: [English](README.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
+다른 언어: [English](README.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
 프로덕션 수준의 Azure Functions Python v2 프로젝트를 위한 스캐폴딩 CLI.
+
+## 왜 사용해야 할까
+
+새로운 Azure Functions 프로젝트를 시작하려면 보일러플레이트 설정이 필요합니다: `host.json`, `function_app.py`, 디렉터리 구조, 도구 설정, 테스트. `azure-functions-scaffold`는 한 번의 명령으로 프로덕션 수준의 프로젝트 레이아웃을 생성하여, 처음부터 비즈니스 로직에 집중할 수 있게 합니다.
+
+## 범위
+
+- Azure Functions Python **v2 프로그래밍 모델**
+- 데코레이터 기반 `func.FunctionApp()` 애플리케이션
+- CLI 기반 프로젝트 생성 및 확장
+- HTTP, Timer, Queue, Blob, Service Bus 트리거 템플릿
+
+이 도구는 프로젝트 스캐폴드를 생성합니다. 런타임 라이브러리를 제공하지는 **않습니다**.
+
+## 기능
+
+- 프로젝트 생성을 위한 `azure-functions-scaffold new` 명령
+- 5가지 내장 템플릿: HTTP, Timer, Queue, Blob, Service Bus
+- 기존 프로젝트 확장을 위한 `azure-functions-scaffold add` 명령
+- 선택적 통합: `--with-openapi`, `--with-validation`, `--with-doctor`
+- 사전 설정 도구 수준: `--preset minimal|standard|strict`
+- `--interactive`를 통한 가이드형 설정
+- 단축 별칭: `afs`를 `azure-functions-scaffold` 대신 사용 가능
+
+## 설치
+
+```bash
+pip install azure-functions-scaffold
+```
 
 ## 빠른 시작
 
@@ -24,7 +53,6 @@ Read this in: [English](README.md) | [日本語](README.ja.md) | [简体中文](
 4. 로컬 Functions 런타임을 시작합니다.
 
 ```bash
-pip install azure-functions-scaffold
 azure-functions-scaffold new my-api
 cd my-api
 pip install -e .
@@ -149,14 +177,6 @@ func azure functionapp publish <APP_NAME>
 - 프로젝트 검증(`pytest`, 린트, 포맷팅)을 실행합니다.
 - `func start`로 로컬 시작을 확인합니다.
 
-## 에코시스템
-
-- Validation: [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation)
-- OpenAPI: [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi)
-- Logging: [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging)
-- Doctor: [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor)
-- Cookbook: [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook)
-
 ## 문서
 
 - 전체 문서: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
@@ -176,6 +196,14 @@ make check-all
 make docs
 make build
 ```
+
+## 에코시스템
+
+- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — 요청 및 응답 검증
+- [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) — OpenAPI 및 Swagger UI
+- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — 구조화된 로깅
+- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — 진단 CLI
+- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — 레시피 및 예제
 
 ## 면책 조항
 

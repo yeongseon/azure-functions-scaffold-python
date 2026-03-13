@@ -1,4 +1,4 @@
-# azure-functions-scaffold
+# Azure Functions Scaffold
 
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold.svg)](https://pypi.org/project/azure-functions-scaffold/)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
@@ -10,9 +10,38 @@
 [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-scaffold/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Read this in: [English](README.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
+他の言語: [English](README.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
 
 プロダクションレベルの Azure Functions Python v2 プロジェクトのためのスキャフォールディング CLI.
+
+## なぜこのツールを使うのか
+
+新しい Azure Functions プロジェクトを始めるには、ボイラープレートの設定が必要です: `host.json`、`function_app.py`、ディレクトリ構造、ツール設定、テスト。`azure-functions-scaffold` は一つのコマンドでプロダクションレベルのプロジェクトレイアウトを生成し、最初からビジネスロジックに集中できるようにします。
+
+## スコープ
+
+- Azure Functions Python **v2 プログラミングモデル**
+- デコレータベースの `func.FunctionApp()` アプリケーション
+- CLI 駆動のプロジェクト生成と拡張
+- HTTP、Timer、Queue、Blob、Service Bus トリガー用テンプレート
+
+このツールはプロジェクトスキャフォールドを生成します。ランタイムライブラリは提供**しません**。
+
+## 機能
+
+- プロジェクト生成のための `azure-functions-scaffold new` コマンド
+- 5 つの組み込みテンプレート: HTTP、Timer、Queue、Blob、Service Bus
+- 既存プロジェクト拡張のための `azure-functions-scaffold add` コマンド
+- オプション統合: `--with-openapi`、`--with-validation`、`--with-doctor`
+- プリセットツーリングレベル: `--preset minimal|standard|strict`
+- `--interactive` によるガイド付きセットアップ
+- ショートエイリアス: `afs` を `azure-functions-scaffold` の代わりに使用可能
+
+## インストール
+
+```bash
+pip install azure-functions-scaffold
+```
 
 ## クイックスタート
 
@@ -24,7 +53,6 @@ Read this in: [English](README.md) | [한국어](README.ko.md) | [简体中文](
 4. ローカル Functions ランタイムを起動します。
 
 ```bash
-pip install azure-functions-scaffold
 azure-functions-scaffold new my-api
 cd my-api
 pip install -e .
@@ -149,14 +177,6 @@ func azure functionapp publish <APP_NAME>
 - プロジェクトのチェック（`pytest`、lint、format）を実行します。
 - `func start` でローカル起動を確認します。
 
-## エコシステム
-
-- Validation: [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation)
-- OpenAPI: [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi)
-- Logging: [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging)
-- Doctor: [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor)
-- Cookbook: [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook)
-
 ## ドキュメント
 
 - 全文書: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
@@ -176,6 +196,14 @@ make check-all
 make docs
 make build
 ```
+
+## エコシステム
+
+- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — リクエストとレスポンスのバリデーション
+- [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) — OpenAPI と Swagger UI
+- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — 構造化ロギング
+- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — 診断 CLI
+- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — レシピとサンプル
 
 ## 免責事項
 
