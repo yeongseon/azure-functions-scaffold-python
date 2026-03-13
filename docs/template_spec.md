@@ -222,6 +222,98 @@ def process_events(msg: func.ServiceBusMessage) -> None:
     _ = msg.get_body().decode("utf-8")
 ```
 
+## Recipes
+
+### REST API with Validation
+
+Build a type-safe REST API with automatic request validation:
+
+```bash
+azure-functions-scaffold new my-api --with-openapi --with-validation --preset strict
+cd my-api
+pip install -e .[dev]
+func start
+```
+
+This generates an HTTP project with:
+- POST `/api/hello` with Pydantic `HelloRequest`/`HelloResponse` models
+- GET `/api/openapi.json` and `/api/openapi.yaml` for API specification
+- GET `/api/docs` for Swagger UI
+- Strict linting with Ruff + mypy
+- Pytest test suite
+
+### Scheduled Background Job
+
+Create a timer-triggered function for periodic tasks:
+
+```bash
+azure-functions-scaffold new cleanup-job --template timer --preset standard
+```
+
+The timer template generates a function that runs every 5 minutes by default. Modify the cron expression in `app/functions/cleanup.py` to change the schedule.
+
+### Message Queue Worker
+
+Process messages from Azure Storage Queue with Azurite for local development:
+
+```bash
+azure-functions-scaffold new order-processor --template queue
+cd order-processor
+pip install -e .
+```
+
+Start Azurite for local queue emulation, then run `func start`.
+
+### Blob Storage Processor
+
+React to file uploads in Azure Blob Storage:
+
+```bash
+azure-functions-scaffold new file-ingester --template blob
+```
+
+The blob template watches the `incoming/` container. Local development uses Azurite.
+
+### Service Bus Event Handler
+
+Process enterprise messages from Azure Service Bus:
+
+```bash
+azure-functions-scaffold new event-handler --template servicebus
+```
+
+Update the `SERVICEBUS_CONNECTION` in `local.settings.json.example` with your connection string.
+
+### Full-Stack HTTP with All Features
+
+Combine all optional features for a production-ready HTTP API:
+
+```bash
+azure-functions-scaffold new production-api \
+    --with-openapi \
+    --with-validation \
+    --with-doctor \
+    --preset strict \
+    --python-version 3.12 \
+    --github-actions \
+    --git
+```
+
+This generates a project with OpenAPI documentation, request validation, health checks, strict linting, GitHub Actions CI, and git initialization.
+
+### Adding Functions to Existing Projects
+
+Expand a scaffolded project with additional triggers:
+
+```bash
+cd my-api
+azure-functions-scaffold add http get-user --project-root .
+azure-functions-scaffold add timer daily-cleanup --project-root .
+azure-functions-scaffold add queue process-orders --project-root .
+```
+
+Each `add` command creates a new function module, service, and test file, then registers the Blueprint in `function_app.py`.
+
 ## Quality Contract
 
 Generated projects should satisfy the commands implied by their selected preset:

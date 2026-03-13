@@ -10,155 +10,110 @@
 [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-scaffold/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-他の言語: [English](README.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
+Read this in: [English](README.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
 
-運用を意識した Azure Functions Python v2 プロジェクトのためのスキャフォールディング CLI です。
+プロダクションレベルの Azure Functions Python v2 プロジェクトのためのスキャフォールディング CLI.
 
-プロジェクト名は、英数字で始まり、英数字、ハイフン（-）、アンダースコア（_）のみを使用する必要があります。
+## クイックスタート
 
-## Scope
+次の 4 ステップでローカル HTTP 関数を作成して実行します:
 
-- Azure Functions Python **v2 プログラミングモデル**
-- デコレータベースの `func.FunctionApp()` アプリケーション
-- 軽量ながら実用的なプロジェクト生成
-- 対話型ブートストラップ、プリセット、関数の拡張
-
-このプロジェクトは、従来の `function.json` を使用した Python v1 プログラミングモデルをサポートして**いません**。
-
-## Features
-
-- `azure-functions-scaffold new <project-name>`
-- `azure-functions-scaffold new <project-name> --template http|timer|queue|blob|servicebus`
-- `azure-functions-scaffold new --interactive`
-- `azure-functions-scaffold new <project-name> --preset minimal|standard|strict`
-- `azure-functions-scaffold new <project-name> --with-openapi` — OpenAPI ドキュメント (Swagger UI, JSON, YAML) を含める
-- `azure-functions-scaffold new <project-name> --with-validation` — リクエスト/レスポンスのバリデーションを含める
-- `azure-functions-scaffold new <project-name> --with-openapi --with-validation` — 両方の機能を組み合わせる
-- `azure-functions-scaffold new <project-name> --with-doctor` — azure-functions-doctor ヘルスチェックを含める
-- `azure-functions-scaffold add http <function-name>`
-- `azure-functions-scaffold add timer <function-name>`
-- `azure-functions-scaffold add queue <function-name>`
-- `azure-functions-scaffold add blob <function-name>`
-- `azure-functions-scaffold add servicebus <function-name>`
-- トリガーごとの組み込みプロジェクトテンプレート
-- 生成される成果物に含まれるテスト、リント、パッケージングのデフォルト設定
-- サービス指向の小規模なアプリケーション構成
-
-## Installation
+1. CLI をインストールします。
+2. 新しいプロジェクトを生成します。
+3. プロジェクトの依存関係をインストールします。
+4. ローカル Functions ランタイムを起動します。
 
 ```bash
 pip install azure-functions-scaffold
-```
-
-ローカル開発用:
-
-```bash
-git clone https://github.com/yeongseon/azure-functions-scaffold.git
-cd azure-functions-scaffold
-make install
-```
-
-## Usage
-
-現在のディレクトリに新しい HTTP プロジェクトを作成します:
-
-```bash
 azure-functions-scaffold new my-api
+cd my-api
+pip install -e .
+func start
 ```
 
-新しいタイマープロジェクトを作成します:
+ブラウザで `http://localhost:7071/api/hello` を開いてください。
 
-```bash
-azure-functions-scaffold new my-job --template timer
+期待されるレスポンス:
+
+```text
+Hello, World!
 ```
 
-ローカルの Azurite 開発用に queue-trigger プロジェクトを作成します:
+プロジェクト名は英数字で始める必要があり、使用できるのは文字、数字、
+ハイフン、アンダースコアのみです。
 
-```bash
-azure-functions-scaffold new my-worker --template queue
+## 生成される構成
+
+生成されるレイアウトは、トリガーバインディング、ビジネスロジック、共有ランタイムの
+関心事、テストを分離し、`function_app.py` にすべてを結合せずにチームが
+エンドポイントを拡張できるようにします。
+
+```text
+my-api/
+|- function_app.py          # Azure Functions v2 entrypoint
+|- host.json                # Runtime configuration
+|- local.settings.json.example
+|- pyproject.toml           # Dependencies and tooling config
+|- app/
+|  |- core/
+|  |  `- logging.py         # Structured JSON logging
+|  |- functions/
+|  |  `- http.py            # HTTP trigger (Blueprint)
+|  |- schemas/
+|  |  `- request_models.py  # Request/response models
+|  `- services/
+|     `- hello_service.py   # Business logic
+`- tests/
+   `- test_http.py          # Pytest tests
 ```
 
-ローカルの Azurite 開発用に blob-trigger プロジェクトを作成します:
+このレイアウトが機能する理由:
+
+- トリガー固有のコードは `app/functions` に置きます。
+- 再利用可能なビジネスルールは `app/services` に置きます。
+- モデル契約は `app/schemas` に置きます。
+- 可観測性とランタイムヘルパーは `app/core` に置きます。
+- 統合チェックは `tests` に置きます。
+
+## テンプレート
+
+| テンプレート | コマンド | 用途 |
+| --- | --- | --- |
+| http | `azure-functions-scaffold new my-api` | REST API、Webhook |
+| timer | `azure-functions-scaffold new my-job --template timer` | スケジュールタスク、Cron |
+| queue | `azure-functions-scaffold new my-worker --template queue` | メッセージ処理 (Azurite) |
+| blob | `azure-functions-scaffold new my-blob --template blob` | ファイル処理 (Azurite) |
+| servicebus | `azure-functions-scaffold new my-bus --template servicebus` | エンタープライズメッセージング |
+
+注: `afs` は `azure-functions-scaffold` の短縮形です。どちらも利用できます。
+
+テンプレートの既定値:
+
+- `http`: 公開 HTTP エンドポイントとサービスモジュール。
+- `timer`: NCRONTAB 式設定を使用するスケジュールトリガー。
+- `queue`: ローカル Azurite 開発向けに準備された Storage Queue トリガー。
+- `blob`: ファイル取り込みパイプライン向け Blob トリガースキャフォールド。
+- `servicebus`: 開発用プレースホルダー付きの Service Bus トリガースキャフォールド。
+
+## オプション機能
+
+- `--with-openapi` - Swagger UI + OpenAPI 仕様エンドポイント
+- `--with-validation` - Pydantic リクエスト/レスポンス検証
+- `--with-doctor` - ヘルスチェック診断
+- `--preset minimal|standard|strict` - ツーリングレベル
+- `--interactive` - ガイド付きプロジェクトセットアップ
+
+組み合わせ例:
 
 ```bash
-azure-functions-scaffold new my-blob-worker --template blob
-```
-
-Service Bus-trigger プロジェクトを作成します:
-
-```bash
-azure-functions-scaffold new my-bus-worker --template servicebus
-```
-
-対話形式でプロジェクトを作成します:
-
-```bash
-azure-functions-scaffold new --interactive
-```
-
-対話型のプロンプトは、プロジェクト名、テンプレート、プリセット、Python バージョンを事前検証します。これにより、生成過程でエラーが発生する代わりに対話時に間違いを修正できます。
-
-ファイルを書き込まずに生成されるプロジェクトをプレビューします:
-
-```bash
-azure-functions-scaffold new my-api --template queue --preset strict --dry-run
-```
-
-既存のスキャフォールディングされたプロジェクトを明示的に上書きします:
-
-```bash
-azure-functions-scaffold new my-api --overwrite
-```
-
-OpenAPI ドキュメント (Swagger UI, JSON, YAML エンドポイント) を含む HTTP プロジェクトを作成します:
-
-```bash
-azure-functions-scaffold new my-api --with-openapi
-```
-
-リクエスト/レスポンスのバリデーションを含む HTTP プロジェクトを作成します:
-
-```bash
-azure-functions-scaffold new my-api --with-validation
-```
-
-OpenAPI とバリデーションの両方を含む HTTP プロジェクトを作成します:
-
-```bash
+azure-functions-scaffold new my-api --preset strict --with-validation
 azure-functions-scaffold new my-api --with-openapi --with-validation
+azure-functions-scaffold new my-api --template timer --preset minimal
 ```
 
-azure-functions-doctor ヘルスチェックを含むプロジェクトを作成します:
+## プロジェクトの拡張
 
-```bash
-azure-functions-scaffold new my-api --with-doctor
-```
-
-GitHub Actions を有効にした strict プリセットプロジェクトを作成します:
-
-```bash
-azure-functions-scaffold new my-api --preset strict --python-version 3.12 --github-actions
-```
-
-特定の場所にプロジェクトを作成します:
-
-```bash
-azure-functions-scaffold new my-api --destination ./sandbox
-```
-
-利用可能なテンプレートの一覧を表示します:
-
-```bash
-azure-functions-scaffold templates
-```
-
-利用可能なプリセットの一覧を表示します:
-
-```bash
-azure-functions-scaffold presets
-```
-
-既存のスキャフォールディングされたプロジェクトに新しい関数を追加します:
+既存のスキャフォールド済みプロジェクトに関数を追加します:
 
 ```bash
 azure-functions-scaffold add http get-user --project-root ./my-api
@@ -168,54 +123,53 @@ azure-functions-scaffold add blob ingest-reports --project-root ./my-api
 azure-functions-scaffold add servicebus process-events --project-root ./my-api
 ```
 
-プロジェクトを変更せずに追加される関数をプレビューします:
+ファイルを書き込む前に追加内容をプレビューします:
 
 ```bash
 azure-functions-scaffold add servicebus process-events --project-root ./my-api --dry-run
 ```
 
-## Generated Project
+一般的な拡張フロー:
 
-現在の HTTP テンプレートは、次のような構造を生成します:
+1. `azure-functions-scaffold add <trigger> <name>` でトリガーを追加します。
+2. `app/services` 配下にビジネスロジックを実装します。
+3. 必要に応じて `app/schemas` の契約を更新します。
+4. `tests` のテストを追加または更新します。
 
-```text
-my-api/
-|- function_app.py
-|- host.json
-|- local.settings.json.example
-|- pyproject.toml
-|- .gitignore
-|- .funcignore
-|- README.md
-|- app/
-|  |- core/
-|  |  `- logging.py
-|  |- functions/
-|  |  `- http.py
-|  |- schemas/
-|  |  `- request_models.py
-|  `- services/
-|     `- hello_service.py
-`- tests/
-   `- test_http.py
+## デプロイ
+
+```bash
+func azure functionapp publish <APP_NAME>
 ```
 
-timer, queue, blob, service bus テンプレートも同様のレイアウトに従いますが、トリガー固有の関数、サービス、テストモジュールから始まります。queue と blob テンプレートはローカルの Azurite ベースの開発が可能になるように構成されており、service bus テンプレートは開発用接続情報のプレースホルダと共に生成されます。
+公開前の確認:
 
-`--with-openapi` オプションを使用すると、3 つのエンドポイントが追加で登録されます:
+- 本番接続に必要なアプリ設定を構成します。
+- `host.json` と関数の認証レベルを確認します。
+- プロジェクトのチェック（`pytest`、lint、format）を実行します。
+- `func start` でローカル起動を確認します。
 
-- `/api/docs` — Swagger UI
-- `/api/openapi.json` — OpenAPI 3.0 仕様 (JSON)
-- `/api/openapi.yaml` — OpenAPI 3.0 仕様 (YAML)
+## エコシステム
 
-`--with-validation` オプションを使用すると、hello エンドポイントは Pydantic のリクエスト/レスポンスモデル (`HelloRequest`, `HelloResponse`) を使用する POST 方式に変更されます。
+- Validation: [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation)
+- OpenAPI: [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi)
+- Logging: [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging)
+- Doctor: [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor)
+- Cookbook: [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook)
 
-`--with-doctor` オプションを使用すると、生成された Makefile に `make doctor` ターゲットが追加され、`azure-functions-doctor` がプロジェクトの依存関係に含まれます。
+## ドキュメント
 
-すべての生成されたプロジェクトには、`setup_logging(format="json")` と `get_logger()` による構造化 JSON ロギングのために `azure-functions-logging` が含まれます。
-## Development
+- 全文書: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
+- クイックスタート: [`docs/quickstart.md`](docs/quickstart.md)
+- CLI リファレンス: [`docs/cli.md`](docs/cli.md)
+- この構成を採用する理由: [`docs/why.md`](docs/why.md)
+- インストール: [`docs/installation.md`](docs/installation.md)
+- テンプレート仕様: [`docs/template_spec.md`](docs/template_spec.md)
+- トラブルシューティング: [`docs/troubleshooting.md`](docs/troubleshooting.md)
 
-エントリポイントとして Makefile コマンドを使用してください:
+## 開発
+
+正規のエントリポイントとして Makefile コマンドを使用します:
 
 ```bash
 make install
@@ -224,23 +178,13 @@ make docs
 make build
 ```
 
-## Documentation
+## 免責事項
 
-- 全ドキュメント: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
-- ルート設計ドキュメント: `AGENT.md`, `DESIGN.md`, `PRD.md`
-- リリース履歴: `CHANGELOG.md`
-- CLI ガイド: `docs/cli.md`
-- テンプレート仕様: `docs/template_spec.md`
-- スタイルガイド: `docs/style_guide.md`
-- ロードマップ: `docs/roadmap.md`
-- コントリビューションガイド: `CONTRIBUTING.md`
+このプロジェクトは独立したコミュニティプロジェクトであり、Microsoft とは提携しておらず、
+Microsoft による承認または保守の対象ではありません。
 
-## Disclaimer
+Azure および Azure Functions は Microsoft Corporation の商標です。
 
-本プロジェクトは独立したコミュニティプロジェクトであり、Microsoft と提携、承認、または維持されているものではありません。
-
-Azure および Azure Functions は、Microsoft Corporation の商標です。
-
-## License
+## ライセンス
 
 MIT

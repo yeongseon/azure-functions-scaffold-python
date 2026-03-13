@@ -268,7 +268,8 @@ def {function_name}(blob: func.InputStream) -> None:
     )
 """
 
-    return f"""from __future__ import annotations
+    if trigger == "servicebus":
+        return f"""from __future__ import annotations
 
 import logging
 
@@ -286,6 +287,8 @@ def {function_name}(message: func.ServiceBusMessage) -> None:
     body = message.get_body().decode("utf-8")
     logging.info("Service Bus trigger '{function_name}' processed: %s", body)
 """
+
+    raise ScaffoldError(f"No function module template for trigger '{trigger}'.")
 
 
 def _render_function_test(trigger: str, function_name: str) -> str:
@@ -354,7 +357,8 @@ def test_{function_name}_runs_without_error() -> None:
     {function_name}(blob)
 """
 
-    return f"""from __future__ import annotations
+    if trigger == "servicebus":
+        return f"""from __future__ import annotations
 
 from types import SimpleNamespace
 
@@ -366,6 +370,8 @@ def test_{function_name}_runs_without_error() -> None:
 
     {function_name}(message)
 """
+
+    raise ScaffoldError(f"No function test template for trigger '{trigger}'.")
 
 
 def _ensure_host_extensions(host_json_path: Path, trigger: str) -> None:

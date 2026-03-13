@@ -12,11 +12,13 @@ theme:
 
 nav:
   - Home: index.md
+  - Quick Start: quickstart.md
+  - Why This Structure: why.md
   - Installation: installation.md
-  - CLI: cli.md
-  - Template Spec: template_spec.md
-  - Style Guide: style_guide.md
+  - CLI Reference: cli.md
+  - Templates: template_spec.md
   - Architecture: architecture.md
+  - Style Guide: style_guide.md
   - Development: development.md
   - Testing: testing.md
   - Troubleshooting: troubleshooting.md
@@ -34,7 +36,8 @@ markdown_extensions:
   - tables
   - pymdownx.superfences
   - pymdownx.highlight
-  - pymdownx.tabbed
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.details
   - pymdownx.inlinehilite
 

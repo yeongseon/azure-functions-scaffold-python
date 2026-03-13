@@ -10,155 +10,110 @@
 [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-scaffold/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-其他语言: [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md)
+Read this in: [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md)
 
-用于生产导向的 Azure Functions Python v2 项目的脚手架 CLI。
+用于生产级 Azure Functions Python v2 项目的脚手架 CLI.
 
-项目名称必须以字母或数字开头，且仅包含字母、数字、连字符（-）或下划线（_）。
+## 快速开始
 
-## Scope
+使用以下 4 个步骤创建并运行本地 HTTP 函数:
 
-- Azure Functions Python **v2 编程模型**
-- 基于装饰器的 `func.FunctionApp()` 应用程序
-- 轻量级且实用的项目生成
-- 交互式引导、预设和函数扩展
-
-本项目**不**支持基于 `function.json` 的旧版 Python v1 编程模型。
-
-## Features
-
-- `azure-functions-scaffold new <project-name>`
-- `azure-functions-scaffold new <project-name> --template http|timer|queue|blob|servicebus`
-- `azure-functions-scaffold new --interactive`
-- `azure-functions-scaffold new <project-name> --preset minimal|standard|strict`
-- `azure-functions-scaffold new <project-name> --with-openapi` — 包含 OpenAPI 文档 (Swagger UI, JSON, YAML)
-- `azure-functions-scaffold new <project-name> --with-validation` — 包含请求/响应验证
-- `azure-functions-scaffold new <project-name> --with-openapi --with-validation` — 结合以上两种功能
-- `azure-functions-scaffold new <project-name> --with-doctor` — 包含 azure-functions-doctor 健康检查
-- `azure-functions-scaffold add http <function-name>`
-- `azure-functions-scaffold add timer <function-name>`
-- `azure-functions-scaffold add queue <function-name>`
-- `azure-functions-scaffold add blob <function-name>`
-- `azure-functions-scaffold add servicebus <function-name>`
-- 针对不同触发器的内置项目模板
-- 生成的成果中包含测试、Lint 和打包的默认设置
-- 面向服务的微型应用程序结构
-
-## Installation
+1. 安装 CLI。
+2. 生成一个新项目。
+3. 安装项目依赖。
+4. 启动本地 Functions 运行时。
 
 ```bash
 pip install azure-functions-scaffold
-```
-
-本地开发使用:
-
-```bash
-git clone https://github.com/yeongseon/azure-functions-scaffold.git
-cd azure-functions-scaffold
-make install
-```
-
-## Usage
-
-在当前目录创建一个新的 HTTP 项目:
-
-```bash
 azure-functions-scaffold new my-api
+cd my-api
+pip install -e .
+func start
 ```
 
-创建一个新的定时器项目:
+在浏览器中打开 `http://localhost:7071/api/hello`。
 
-```bash
-azure-functions-scaffold new my-job --template timer
+预期响应:
+
+```text
+Hello, World!
 ```
 
-创建一个用于本地 Azurite 开发的队列触发器项目:
+项目名称必须以字母或数字开头，并且只能使用字母、数字、
+连字符或下划线。
 
-```bash
-azure-functions-scaffold new my-worker --template queue
+## 生成结果
+
+生成的布局将触发器绑定、业务逻辑、共享运行时关注点和测试分离，
+使团队可以在不把所有内容都耦合到 `function_app.py` 的情况下
+扩展端点。
+
+```text
+my-api/
+|- function_app.py          # Azure Functions v2 entrypoint
+|- host.json                # Runtime configuration
+|- local.settings.json.example
+|- pyproject.toml           # Dependencies and tooling config
+|- app/
+|  |- core/
+|  |  `- logging.py         # Structured JSON logging
+|  |- functions/
+|  |  `- http.py            # HTTP trigger (Blueprint)
+|  |- schemas/
+|  |  `- request_models.py  # Request/response models
+|  `- services/
+|     `- hello_service.py   # Business logic
+`- tests/
+   `- test_http.py          # Pytest tests
 ```
 
-创建一个用于本地 Azurite 开发的 Blob 触发器项目:
+此布局的优势:
+
+- 将触发器特定代码放在 `app/functions` 中。
+- 将可复用的业务规则放在 `app/services` 中。
+- 将模型契约放在 `app/schemas` 中。
+- 将可观测性与运行时辅助放在 `app/core` 中。
+- 将集成检查放在 `tests` 中。
+
+## 模板
+
+| 模板 | 命令 | 使用场景 |
+| --- | --- | --- |
+| http | `azure-functions-scaffold new my-api` | REST API、Webhook |
+| timer | `azure-functions-scaffold new my-job --template timer` | 定时任务、Cron |
+| queue | `azure-functions-scaffold new my-worker --template queue` | 消息处理 (Azurite) |
+| blob | `azure-functions-scaffold new my-blob --template blob` | 文件处理 (Azurite) |
+| servicebus | `azure-functions-scaffold new my-bus --template servicebus` | 企业消息传递 |
+
+注意: `afs` 是 `azure-functions-scaffold` 的简称。两者都可用。
+
+模板默认值:
+
+- `http`: 公开 HTTP 端点和服务模块。
+- `timer`: 使用 NCRONTAB 表达式设置的定时触发器。
+- `queue`: 为本地 Azurite 开发准备好的 Storage Queue 触发器。
+- `blob`: 用于文件摄取流水线的 Blob 触发器脚手架。
+- `servicebus`: 带开发占位符的 Service Bus 触发器脚手架。
+
+## 可选功能
+
+- `--with-openapi` - Swagger UI + OpenAPI 规范端点
+- `--with-validation` - Pydantic 请求/响应校验
+- `--with-doctor` - 健康检查诊断
+- `--preset minimal|standard|strict` - 工具配置等级
+- `--interactive` - 引导式项目设置
+
+组合示例:
 
 ```bash
-azure-functions-scaffold new my-blob-worker --template blob
-```
-
-创建一个 Service Bus 触发器项目:
-
-```bash
-azure-functions-scaffold new my-bus-worker --template servicebus
-```
-
-交互式地创建项目:
-
-```bash
-azure-functions-scaffold new --interactive
-```
-
-交互式提示会在生成前验证项目名称、模板、预设和 Python 版本，以便在提示阶段纠正错误，而不是在生成过程中失败。
-
-预览生成的项目而不实际写入文件:
-
-```bash
-azure-functions-scaffold new my-api --template queue --preset strict --dry-run
-```
-
-显式替换现有的脚手架项目:
-
-```bash
-azure-functions-scaffold new my-api --overwrite
-```
-
-创建一个包含 OpenAPI 文档 (Swagger UI, JSON, YAML 端点) 的 HTTP 项目:
-
-```bash
-azure-functions-scaffold new my-api --with-openapi
-```
-
-创建一个包含请求/响应验证的 HTTP 项目:
-
-```bash
-azure-functions-scaffold new my-api --with-validation
-```
-
-创建一个同时包含 OpenAPI 和验证的 HTTP 项目:
-
-```bash
+azure-functions-scaffold new my-api --preset strict --with-validation
 azure-functions-scaffold new my-api --with-openapi --with-validation
+azure-functions-scaffold new my-api --template timer --preset minimal
 ```
 
-创建一个包含 azure-functions-doctor 健康检查的项目:
+## 扩展项目
 
-```bash
-azure-functions-scaffold new my-api --with-doctor
-```
-
-创建一个启用了 GitHub Actions 的 strict 预设项目:
-
-```bash
-azure-functions-scaffold new my-api --preset strict --python-version 3.12 --github-actions
-```
-
-在指定位置创建项目:
-
-```bash
-azure-functions-scaffold new my-api --destination ./sandbox
-```
-
-列出可用的模板:
-
-```bash
-azure-functions-scaffold templates
-```
-
-列出可用的预设:
-
-```bash
-azure-functions-scaffold presets
-```
-
-在现有的脚手架项目中添加新函数:
+向现有脚手架项目添加函数:
 
 ```bash
 azure-functions-scaffold add http get-user --project-root ./my-api
@@ -168,54 +123,53 @@ azure-functions-scaffold add blob ingest-reports --project-root ./my-api
 azure-functions-scaffold add servicebus process-events --project-root ./my-api
 ```
 
-在不修改项目的情况下预览要添加的函数:
+在写入文件前预览新增内容:
 
 ```bash
 azure-functions-scaffold add servicebus process-events --project-root ./my-api --dry-run
 ```
 
-## Generated Project
+常见扩展流程:
 
-当前的 HTTP 模板生成的结构如下:
+1. 使用 `azure-functions-scaffold add <trigger> <name>` 添加触发器。
+2. 在 `app/services` 下实现业务逻辑。
+3. 必要时更新 `app/schemas` 中的契约。
+4. 在 `tests` 中新增或更新测试。
 
-```text
-my-api/
-|- function_app.py
-|- host.json
-|- local.settings.json.example
-|- pyproject.toml
-|- .gitignore
-|- .funcignore
-|- README.md
-|- app/
-|  |- core/
-|  |  `- logging.py
-|  |- functions/
-|  |  `- http.py
-|  |- schemas/
-|  |  `- request_models.py
-|  `- services/
-|     `- hello_service.py
-`- tests/
-   `- test_http.py
+## 部署
+
+```bash
+func azure functionapp publish <APP_NAME>
 ```
 
-定时器、队列、Blob 和 Service Bus 模板遵循相同的高级布局，但会从针对特定触发器的函数、服务和测试模块开始。队列和 Blob 模板已准备好用于本地基于 Azurite 的开发，而 Service Bus 模板在生成时会带有开发连接占位符。
+发布前:
 
-使用 `--with-openapi` 时，会额外注册三个端点:
+- 设置生产连接所需的应用配置。
+- 检查 `host.json` 与函数授权级别。
+- 运行项目检查（`pytest`、lint 和格式化）。
+- 使用 `func start` 在本地验证启动。
 
-- `/api/docs` — Swagger UI
-- `/api/openapi.json` — OpenAPI 3.0 规范 (JSON)
-- `/api/openapi.yaml` — OpenAPI 3.0 规范 (YAML)
+## 生态系统
 
-使用 `--with-validation` 时，hello 端点会切换为使用 Pydantic 请求/响应模型 (`HelloRequest`, `HelloResponse`) 的 POST 方式。
+- Validation: [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation)
+- OpenAPI: [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi)
+- Logging: [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging)
+- Doctor: [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor)
+- Cookbook: [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook)
 
-使用 `--with-doctor` 时，生成的 Makefile 中会添加 `make doctor` 目标，并将 `azure-functions-doctor` 包含在项目依赖中。
+## 文档
 
-所有生成的项目都包含 `azure-functions-logging`，通过 `setup_logging(format="json")` 和 `get_logger()` 进行结构化 JSON 日志记录。
-## Development
+- 完整文档: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
+- 快速开始: [`docs/quickstart.md`](docs/quickstart.md)
+- CLI 参考: [`docs/cli.md`](docs/cli.md)
+- 为什么采用此结构: [`docs/why.md`](docs/why.md)
+- 安装: [`docs/installation.md`](docs/installation.md)
+- 模板规范: [`docs/template_spec.md`](docs/template_spec.md)
+- 故障排查: [`docs/troubleshooting.md`](docs/troubleshooting.md)
 
-使用 Makefile 命令作为标准入口点:
+## 开发
+
+使用 Makefile 命令作为标准入口:
 
 ```bash
 make install
@@ -224,23 +178,13 @@ make docs
 make build
 ```
 
-## Documentation
+## 免责声明
 
-- 完整文档: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
-- 根设计文档: `AGENT.md`, `DESIGN.md`, `PRD.md`
-- 发布历史: `CHANGELOG.md`
-- CLI 指南: `docs/cli.md`
-- 模板规范: `docs/template_spec.md`
-- 风格指南: `docs/style_guide.md`
-- 路线图: `docs/roadmap.md`
-- 贡献指南: `CONTRIBUTING.md`
-
-## Disclaimer
-
-本项目是一个独立的社区项目，不隶属于 Microsoft，也不受其认可或维护。
+本项目是独立的社区项目，与 Microsoft 没有关联，
+也未获得 Microsoft 认可或维护。
 
 Azure 和 Azure Functions 是 Microsoft Corporation 的商标。
 
-## License
+## 许可证
 
 MIT

@@ -7,11 +7,13 @@ from azure_functions_openapi.swagger_ui import render_swagger_ui
 {%- endif %}
 
 from app.core.logging import configure_logging
+# azure-functions-scaffold: function imports
 from app.functions.http import http_blueprint
 
 configure_logging()
 
 app = func.FunctionApp()
+# azure-functions-scaffold: function registrations
 app.register_functions(http_blueprint)
 {%- if include_openapi %}
 

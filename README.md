@@ -12,155 +12,108 @@
 
 Read this in: [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
-Scaffolding CLI for production-leaning Azure Functions Python v2 projects.
+Scaffolding CLI for production-ready Azure Functions Python v2 projects.
+
+## Quick Start
+
+Use this 4-step flow to create and run a local HTTP function:
+
+1. Install the CLI.
+2. Generate a new project.
+3. Install project dependencies.
+4. Start the local Functions runtime.
+
+```bash
+pip install azure-functions-scaffold
+azure-functions-scaffold new my-api
+cd my-api
+pip install -e .
+func start
+```
+
+Open `http://localhost:7071/api/hello` in your browser.
+
+Expected response:
+
+```text
+Hello, World!
+```
 
 Project names must start with an alphanumeric character and use only letters,
 numbers, hyphens, or underscores.
 
-## Scope
+## What You Get
 
-- Azure Functions Python **v2 programming model**
-- Decorator-based `func.FunctionApp()` applications
-- Opinionated but lightweight project generation
-- Interactive bootstrap, presets, and function expansion
+The generated layout separates trigger bindings, business logic, shared runtime
+concerns, and tests so teams can scale endpoints without coupling everything to
+`function_app.py`.
 
-This project does **not** support the legacy `function.json`-based Python v1 programming model.
-
-## Features
-
-- `azure-functions-scaffold new <project-name>`
-- `azure-functions-scaffold new <project-name> --template http|timer|queue|blob|servicebus`
-- `azure-functions-scaffold new --interactive`
-- `azure-functions-scaffold new <project-name> --preset minimal|standard|strict`
-- `azure-functions-scaffold new <project-name> --with-openapi` — include OpenAPI docs (Swagger UI, JSON, YAML)
-- `azure-functions-scaffold new <project-name> --with-validation` — include request/response validation
-- `azure-functions-scaffold new <project-name> --with-openapi --with-validation` — both features combined
-- `azure-functions-scaffold new <project-name> --with-doctor` — include azure-functions-doctor health checks
-- `azure-functions-scaffold add http <function-name>`
-- `azure-functions-scaffold add timer <function-name>`
-- `azure-functions-scaffold add queue <function-name>`
-- `azure-functions-scaffold add blob <function-name>`
-- `azure-functions-scaffold add servicebus <function-name>`
-- Embedded trigger-specific project templates
-- Configurable test, lint, and packaging defaults in generated output
-- Small service-oriented application layout
-
-## Installation
-
-```bash
-pip install azure-functions-scaffold
+```text
+my-api/
+|- function_app.py          # Azure Functions v2 entrypoint
+|- host.json                # Runtime configuration
+|- local.settings.json.example
+|- pyproject.toml           # Dependencies and tooling config
+|- app/
+|  |- core/
+|  |  `- logging.py         # Structured JSON logging
+|  |- functions/
+|  |  `- http.py            # HTTP trigger (Blueprint)
+|  |- schemas/
+|  |  `- request_models.py  # Request/response models
+|  `- services/
+|     `- hello_service.py   # Business logic
+`- tests/
+   `- test_http.py          # Pytest tests
 ```
 
-For local development:
+Why this layout works:
+
+- Keep trigger-specific code in `app/functions`.
+- Keep reusable business rules in `app/services`.
+- Keep model contracts in `app/schemas`.
+- Keep observability and runtime helpers in `app/core`.
+- Keep integration checks in `tests`.
+
+## Templates
+
+| Template | Command | Use Case |
+| --- | --- | --- |
+| http | `azure-functions-scaffold new my-api` | REST APIs, webhooks |
+| timer | `azure-functions-scaffold new my-job --template timer` | Scheduled tasks, cron |
+| queue | `azure-functions-scaffold new my-worker --template queue` | Message processing (Azurite) |
+| blob | `azure-functions-scaffold new my-blob --template blob` | File processing (Azurite) |
+| servicebus | `azure-functions-scaffold new my-bus --template servicebus` | Enterprise messaging |
+
+Note: `afs` is short for `azure-functions-scaffold`. Both work.
+
+Template defaults:
+
+- `http`: public HTTP endpoint and service module.
+- `timer`: scheduled trigger using NCRONTAB expression settings.
+- `queue`: Storage Queue trigger ready for local Azurite development.
+- `blob`: Blob trigger scaffold for file-ingestion pipelines.
+- `servicebus`: Service Bus trigger scaffold with development placeholders.
+
+## Optional Features
+
+- `--with-openapi` - Swagger UI + OpenAPI spec endpoints
+- `--with-validation` - Pydantic request/response validation
+- `--with-doctor` - Health check diagnostics
+- `--preset minimal|standard|strict` - Tooling level
+- `--interactive` - Guided project setup
+
+Example combinations:
 
 ```bash
-git clone https://github.com/yeongseon/azure-functions-scaffold.git
-cd azure-functions-scaffold
-make install
-```
-
-## Usage
-
-Create a new HTTP project in the current directory:
-
-```bash
-azure-functions-scaffold new my-api
-```
-
-Create a new timer project:
-
-```bash
-azure-functions-scaffold new my-job --template timer
-```
-
-Create a queue-trigger project for local Azurite development:
-
-```bash
-azure-functions-scaffold new my-worker --template queue
-```
-
-Create a blob-trigger project for local Azurite development:
-
-```bash
-azure-functions-scaffold new my-blob-worker --template blob
-```
-
-Create a Service Bus-trigger project:
-
-```bash
-azure-functions-scaffold new my-bus-worker --template servicebus
-```
-
-Create a project interactively:
-
-```bash
-azure-functions-scaffold new --interactive
-```
-
-Interactive prompts validate project names, templates, presets, and Python versions before
-continuing, so mistakes are caught at the prompt instead of failing later in the generation flow.
-
-Preview a generated project without writing files:
-
-```bash
-azure-functions-scaffold new my-api --template queue --preset strict --dry-run
-```
-
-Replace an existing scaffolded project explicitly:
-
-```bash
-azure-functions-scaffold new my-api --overwrite
-```
-
-Create an HTTP project with OpenAPI documentation (Swagger UI, JSON, YAML endpoints):
-
-```bash
-azure-functions-scaffold new my-api --with-openapi
-```
-
-Create an HTTP project with request/response validation:
-
-```bash
-azure-functions-scaffold new my-api --with-validation
-```
-
-Create an HTTP project with both OpenAPI and validation:
-
-```bash
+azure-functions-scaffold new my-api --preset strict --with-validation
 azure-functions-scaffold new my-api --with-openapi --with-validation
+azure-functions-scaffold new my-api --template timer --preset minimal
 ```
 
-Create a project with azure-functions-doctor health checks:
+## Expand Your Project
 
-```bash
-azure-functions-scaffold new my-api --with-doctor
-```
-
-Create a strict project with GitHub Actions enabled:
-
-```bash
-azure-functions-scaffold new my-api --preset strict --python-version 3.12 --github-actions
-```
-
-Create a new project in a specific destination:
-
-```bash
-azure-functions-scaffold new my-api --destination ./sandbox
-```
-
-List available templates:
-
-```bash
-azure-functions-scaffold templates
-```
-
-List available presets:
-
-```bash
-azure-functions-scaffold presets
-```
-
-Add a new function to an existing scaffolded project:
+Add functions to an existing scaffolded project:
 
 ```bash
 azure-functions-scaffold add http get-user --project-root ./my-api
@@ -170,57 +123,50 @@ azure-functions-scaffold add blob ingest-reports --project-root ./my-api
 azure-functions-scaffold add servicebus process-events --project-root ./my-api
 ```
 
-Preview an added function without modifying the project:
+Preview additions before writing files:
 
 ```bash
 azure-functions-scaffold add servicebus process-events --project-root ./my-api --dry-run
 ```
 
-## Generated Project
+Common expansion flow:
 
-The current HTTP template generates a structure similar to:
+1. Add a trigger with `azure-functions-scaffold add <trigger> <name>`.
+2. Implement business logic under `app/services`.
+3. Update contracts in `app/schemas` if needed.
+4. Add or update tests in `tests`.
 
-```text
-my-api/
-|- function_app.py
-|- host.json
-|- local.settings.json.example
-|- pyproject.toml
-|- .gitignore
-|- .funcignore
-|- README.md
-|- app/
-|  |- core/
-|  |  `- logging.py
-|  |- functions/
-|  |  `- http.py
-|  |- schemas/
-|  |  `- request_models.py
-|  `- services/
-|     `- hello_service.py
-`- tests/
-   `- test_http.py
+## Deploy
+
+```bash
+func azure functionapp publish <APP_NAME>
 ```
 
-The timer, queue, blob, and service bus templates follow the same top-level layout,
-but start with trigger-specific function, service, and test modules. The queue and blob
-templates are ready for local Azurite-based development, while the service bus template
-starts with a development connection placeholder.
+Before publishing:
 
-When `--with-openapi` is used, three additional endpoints are registered:
+- Set required app settings for production connections.
+- Review `host.json` and function auth levels.
+- Run your project checks (`pytest`, lint, and formatting).
+- Verify startup locally with `func start`.
 
-- `/api/docs` — Swagger UI
-- `/api/openapi.json` — OpenAPI 3.0 specification (JSON)
-- `/api/openapi.yaml` — OpenAPI 3.0 specification (YAML)
+## Ecosystem
 
-When `--with-validation` is used, the hello endpoint switches to POST with
-Pydantic request/response models (`HelloRequest`, `HelloResponse`).
+- Validation: [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation)
+- OpenAPI: [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi)
+- Logging: [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging)
+- Doctor: [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor)
+- Cookbook: [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook)
 
-When `--with-doctor` is used, a `make doctor` target is added to the generated
-Makefile and `azure-functions-doctor` is included as a project dependency.
+## Documentation
 
-All generated projects include `azure-functions-logging` for structured JSON
-logging via `setup_logging(format="json")` and `get_logger()`.
+- Full docs: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
+- Quick Start: [`docs/quickstart.md`](docs/quickstart.md)
+- CLI reference: [`docs/cli.md`](docs/cli.md)
+- Why this structure: [`docs/why.md`](docs/why.md)
+- Installation: [`docs/installation.md`](docs/installation.md)
+- Template specification: [`docs/template_spec.md`](docs/template_spec.md)
+- Troubleshooting: [`docs/troubleshooting.md`](docs/troubleshooting.md)
+
 ## Development
 
 Use Makefile commands as the canonical entry points:
@@ -231,17 +177,6 @@ make check-all
 make docs
 make build
 ```
-
-## Documentation
-
-- Full docs: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
-- Root planning docs: `AGENT.md`, `DESIGN.md`, `PRD.md`
-- Release history: `CHANGELOG.md`
-- CLI guide: `docs/cli.md`
-- Template spec: `docs/template_spec.md`
-- Style guide: `docs/style_guide.md`
-- Roadmap: `docs/roadmap.md`
-- Contributing guide: `CONTRIBUTING.md`
 
 ## Disclaimer
 

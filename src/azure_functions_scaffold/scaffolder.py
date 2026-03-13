@@ -154,15 +154,6 @@ def validate_project_name(project_name: str) -> str:
             "numbers, hyphens, or underscores."
         )
 
-    if normalized_name in {".", ".."}:
-        raise ScaffoldError("Project name must be a normal directory name.")
-
-    if "/" in normalized_name or "\\" in normalized_name:
-        raise ScaffoldError("Project name must not contain path separators.")
-
-    if normalized_name.startswith("-"):
-        raise ScaffoldError("Project name must not start with '-'.")
-
     return normalized_name
 
 
@@ -202,8 +193,15 @@ def _slugify(value: str) -> str:
 
 
 def _next_python_minor(python_version: str) -> str:
-    major, minor = python_version.split(".", maxsplit=1)
-    return f"{major}.{int(minor) + 1}"
+    parts = python_version.split(".", maxsplit=1)
+    msg = f"Invalid Python version format: '{python_version}'. Expected 'major.minor'."
+    if len(parts) != 2:
+        raise ScaffoldError(msg)
+    major, minor = parts
+    try:
+        return f"{major}.{int(minor) + 1}"
+    except ValueError as exc:
+        raise ScaffoldError(msg) from exc
 
 
 def _resolve_scaffold_inputs(

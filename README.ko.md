@@ -10,155 +10,110 @@
 [![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-scaffold/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-다른 언어: [English](README.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
+Read this in: [English](README.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
-운영 환경 중심의 Azure Functions Python v2 프로젝트를 위한 스캐폴딩 CLI입니다.
+프로덕션 수준의 Azure Functions Python v2 프로젝트를 위한 스캐폴딩 CLI.
 
-프로젝트 이름은 영문자나 숫자로 시작해야 하며, 영문자, 숫자, 하이픈(-), 언더스코어(_)만 사용할 수 있습니다.
+## 빠른 시작
 
-## Scope
+다음 4단계 흐름으로 로컬 HTTP 함수를 생성하고 실행하세요:
 
-- Azure Functions Python **v2 프로그래밍 모델**
-- 데코레이터 기반 `func.FunctionApp()` 애플리케이션
-- 가볍지만 강력한 프로젝트 생성
-- 대화형 부트스트랩, 프리셋 및 함수 확장
-
-이 프로젝트는 기존 `function.json` 기반의 Python v1 프로그래밍 모델을 지원하지 **않습니다**.
-
-## Features
-
-- `azure-functions-scaffold new <project-name>`
-- `azure-functions-scaffold new <project-name> --template http|timer|queue|blob|servicebus`
-- `azure-functions-scaffold new --interactive`
-- `azure-functions-scaffold new <project-name> --preset minimal|standard|strict`
-- `azure-functions-scaffold new <project-name> --with-openapi` — OpenAPI 문서(Swagger UI, JSON, YAML) 포함
-- `azure-functions-scaffold new <project-name> --with-validation` — 요청/응답 유효성 검사 포함
-- `azure-functions-scaffold new <project-name> --with-openapi --with-validation` — 두 기능 모두 포함
-- `azure-functions-scaffold new <project-name> --with-doctor` — azure-functions-doctor 헬스 체크 포함
-- `azure-functions-scaffold add http <function-name>`
-- `azure-functions-scaffold add timer <function-name>`
-- `azure-functions-scaffold add queue <function-name>`
-- `azure-functions-scaffold add blob <function-name>`
-- `azure-functions-scaffold add servicebus <function-name>`
-- 트리거별 내장 프로젝트 템플릿
-- 생성된 결과물에 테스트, 린트, 패키징 설정 포함
-- 서비스 중심의 소규모 애플리케이션 구조
-
-## Installation
+1. CLI를 설치합니다.
+2. 새 프로젝트를 생성합니다.
+3. 프로젝트 의존성을 설치합니다.
+4. 로컬 Functions 런타임을 시작합니다.
 
 ```bash
 pip install azure-functions-scaffold
-```
-
-로컬 개발용:
-
-```bash
-git clone https://github.com/yeongseon/azure-functions-scaffold.git
-cd azure-functions-scaffold
-make install
-```
-
-## Usage
-
-현재 디렉토리에 새로운 HTTP 프로젝트를 생성합니다:
-
-```bash
 azure-functions-scaffold new my-api
+cd my-api
+pip install -e .
+func start
 ```
 
-새로운 timer 프로젝트를 생성합니다:
+브라우저에서 `http://localhost:7071/api/hello`를 여세요.
 
-```bash
-azure-functions-scaffold new my-job --template timer
+예상 응답:
+
+```text
+Hello, World!
 ```
 
-로컬 Azurite 개발을 위한 queue-trigger 프로젝트를 생성합니다:
+프로젝트 이름은 영문자 또는 숫자로 시작해야 하며 문자, 숫자,
+하이픈 또는 밑줄만 사용할 수 있습니다.
 
-```bash
-azure-functions-scaffold new my-worker --template queue
+## 생성 결과
+
+생성된 구조는 트리거 바인딩, 비즈니스 로직, 공통 런타임 관심사,
+테스트를 분리하여 팀이 모든 엔드포인트를 `function_app.py`에 결합하지 않고도
+확장할 수 있게 합니다.
+
+```text
+my-api/
+|- function_app.py          # Azure Functions v2 entrypoint
+|- host.json                # Runtime configuration
+|- local.settings.json.example
+|- pyproject.toml           # Dependencies and tooling config
+|- app/
+|  |- core/
+|  |  `- logging.py         # Structured JSON logging
+|  |- functions/
+|  |  `- http.py            # HTTP trigger (Blueprint)
+|  |- schemas/
+|  |  `- request_models.py  # Request/response models
+|  `- services/
+|     `- hello_service.py   # Business logic
+`- tests/
+   `- test_http.py          # Pytest tests
 ```
 
-로컬 Azurite 개발을 위한 blob-trigger 프로젝트를 생성합니다:
+이 구조가 효과적인 이유:
+
+- 트리거별 코드는 `app/functions`에 유지합니다.
+- 재사용 가능한 비즈니스 규칙은 `app/services`에 유지합니다.
+- 모델 계약은 `app/schemas`에 유지합니다.
+- 관측성 및 런타임 헬퍼는 `app/core`에 유지합니다.
+- 통합 검증은 `tests`에 유지합니다.
+
+## 템플릿
+
+| 템플릿 | 명령어 | 사용 사례 |
+| --- | --- | --- |
+| http | `azure-functions-scaffold new my-api` | REST API, 웹훅 |
+| timer | `azure-functions-scaffold new my-job --template timer` | 예약 작업, 크론 |
+| queue | `azure-functions-scaffold new my-worker --template queue` | 메시지 처리 (Azurite) |
+| blob | `azure-functions-scaffold new my-blob --template blob` | 파일 처리 (Azurite) |
+| servicebus | `azure-functions-scaffold new my-bus --template servicebus` | 엔터프라이즈 메시징 |
+
+참고: `afs`는 `azure-functions-scaffold`의 줄임말입니다. 둘 다 동작합니다.
+
+템플릿 기본값:
+
+- `http`: 공개 HTTP 엔드포인트와 서비스 모듈.
+- `timer`: NCRONTAB 표현식 설정을 사용하는 예약 트리거.
+- `queue`: 로컬 Azurite 개발에 바로 사용할 수 있는 Storage Queue 트리거.
+- `blob`: 파일 수집 파이프라인을 위한 Blob 트리거 스캐폴드.
+- `servicebus`: 개발용 자리표시자가 포함된 Service Bus 트리거 스캐폴드.
+
+## 선택 기능
+
+- `--with-openapi` - Swagger UI + OpenAPI 사양 엔드포인트
+- `--with-validation` - Pydantic 요청/응답 검증
+- `--with-doctor` - 상태 확인 진단
+- `--preset minimal|standard|strict` - 도구 구성 수준
+- `--interactive` - 가이드형 프로젝트 설정
+
+조합 예시:
 
 ```bash
-azure-functions-scaffold new my-blob-worker --template blob
-```
-
-Service Bus-trigger 프로젝트를 생성합니다:
-
-```bash
-azure-functions-scaffold new my-bus-worker --template servicebus
-```
-
-대화형으로 프로젝트를 생성합니다:
-
-```bash
-azure-functions-scaffold new --interactive
-```
-
-대화형 프롬프트는 프로젝트 이름, 템플릿, 프리셋, Python 버전을 미리 검증합니다. 덕분에 생성 과정에서 오류가 발생하는 대신 프롬프트 단계에서 실수를 바로잡을 수 있습니다.
-
-파일을 실제로 작성하지 않고 생성될 프로젝트를 미리 확인합니다:
-
-```bash
-azure-functions-scaffold new my-api --template queue --preset strict --dry-run
-```
-
-기존 스캐폴딩된 프로젝트를 명시적으로 교체합니다:
-
-```bash
-azure-functions-scaffold new my-api --overwrite
-```
-
-OpenAPI 문서(Swagger UI, JSON, YAML 엔드포인트)가 포함된 HTTP 프로젝트를 생성합니다:
-
-```bash
-azure-functions-scaffold new my-api --with-openapi
-```
-
-요청/응답 유효성 검사가 포함된 HTTP 프로젝트를 생성합니다:
-
-```bash
-azure-functions-scaffold new my-api --with-validation
-```
-
-OpenAPI와 유효성 검사가 모두 포함된 HTTP 프로젝트를 생성합니다:
-
-```bash
+azure-functions-scaffold new my-api --preset strict --with-validation
 azure-functions-scaffold new my-api --with-openapi --with-validation
+azure-functions-scaffold new my-api --template timer --preset minimal
 ```
 
-azure-functions-doctor 헬스 체크가 포함된 프로젝트를 생성합니다:
+## 프로젝트 확장
 
-```bash
-azure-functions-scaffold new my-api --with-doctor
-```
-
-GitHub Actions가 활성화된 strict 프리셋 프로젝트를 생성합니다:
-
-```bash
-azure-functions-scaffold new my-api --preset strict --python-version 3.12 --github-actions
-```
-
-특정 위치에 프로젝트를 생성합니다:
-
-```bash
-azure-functions-scaffold new my-api --destination ./sandbox
-```
-
-사용 가능한 템플릿 목록을 확인합니다:
-
-```bash
-azure-functions-scaffold templates
-```
-
-사용 가능한 프리셋 목록을 확인합니다:
-
-```bash
-azure-functions-scaffold presets
-```
-
-기존 스캐폴딩된 프로젝트에 새로운 함수를 추가합니다:
+기존 스캐폴딩 프로젝트에 함수를 추가합니다:
 
 ```bash
 azure-functions-scaffold add http get-user --project-root ./my-api
@@ -168,54 +123,53 @@ azure-functions-scaffold add blob ingest-reports --project-root ./my-api
 azure-functions-scaffold add servicebus process-events --project-root ./my-api
 ```
 
-프로젝트를 수정하지 않고 추가될 함수를 미리 확인합니다:
+파일을 쓰기 전에 추가 내용을 미리 확인합니다:
 
 ```bash
 azure-functions-scaffold add servicebus process-events --project-root ./my-api --dry-run
 ```
 
-## Generated Project
+일반적인 확장 흐름:
 
-현재 HTTP 템플릿은 다음과 같은 구조를 생성합니다:
+1. `azure-functions-scaffold add <trigger> <name>`으로 트리거를 추가합니다.
+2. `app/services` 아래에 비즈니스 로직을 구현합니다.
+3. 필요하면 `app/schemas`의 계약을 업데이트합니다.
+4. `tests`에 테스트를 추가하거나 업데이트합니다.
 
-```text
-my-api/
-|- function_app.py
-|- host.json
-|- local.settings.json.example
-|- pyproject.toml
-|- .gitignore
-|- .funcignore
-|- README.md
-|- app/
-|  |- core/
-|  |  `- logging.py
-|  |- functions/
-|  |  `- http.py
-|  |- schemas/
-|  |  `- request_models.py
-|  `- services/
-|     `- hello_service.py
-`- tests/
-   `- test_http.py
+## 배포
+
+```bash
+func azure functionapp publish <APP_NAME>
 ```
 
-timer, queue, blob, service bus 템플릿도 동일한 최상위 구조를 따르지만, 트리거 전용 함수, 서비스, 테스트 모듈로 시작합니다. queue와 blob 템플릿은 로컬 Azurite 기반 개발이 가능하도록 구성되어 있으며, service bus 템플릿은 개발용 연결 정보 자리표시자와 함께 생성됩니다.
+게시 전에:
 
-`--with-openapi` 옵션을 사용하면 세 가지 엔드포인트가 추가로 등록됩니다:
+- 프로덕션 연결에 필요한 앱 설정을 구성합니다.
+- `host.json`과 함수 인증 수준을 검토합니다.
+- 프로젝트 검증(`pytest`, 린트, 포맷팅)을 실행합니다.
+- `func start`로 로컬 시작을 확인합니다.
 
-- `/api/docs` — Swagger UI
-- `/api/openapi.json` — OpenAPI 3.0 사양 (JSON)
-- `/api/openapi.yaml` — OpenAPI 3.0 사양 (YAML)
+## 에코시스템
 
-`--with-validation` 옵션을 사용하면 hello 엔드포인트가 Pydantic 요청/응답 모델(`HelloRequest`, `HelloResponse`)을 사용하는 POST 방식으로 변경됩니다.
+- Validation: [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation)
+- OpenAPI: [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi)
+- Logging: [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging)
+- Doctor: [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor)
+- Cookbook: [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook)
 
-`--with-doctor` 옵션을 사용하면 생성된 Makefile에 `make doctor` 타겟이 추가되고, `azure-functions-doctor`가 프로젝트 의존성에 포함됩니다.
+## 문서
 
-모든 생성된 프로젝트에는 `setup_logging(format="json")` 및 `get_logger()`를 통한 구조화된 JSON 로깅을 위해 `azure-functions-logging`이 포함됩니다.
-## Development
+- 전체 문서: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
+- 빠른 시작: [`docs/quickstart.md`](docs/quickstart.md)
+- CLI 참조: [`docs/cli.md`](docs/cli.md)
+- 이 구조를 사용하는 이유: [`docs/why.md`](docs/why.md)
+- 설치: [`docs/installation.md`](docs/installation.md)
+- 템플릿 명세: [`docs/template_spec.md`](docs/template_spec.md)
+- 문제 해결: [`docs/troubleshooting.md`](docs/troubleshooting.md)
 
-입력 지점으로 Makefile 명령을 사용하세요:
+## 개발
+
+정식 진입점으로 Makefile 명령을 사용하세요:
 
 ```bash
 make install
@@ -224,23 +178,13 @@ make docs
 make build
 ```
 
-## Documentation
+## 면책 조항
 
-- 전체 문서: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
-- 루트 설계 문서: `AGENT.md`, `DESIGN.md`, `PRD.md`
-- 릴리즈 히스토리: `CHANGELOG.md`
-- CLI 가이드: `docs/cli.md`
-- 템플릿 사양: `docs/template_spec.md`
-- 스타일 가이드: `docs/style_guide.md`
-- 로드맵: `docs/roadmap.md`
-- 컨트리뷰션 가이드: `CONTRIBUTING.md`
-
-## Disclaimer
-
-본 프로젝트는 독립적인 커뮤니티 프로젝트이며, Microsoft와 제휴하거나, Microsoft가 보증하거나 유지 관리하지 않습니다.
+이 프로젝트는 독립적인 커뮤니티 프로젝트이며 Microsoft와 제휴되어 있지 않고,
+Microsoft의 보증을 받거나 유지관리되지 않습니다.
 
 Azure 및 Azure Functions는 Microsoft Corporation의 상표입니다.
 
-## License
+## 라이선스
 
 MIT

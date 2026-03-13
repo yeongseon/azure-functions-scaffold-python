@@ -1,63 +1,35 @@
 # Azure Functions Scaffold
 
-Azure Functions Scaffold is a CLI tool that generates production-ready Azure Functions Python v2 projects. It provides a standardized way to start new serverless applications with a focus on maintainability, testability, and fast development cycles.
+Production-ready Azure Functions Python v2 projects in seconds.
 
-When naming your project, ensure the name starts with an alphanumeric character and contains only letters, numbers, hyphens, and underscores.
+`azure-functions-scaffold` generates an opinionated baseline for teams that want
+to ship Azure Functions projects with clear boundaries, reliable tests, and
+standardized tooling from day one.
 
-## Key Features
-
-The tool includes several features to help you build better serverless applications:
-
-*   **Multiple Trigger Templates**: Generate functions for HTTP, Timer, Queue, Blob, and Service Bus triggers.
-*   **Project Presets**: Choose between 'minimal', 'standard', and 'strict' presets to match your project requirements.
-*   **Interactive Mode**: Use guided prompts to configure your project without remembering every CLI flag.
-*   **OpenAPI Support**: Include automatic OpenAPI documentation generation using the `--with-openapi` flag.
-*   **Request/Response Validation**: Add schema-based validation for your functions with the `--with-validation` flag.
-*   **Doctor Health Checks**: Integrate self-diagnostic health checks into your functions using the `--with-doctor` flag.
-*   **Function Expansion**: Use the `add` command to add new functions to an existing project scaffolded by this tool.
-*   **Dry-run Preview**: See what files will be created without actually writing them to disk.
-*   **GitHub Actions CI**: Automatically generate CI workflows for testing and deployment.
-
-## Quick Start
-
-You can install the tool via pip and start a new project in seconds.
+## Get Started
 
 ```bash
-# Install the package
 pip install azure-functions-scaffold
-
-# Create a new HTTP project
 azure-functions-scaffold new my-api
-
-# Create a project with a specific trigger
-azure-functions-scaffold new my-api --template timer
-
-# Start in interactive mode
-azure-functions-scaffold new --interactive
+cd my-api
+func start
 ```
 
-## Generated Project Structure
+## Why Azure Functions Scaffold
 
-A typical project created with the HTTP template looks like this:
-
-```text
-my-api/
-├── .github/
-│   └── workflows/
-├── .gitignore
-├── .python_version
-├── README.md
-├── function_app.py
-├── host.json
-├── local.settings.json
-├── requirements.txt
-└── tests/
-    └── test_http_trigger.py
-```
+- Opinionated project structure with clear separation between triggers,
+  services, schemas, and infrastructure concerns.
+- Type-safe defaults with optional request/response validation for predictable
+  contracts.
+- Integrated ecosystem support for OpenAPI, structured logging, and health
+  diagnostics.
+- Fast local-first workflow designed to run offline with Azure Functions Core
+  Tools and Azurite-ready templates.
 
 ## Generated Code Preview
 
-When you run `azure-functions-scaffold new my-api --template http`, the generated `function_app.py` starts as executable Azure Functions Python v2 code:
+When you run `azure-functions-scaffold new my-api --template http`, the
+generated `function_app.py` starts as executable Azure Functions Python v2 code:
 
 ```python
 import azure.functions as func
@@ -71,34 +43,38 @@ def hello(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse(f"Hello, {name}!", status_code=200)
 ```
 
-## Navigation Guide
+## Documentation
 
-Explore these sections to learn more about using and extending the scaffold:
+Start with these core pages:
 
-*   **Installation**: Detailed setup instructions for different environments.
-*   **CLI Reference**: Comprehensive documentation for all commands and flags.
-*   **Template Spec**: Deep dive into the structure and content of generated files.
-*   **Style Guide**: Coding conventions and best practices for the generated output.
-*   **Architecture**: Documentation on the internal design of the scaffolding engine.
-*   **Development**: Workflow guide for contributing to the core CLI tool.
-*   **Testing**: Instructions for running the internal test suite.
-*   **Troubleshooting**: Solutions for common issues and configuration errors.
-*   **Security**: How to report vulnerabilities and follow security best practices.
-*   **Changelog**: Record of all version updates and significant changes.
-*   **Contributing**: Guidelines for submitting issues and pull requests.
+- [`quickstart.md`](quickstart.md): Create, run, test, and deploy your first project.
+- [`why.md`](why.md): Rationale behind the generated folder and code structure.
+- [`installation.md`](installation.md): Environment setup and installation details.
+- [`cli.md`](cli.md): Full command and option reference.
 
-## Dependencies
+Reference guides:
 
-The tool requires Python 3.10 or newer. It is designed to be lightweight with only two primary runtime dependencies:
+- [`template_spec.md`](template_spec.md): Template behavior and generated files.
+- [`architecture.md`](architecture.md): Internal design of the scaffold engine.
+- [`style_guide.md`](style_guide.md): Conventions used across generated code.
+- [`development.md`](development.md): Contributor workflow and local dev tasks.
+- [`testing.md`](testing.md): Testing strategy and execution commands.
 
-*   **jinja2**: Used for high-performance template rendering.
-*   **typer**: Powers the interactive CLI experience.
+Project health and governance:
+
+- [`troubleshooting.md`](troubleshooting.md): Common issues and fixes.
+- [`roadmap.md`](roadmap.md): Planned capabilities and milestones.
+- [`security.md`](security.md): Security policy and reporting process.
+- [`changelog.md`](changelog.md): Release history.
+- [`contributing.md`](contributing.md): Contribution guidelines.
 
 ## Ecosystem
 
-Projects generated by this scaffold integrate seamlessly with other specialized tools:
+- Validation: [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation)
+- OpenAPI: [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi)
+- Doctor: [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor)
+- Logging: [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging)
+- Cookbook: [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook)
 
-*   **azure-functions-validation**: For robust request and response data validation.
-*   **azure-functions-openapi**: For automatic generation of Swagger/OpenAPI documentation.
-*   **azure-functions-doctor**: For implementing self-healing and diagnostic health checks.
-*   **azure-functions-logging**: For structured and consistent logging across your functions.
+Use the Quick Start page to scaffold your first project, then move to the CLI
+reference and template spec when you need custom generation flows.
