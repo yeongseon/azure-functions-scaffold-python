@@ -160,12 +160,11 @@ func azure functionapp publish <APP_NAME>
 ## ドキュメント
 
 - 全文書: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
-- クイックスタート: [`docs/quickstart.md`](docs/quickstart.md)
-- CLI リファレンス: [`docs/cli.md`](docs/cli.md)
-- この構成を採用する理由: [`docs/why.md`](docs/why.md)
-- インストール: [`docs/installation.md`](docs/installation.md)
-- テンプレート仕様: [`docs/template_spec.md`](docs/template_spec.md)
-- トラブルシューティング: [`docs/troubleshooting.md`](docs/troubleshooting.md)
+- はじめに: [`docs/guide/getting-started.md`](docs/guide/getting-started.md)
+- CLI リファレンス: [`docs/reference/cli.md`](docs/reference/cli.md)
+- プロジェクト構成: [`docs/guide/project-structure.md`](docs/guide/project-structure.md)
+- テンプレート: [`docs/guide/templates.md`](docs/guide/templates.md)
+- トラブルシューティング: [`docs/guide/troubleshooting.md`](docs/guide/troubleshooting.md)
 
 ## 開発
 

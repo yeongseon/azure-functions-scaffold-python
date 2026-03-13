@@ -160,12 +160,11 @@ func azure functionapp publish <APP_NAME>
 ## 文档
 
 - 完整文档: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
-- 快速开始: [`docs/quickstart.md`](docs/quickstart.md)
-- CLI 参考: [`docs/cli.md`](docs/cli.md)
-- 为什么采用此结构: [`docs/why.md`](docs/why.md)
-- 安装: [`docs/installation.md`](docs/installation.md)
-- 模板规范: [`docs/template_spec.md`](docs/template_spec.md)
-- 故障排查: [`docs/troubleshooting.md`](docs/troubleshooting.md)
+- 快速开始: [`docs/guide/getting-started.md`](docs/guide/getting-started.md)
+- CLI 参考: [`docs/reference/cli.md`](docs/reference/cli.md)
+- 项目结构: [`docs/guide/project-structure.md`](docs/guide/project-structure.md)
+- 模板: [`docs/guide/templates.md`](docs/guide/templates.md)
+- 故障排查: [`docs/guide/troubleshooting.md`](docs/guide/troubleshooting.md)
 
 ## 开发
 

@@ -11,21 +11,24 @@ theme:
     - content.code.copy
 
 nav:
-  - Home: index.md
-  - Quick Start: quickstart.md
-  - Why This Structure: why.md
-  - Installation: installation.md
-  - CLI Reference: cli.md
-  - Templates: template_spec.md
-  - Architecture: architecture.md
-  - Style Guide: style_guide.md
-  - Development: development.md
-  - Testing: testing.md
-  - Troubleshooting: troubleshooting.md
-  - Roadmap: roadmap.md
-  - Security: security.md
+  - Guide:
+    - Introduction: guide/index.md
+    - Getting Started: guide/getting-started.md
+    - Project Structure: guide/project-structure.md
+    - Templates: guide/templates.md
+    - Features & Presets: guide/features.md
+    - Expanding Your Project: guide/expanding.md
+    - Deploying: guide/deploying.md
+    - Troubleshooting: guide/troubleshooting.md
+  - Reference:
+    - CLI Reference: reference/cli.md
+    - Template Specification: reference/template-spec.md
+    - Architecture: reference/architecture.md
+  - Contributing:
+    - Development: contributing/development.md
+    - Testing: contributing/testing.md
+    - Guidelines: contributing/guidelines.md
   - Changelog: changelog.md
-  - Contributing: contributing.md
 
 markdown_extensions:
   - admonition

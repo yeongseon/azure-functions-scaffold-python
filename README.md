@@ -160,12 +160,11 @@ Before publishing:
 ## Documentation
 
 - Full docs: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
-- Quick Start: [`docs/quickstart.md`](docs/quickstart.md)
-- CLI reference: [`docs/cli.md`](docs/cli.md)
-- Why this structure: [`docs/why.md`](docs/why.md)
-- Installation: [`docs/installation.md`](docs/installation.md)
-- Template specification: [`docs/template_spec.md`](docs/template_spec.md)
-- Troubleshooting: [`docs/troubleshooting.md`](docs/troubleshooting.md)
+- Getting Started: [`docs/guide/getting-started.md`](docs/guide/getting-started.md)
+- CLI Reference: [`docs/reference/cli.md`](docs/reference/cli.md)
+- Project Structure: [`docs/guide/project-structure.md`](docs/guide/project-structure.md)
+- Templates: [`docs/guide/templates.md`](docs/guide/templates.md)
+- Troubleshooting: [`docs/guide/troubleshooting.md`](docs/guide/troubleshooting.md)
 
 ## Development
 

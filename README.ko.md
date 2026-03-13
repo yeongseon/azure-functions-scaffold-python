@@ -160,12 +160,11 @@ func azure functionapp publish <APP_NAME>
 ## 문서
 
 - 전체 문서: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
-- 빠른 시작: [`docs/quickstart.md`](docs/quickstart.md)
-- CLI 참조: [`docs/cli.md`](docs/cli.md)
-- 이 구조를 사용하는 이유: [`docs/why.md`](docs/why.md)
-- 설치: [`docs/installation.md`](docs/installation.md)
-- 템플릿 명세: [`docs/template_spec.md`](docs/template_spec.md)
-- 문제 해결: [`docs/troubleshooting.md`](docs/troubleshooting.md)
+- 시작하기: [`docs/guide/getting-started.md`](docs/guide/getting-started.md)
+- CLI 참조: [`docs/reference/cli.md`](docs/reference/cli.md)
+- 프로젝트 구조: [`docs/guide/project-structure.md`](docs/guide/project-structure.md)
+- 템플릿: [`docs/guide/templates.md`](docs/guide/templates.md)
+- 문제 해결: [`docs/guide/troubleshooting.md`](docs/guide/troubleshooting.md)
 
 ## 개발
 
