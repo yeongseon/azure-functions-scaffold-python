@@ -11,6 +11,7 @@ theme:
     - content.code.copy
 
 nav:
+  - Home: index.md
   - Guide:
     - Introduction: guide/index.md
     - Getting Started: guide/getting-started.md
