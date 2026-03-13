@@ -1,4 +1,4 @@
-# azure-functions-scaffold
+# Azure Functions Scaffold
 
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold.svg)](https://pypi.org/project/azure-functions-scaffold/)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
@@ -14,6 +14,35 @@ Read this in: [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中
 
 Scaffolding CLI for production-ready Azure Functions Python v2 projects.
 
+## Why Use It
+
+Starting a new Azure Functions project means setting up boilerplate: `host.json`, `function_app.py`, directory structure, tooling config, and tests. `azure-functions-scaffold` generates a production-ready project layout in one command, so you can focus on business logic from the start.
+
+## Scope
+
+- Azure Functions Python **v2 programming model**
+- Decorator-based `func.FunctionApp()` applications
+- CLI-driven project generation and expansion
+- Templates for HTTP, Timer, Queue, Blob, and Service Bus triggers
+
+This tool generates project scaffolds. It does **not** provide runtime libraries.
+
+## Features
+
+- `azure-functions-scaffold new` command for project generation
+- Five built-in templates: HTTP, Timer, Queue, Blob, Service Bus
+- `azure-functions-scaffold add` command for expanding existing projects
+- Optional integrations: `--with-openapi`, `--with-validation`, `--with-doctor`
+- Preset tooling levels: `--preset minimal|standard|strict`
+- Interactive guided setup via `--interactive`
+- Short alias: `afs` works as a drop-in for `azure-functions-scaffold`
+
+## Installation
+
+```bash
+pip install azure-functions-scaffold
+```
+
 ## Quick Start
 
 Use this 4-step flow to create and run a local HTTP function:
@@ -24,7 +53,6 @@ Use this 4-step flow to create and run a local HTTP function:
 4. Start the local Functions runtime.
 
 ```bash
-pip install azure-functions-scaffold
 azure-functions-scaffold new my-api
 cd my-api
 pip install -e .
@@ -149,14 +177,6 @@ Before publishing:
 - Run your project checks (`pytest`, lint, and formatting).
 - Verify startup locally with `func start`.
 
-## Ecosystem
-
-- Validation: [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation)
-- OpenAPI: [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi)
-- Logging: [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging)
-- Doctor: [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor)
-- Cookbook: [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook)
-
 ## Documentation
 
 - Full docs: [yeongseon.github.io/azure-functions-scaffold](https://yeongseon.github.io/azure-functions-scaffold/)
@@ -176,6 +196,14 @@ make check-all
 make docs
 make build
 ```
+
+## Ecosystem
+
+- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — Request and response validation
+- [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) — OpenAPI and Swagger UI
+- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — Structured logging
+- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — Diagnostic CLI
+- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — Recipes and examples
 
 ## Disclaimer
 
