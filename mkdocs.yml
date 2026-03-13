@@ -15,6 +15,7 @@ nav:
   - Guide:
     - Introduction: guide/index.md
     - Getting Started: guide/getting-started.md
+    - Tutorials: guide/tutorial.md
     - Project Structure: guide/project-structure.md
     - Templates: guide/templates.md
     - Features & Presets: guide/features.md
