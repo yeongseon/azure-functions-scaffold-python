@@ -8,39 +8,49 @@ theme:
   name: material
   features:
     - navigation.tabs
+    - navigation.sections
     - content.code.copy
 
 nav:
   - Home: index.md
-  - Guide:
-    - Introduction: guide/index.md
-    - Getting Started: guide/getting-started.md
-    - Tutorials: guide/tutorial.md
-    - Project Structure: guide/project-structure.md
-    - Templates: guide/templates.md
-    - Features & Presets: guide/features.md
-    - Expanding Your Project: guide/expanding.md
-    - Deploying: guide/deploying.md
-    - Troubleshooting: guide/troubleshooting.md
+  - Getting Started:
+      - Introduction: guide/index.md
+      - Getting Started: guide/getting-started.md
+      - Configuration: guide/configuration.md
+  - User Guide:
+      - Tutorials: guide/tutorial.md
+      - Project Structure: guide/project-structure.md
+      - Templates: guide/templates.md
+      - Features & Presets: guide/features.md
+      - Expanding Your Project: guide/expanding.md
+      - Deploying: guide/deploying.md
+  - Examples:
+      - Overview: examples/index.md
+      - HTTP API: examples/http_api.md
+      - Timer Job: examples/timer_job.md
+      - Full Stack: examples/full_stack.md
+  - API Reference: reference/api.md
   - Reference:
-    - CLI Reference: reference/cli.md
-    - Template Specification: reference/template-spec.md
-    - Architecture: reference/architecture.md
+      - CLI Reference: reference/cli.md
+      - Template Specification: reference/template-spec.md
+      - Architecture: reference/architecture.md
   - Contributing:
-    - Development: contributing/development.md
-    - Testing: contributing/testing.md
-    - Guidelines: contributing/guidelines.md
+      - Development: contributing/development.md
+      - Testing: contributing/testing.md
+      - Guidelines: contributing/guidelines.md
+  - Troubleshooting: guide/troubleshooting.md
+  - FAQ: faq.md
   - Changelog: changelog.md
 
 markdown_extensions:
   - admonition
-  - codehilite
   - toc:
       permalink: true
       toc_depth: 3
   - tables
   - pymdownx.superfences
-  - pymdownx.highlight
+  - pymdownx.highlight:
+      anchor_linenums: true
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.details
@@ -48,6 +58,16 @@ markdown_extensions:
 
 plugins:
   - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_signature: true
+            show_root_full_path: false
+            merge_init_into_class: true
 
 extra:
   social:

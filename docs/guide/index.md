@@ -1,32 +1,74 @@
 # Introduction
 
-Azure Functions Scaffold is a developer-focused CLI tool designed to jumpstart Azure Functions Python v2 projects. It handles the boilerplate of the Blueprint programming model, directory structure, and linting configuration so you can focus on writing business logic.
+`azure-functions-scaffold` is a CLI for creating and evolving Azure Functions
+Python v2 projects with consistent architecture and practical defaults.
 
-### Who it's for
+It generates the wiring you would otherwise repeat manually:
 
-*   **Production Teams**: Developers who need a consistent, testable structure across multiple function apps.
-*   **Rapid Prototypers**: Users who want to move from an idea to a running HTTP or Timer function in seconds.
-*   **Quality Enthusiasts**: Teams that want pre-configured Ruff, MyPy, and Pytest suites without manual setup.
+- `function_app.py` entrypoint structure
+- function module layout under `app/functions/`
+- service and schema boundaries
+- optional quality tooling and integrations
 
-### What you get
+## Who This Guide Is For
 
-*   **Modular Architecture**: Automatic implementation of the Blueprint pattern for clean separation of concerns.
-*   **Tooling Presets**: Choose between Minimal, Standard (Ruff + Pytest), or Strict (Ruff + MyPy + Pytest) configurations.
-*   **Feature Flags**: Toggle OpenAPI support, Pydantic validation, or health check "doctor" endpoints during generation.
-*   **Extensible**: Add new triggers to existing projects with a single command that updates all relevant files.
+- **Production teams** that need repeatable structure across multiple apps.
+- **Platform engineers** standardizing starter templates and CI behavior.
+- **API developers** who want OpenAPI and validation support from day one.
 
-### Quickstart
+## Core Workflow
 
-Install the CLI, generate a project, and start the local runtime.
+1. Generate a project with `afs new`.
+2. Add triggers over time with `afs add`.
+3. Keep business logic in services, trigger code thin.
+4. Use preset-driven quality checks in CI.
 
 ```bash
 pip install azure-functions-scaffold
 afs new my-api --preset standard
-cd my-api && func start
+cd my-api
+pip install -e .[dev]
+func start
 ```
 
-### What's Next?
+## Built-In Building Blocks
 
-*   [Getting Started](getting-started.md): Install prerequisites and create your first project.
-*   [Project Structure](project-structure.md): Understand the generated files and layers.
-*   [Templates](templates.md): Explore supported triggers like Queue, Blob, and Service Bus.
+### Templates
+
+- `http`
+- `timer`
+- `queue`
+- `blob`
+- `servicebus`
+
+### Presets
+
+- `minimal`: no extra tooling
+- `standard`: Ruff + pytest
+- `strict`: Ruff + mypy + pytest
+
+### Feature Flags
+
+- `--with-openapi` for HTTP documentation routes
+- `--with-validation` for HTTP request/response validation
+- `--with-doctor` for diagnostics integration (`make doctor`)
+
+!!! note "Command alias"
+    `afs` and `azure-functions-scaffold` are equivalent. Use whichever fits your
+    shell scripts and team conventions.
+
+## Recommended Reading Order
+
+1. [Getting Started](getting-started.md)
+2. [Configuration](configuration.md)
+3. [Templates](templates.md)
+4. [Features and Presets](features.md)
+5. [Expanding Your Project](expanding.md)
+
+## Example-Driven Learning
+
+If you prefer concrete flows over reference docs, jump to:
+
+- [HTTP API Example](../examples/http_api.md)
+- [Timer Job Example](../examples/timer_job.md)
+- [Full Stack Example](../examples/full_stack.md)

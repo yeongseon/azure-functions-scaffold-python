@@ -1,49 +1,234 @@
 # Troubleshooting
 
-Common issues and solutions for the Azure Functions Scaffold CLI and its generated projects.
+Use this page to diagnose common CLI and runtime issues for
+`azure-functions-scaffold` projects.
 
-### Installation
+## CLI Installation and Execution
 
-**Problem**: `afs` command not found.
-*   **Cause**: The installation directory is not in your system's `PATH`.
-*   **Solution**: Run `pip show azure-functions-scaffold` to find the installation path and add the `bin` directory to your `PATH`. Alternatively, use `pipx install azure-functions-scaffold`.
+### `afs` command not found
 
-### Project Creation
+**Symptoms**
 
-**Problem**: "Directory not empty" error when creating a project.
-*   **Cause**: The CLI prevents overwriting existing files by default.
-*   **Solution**: Use the `--overwrite` flag if you want to force project creation in an existing directory.
+- `afs: command not found`
+- command works in one shell but not another
 
-### Feature Flags
+**Likely causes**
 
-**Problem**: OpenAPI documentation is not showing up.
-*   **Cause**: Missing `--with-openapi` flag during project generation.
-*   **Solution**: Re-generate the project with the flag or manually install `azure-functions-openapi` and add the required decorators to your trigger.
+- package install location is not on `PATH`
+- virtual environment is not activated
 
-### Function Addition
+**Fix**
 
-**Problem**: `add` command fails to find `function_app.py`.
-*   **Cause**: The command is not being run from the project root.
-*   **Solution**: Run the command from the root directory of your generated project or provide the `--project-root` flag pointing to it.
+```bash
+pipx install azure-functions-scaffold
+afs --version
+```
 
-### Generated Project
+If using `pip`, verify installation path and environment activation.
 
-**Problem**: "No job functions found" when running `func start`.
-*   **Cause**: Blueprints are not correctly registered in `function_app.py`.
-*   **Solution**: Open `function_app.py` and verify that `app.register_functions(blueprint)` is called for each function module.
+### Wrong Python interpreter
 
-**Problem**: `ImportError` when importing services.
-*   **Cause**: The project root is not in the Python path or dependencies aren't installed.
-*   **Solution**: Ensure you are in a virtual environment, run `pip install -e .`, and make sure you're importing from `app.services.your_service`.
+**Symptoms**
 
-### Interactive Mode
+- unexpected dependency errors
+- `afs --version` differs between terminals
 
-**Problem**: CLI gets stuck or behaves unexpectedly in a shell.
-*   **Cause**: Some shells (like Git Bash on Windows) handle interactive TTYs poorly.
-*   **Solution**: Prefix the command with `winpty` (e.g., `winpty afs new my-api --interactive`) or use a standard terminal like PowerShell or CMD.
+**Fix**
 
-### Development
+- run with explicit interpreter: `python -m azure_functions_scaffold.cli`
+- standardize on `pipx` or one active venv workflow per project
 
-**Problem**: Linting errors with Ruff after project generation.
-*   **Cause**: Your editor may be using a different version of Ruff than the one in your environment.
-*   **Solution**: Run `ruff check .` from the command line to verify the project's actual status.
+## Project Generation Failures
+
+### Unknown template or preset
+
+**Symptoms**
+
+- `Unknown template ...`
+- `Unknown preset ...`
+
+**Fix**
+
+List valid options first:
+
+```bash
+afs templates
+afs presets
+```
+
+Supported templates are `http`, `timer`, `queue`, `blob`, `servicebus`.
+Supported presets are `minimal`, `standard`, `strict`.
+
+### Target directory already exists
+
+**Symptoms**
+
+- generation fails with target directory exists message
+
+**Fix**
+
+- choose a different name, or
+- pass `--overwrite` when replacing that directory is intentional
+
+!!! warning "Overwrite behavior"
+    `--overwrite` removes the existing target directory before generation.
+
+### Permission denied while writing files
+
+**Symptoms**
+
+- `PermissionError`
+- project directory partially created
+
+**Likely causes**
+
+- writing into protected paths
+- files owned by another user
+
+**Fix**
+
+- generate under a user-writable path (for example your home/workspace)
+- check ownership/permissions on destination parent directory
+- rerun generation after fixing ownership
+
+## Feature Flag Surprises
+
+### OpenAPI routes not present
+
+**Symptoms**
+
+- `/api/docs` returns 404
+- no `openapi.json` route
+
+**Fix**
+
+- generate HTTP project with `--with-openapi`
+- verify `function_app.py` includes openapi route handlers
+
+### Validation behavior differs from expectation
+
+**Symptoms**
+
+- `GET /api/hello` no longer works
+- body validation errors on hello route
+
+**Explanation**
+
+With `--with-validation`, generated hello endpoint uses POST body validation.
+
+**Fix**
+
+- send JSON body matching request model, or
+- adjust generated endpoint method/signature to fit your API contract
+
+### Doctor command unavailable
+
+**Symptoms**
+
+- `make doctor` fails or target missing
+
+**Fix**
+
+- ensure project was generated with `--with-doctor`
+- reinstall dependencies in active environment
+
+## `afs add` Problems
+
+### `add` cannot find scaffold project root
+
+**Symptoms**
+
+- error says project root does not look scaffolded
+
+**Likely causes**
+
+- running command outside project root
+- missing required files like `function_app.py` or `app/functions/`
+
+**Fix**
+
+```bash
+afs add http users --project-root ./my-api
+```
+
+Use `--project-root` explicitly in scripts and CI.
+
+### Function already exists
+
+**Symptoms**
+
+- add command fails due to existing module
+
+**Fix**
+
+- choose a different function name, or
+- remove/rename the existing module before running `afs add` again
+
+## Core Tools Runtime Issues
+
+### `func` command not found
+
+Install Azure Functions Core Tools v4 and verify:
+
+```bash
+func --version
+```
+
+### "No job functions found" during `func start`
+
+**Likely causes**
+
+- blueprint not registered in `function_app.py`
+- broken import in function modules
+
+**Fix checklist**
+
+1. Confirm each module import exists in `function_app.py`.
+2. Confirm each module has `app.register_functions(<blueprint>)`.
+3. Run `pip install -e .` from project root.
+
+### Local storage errors (`UseDevelopmentStorage=true`)
+
+For timer/queue/blob/servicebus local workflows, ensure Azurite is running and
+`local.settings.json` exists (copied from the example file).
+
+## Project Structure and Imports
+
+### Import errors for `app.services` modules
+
+**Fix**
+
+- run from project root
+- install package editable: `pip install -e .`
+- keep imports absolute (`from app.services...`) per generated layout
+
+### Missing tests after adding a function
+
+`afs add` creates test files only when `tests/` directory exists. If your
+project removed tests, recreate the folder or add tests manually.
+
+## Diagnostic Workflow
+
+When in doubt, run this order:
+
+```bash
+afs --version
+python --version
+afs templates
+afs presets
+afs new scratch --dry-run
+```
+
+Then inside a project:
+
+```bash
+pip install -e .[dev]
+make check-all
+func start
+```
+
+## Still Stuck?
+
+- Check [FAQ](../faq.md)
+- Revisit [Configuration](configuration.md)
+- Compare with [HTTP API Example](../examples/http_api.md)
