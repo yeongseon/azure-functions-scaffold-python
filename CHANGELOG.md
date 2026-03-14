@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.3.1] - 2026-03-14
+
+### Added
+
+- Unified tooling: Ruff (lint + format), pre-commit hooks, standardized Makefile
+- Comprehensive documentation overhaul (MkDocs site with standardized nav)
+- Translated README files (Korean, Japanese, Chinese)
+- Standardized documentation quality across ecosystem
 
 ## [0.3.0] - 2026-03-12
 

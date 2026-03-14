@@ -14,6 +14,16 @@ The changelog is generated from [Conventional Commits](https://www.conventionalc
 
 ## Full Version History
 
+### v0.3.1 (2026-03-14)
+
+This release captures the tooling unification and documentation overhaul applied across the ecosystem.
+
+#### Added
+- Unified tooling: Ruff (lint + format), pre-commit hooks, standardized Makefile
+- Comprehensive documentation overhaul (MkDocs site with standardized nav)
+- Translated README files (Korean, Japanese, Chinese)
+- Standardized documentation quality across ecosystem
+
 ### v0.3.0 (2026-03-12)
 
 This release introduces health check integration and enhanced structured logging capabilities across all project templates.
