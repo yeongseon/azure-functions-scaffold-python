@@ -127,7 +127,7 @@ jobs:
           RG="${{ needs.deploy_and_test.outputs.resource_group }}"
           if [ -n "$RG" ]; then
             echo "Deleting resource group: $RG"
-            az group delete --name "$RG" --yes --no-wait
+            az group delete --name "$RG" --yes --no-wait || true
           else
             echo "No resource group to delete."
           fi

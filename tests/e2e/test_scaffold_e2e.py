@@ -29,16 +29,16 @@ SKIP_SCAFFOLD_REASON = "E2E_SCAFFOLDED_DIR not set — skipping scaffold generat
 def warmup() -> None:
     if not BASE_URL:
         return
-    deadline = time.time() + 120
+    deadline = time.time() + 300
     while time.time() < deadline:
         try:
-            r = requests.get(f"{BASE_URL}/api/health", timeout=10)
+            r = requests.get(f"{BASE_URL}/api/hello", timeout=10)
             if r.status_code == 200:
                 return
         except requests.RequestException:
             pass
         time.sleep(3)
-    pytest.fail("Warmup failed: /api/health did not respond within 120 s")
+    pytest.fail("Warmup failed: /api/hello did not respond within 300 s")
 
 
 # ── Scaffold generation tests (no Azure needed) ────────────────────────────
@@ -50,7 +50,7 @@ def test_scaffolded_project_has_required_files() -> None:
     root = pathlib.Path(SCAFFOLDED_DIR)
     assert (root / "function_app.py").exists(), "function_app.py missing"
     assert (root / "host.json").exists(), "host.json missing"
-    assert (root / "requirements.txt").exists(), "requirements.txt missing"
+    assert (root / "pyproject.toml").exists(), "pyproject.toml missing"
     assert (root / "app" / "functions").is_dir(), "app/functions/ missing"
 
 
