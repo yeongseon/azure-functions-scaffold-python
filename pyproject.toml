@@ -1,6 +1,7 @@
 [project]
 name = "azure-functions-scaffold"
 description = "Scaffolding CLI for Azure Functions Python v2 projects"
+keywords = ["azure-functions", "azure", "python", "v2", "scaffold", "cli", "code-generator", "serverless"]
 authors = [{ name = "Yeongseon Choe", email = "yeongseon.choe@gmail.com" }]
 license = { text = "MIT" }
 readme = "README.md"
