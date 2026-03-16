@@ -136,6 +136,7 @@ omit = ["src/azure_functions_scaffold/templates/**/*.j2"]
 
 [tool.coverage.report]
 show_missing = true
+fail_under = 92
 skip_covered = true
 
 [tool.bandit]
