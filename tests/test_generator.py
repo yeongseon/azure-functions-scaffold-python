@@ -6,7 +6,14 @@ from pathlib import Path
 import pytest
 
 from azure_functions_scaffold.errors import ScaffoldError
-from azure_functions_scaffold.generator import add_function, describe_add_function
+from azure_functions_scaffold.generator import (
+    _insert_near_marker,
+    _render_function_module,
+    _render_function_test,
+    _update_function_app,
+    add_function,
+    describe_add_function,
+)
 from azure_functions_scaffold.scaffolder import scaffold_project
 from azure_functions_scaffold.template_registry import build_project_options
 
@@ -127,6 +134,30 @@ def test_add_function_supports_additional_triggers(
     assert (project_root / f"tests/test_{normalized_name}.py").exists()
 
 
+def test_add_timer_function(tmp_path: Path) -> None:
+    """Test adding a timer trigger function (tests lines 215, 452 - timer template)."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    function_path = add_function(
+        project_root=project_root,
+        trigger="timer",
+        function_name="schedule-task",
+    )
+
+    # Verify files were created
+    assert function_path == project_root / "app/functions/schedule_task.py"
+    assert (project_root / "tests/test_schedule_task.py").exists()
+    
+    # Verify function content contains timer-specific code
+    func_content = function_path.read_text(encoding="utf-8")
+    assert "schedule=" in func_content
+    assert "past_due" in func_content
+    
+    # Verify test content contains timer-specific code
+    test_content = (project_root / "tests/test_schedule_task.py").read_text(encoding="utf-8")
+    assert "SimpleNamespace" in test_content
+    assert "past_due=False" in test_content
+
 @pytest.mark.parametrize("trigger", ["queue", "blob", "servicebus", "eventhub", "cosmosdb"])
 def test_add_function_adds_extension_bundle_for_binding_triggers(
     tmp_path: Path,
@@ -143,6 +174,23 @@ def test_add_function_adds_extension_bundle_for_binding_triggers(
     host_config = json.loads((project_root / "host.json").read_text(encoding="utf-8"))
     assert host_config["extensionBundle"]["id"] == "Microsoft.Azure.Functions.ExtensionBundle"
 
+
+def test_add_function_skips_extension_bundle_when_already_exists(tmp_path: Path) -> None:
+    """Test that extension bundle is not duplicated when adding multiple functions (line 583)."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    # Add first queue function - should add extension bundle
+    add_function(project_root=project_root, trigger="queue", function_name="worker-one")
+    host_json_path = project_root / "host.json"
+    host_config_1 = json.loads(host_json_path.read_text(encoding="utf-8"))
+    original_bundle = host_config_1["extensionBundle"].copy()
+
+    # Add second queue function - should not duplicate extension bundle
+    add_function(project_root=project_root, trigger="blob", function_name="worker-two")
+    host_config_2 = json.loads(host_json_path.read_text(encoding="utf-8"))
+
+    # Extension bundle should be the same
+    assert host_config_2["extensionBundle"] == original_bundle
 
 def test_add_servicebus_function_updates_local_settings_example(tmp_path: Path) -> None:
     project_root = scaffold_project("sample", tmp_path)
@@ -173,3 +221,237 @@ def test_describe_add_function_reports_expected_changes(tmp_path: Path) -> None:
     assert "  - tests/test_process_events.py" in lines
     assert "  - host.json extensionBundle" in lines
     assert "  - local.settings.json.example ServiceBusConnection" in lines
+
+
+def test_add_function_skips_test_file_when_already_exists(tmp_path: Path) -> None:
+    """Test that add_function doesn't overwrite an existing test file (line 38->44)."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    # Add first function to create test infrastructure
+    add_function(project_root=project_root, trigger="http", function_name="sync-data")
+    
+    # Now delete the function module but keep the test file
+    func_path = project_root / "app" / "functions" / "sync_data.py"
+    test_path = project_root / "tests" / "test_sync_data.py"
+    _original_test_content = test_path.read_text(encoding="utf-8")
+    
+    # Modify the test file
+    modified_content = "# This test file was manually modified"
+    test_path.write_text(modified_content, encoding="utf-8")
+    
+    # Delete the function module file
+    func_path.unlink()
+    
+    # Also need to remove the function from function_app.py to avoid registration conflict
+    func_app_path = project_root / "function_app.py"
+    content = func_app_path.read_text(encoding="utf-8")
+    # Remove the sync_data imports and registrations
+    content = content.replace("from app.functions.sync_data import sync_data_blueprint\n", "")
+    content = content.replace("app.register_functions(sync_data_blueprint)\n", "")
+    func_app_path.write_text(content, encoding="utf-8")
+    
+    # Now add the function again - test file should NOT be overwritten
+    add_function(project_root=project_root, trigger="http", function_name="sync-data")
+    
+    # Verify test file was not overwritten (it should still have our modified content)
+    assert test_path.read_text(encoding="utf-8") == modified_content
+
+
+
+def test_describe_add_function_rejects_existing_module(tmp_path: Path) -> None:
+    """Test that describe_add_function raises error when function module exists."""
+    project_root = scaffold_project("sample", tmp_path)
+    add_function(project_root=project_root, trigger="http", function_name="sync-data")
+
+    with pytest.raises(ScaffoldError, match="Function module already exists"):
+        describe_add_function(
+            project_root=project_root,
+            trigger="http",
+            function_name="sync-data",
+        )
+
+
+def test_describe_add_function_excludes_test_line_when_no_tests_dir(tmp_path: Path) -> None:
+    """Test that describe_add_function omits test file line when tests/ dir missing."""
+    project_root = scaffold_project(
+        "sample",
+        tmp_path,
+        options=build_project_options(
+            preset_name="minimal",
+            python_version="3.10",
+            include_github_actions=False,
+            initialize_git=False,
+        ),
+    )
+
+    lines = describe_add_function(
+        project_root=project_root,
+        trigger="http",
+        function_name="sync-data",
+    )
+
+    # Should NOT contain test file line since tests/ dir doesn't exist
+    assert not any("test_sync_data.py" in line for line in lines)
+
+
+@pytest.mark.parametrize(
+    ("trigger", "expected_host_json", "expected_local_settings"),
+    [
+        ("queue", True, False),
+        ("blob", True, False),
+        ("servicebus", True, True),
+        ("eventhub", True, True),
+        ("cosmosdb", True, True),
+    ],
+)
+def test_describe_add_function_trigger_specific_outputs(
+    tmp_path: Path,
+    trigger: str,
+    expected_host_json: bool,
+    expected_local_settings: bool,
+) -> None:
+    """Test that describe_add_function reports correct outputs for each trigger type."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    lines = describe_add_function(
+        project_root=project_root,
+        trigger=trigger,
+        function_name="test-func",
+    )
+
+    output = "\n".join(lines)
+
+    if expected_host_json:
+        assert "host.json extensionBundle" in output
+    else:
+        assert "host.json extensionBundle" not in output
+
+    if expected_local_settings:
+        if trigger == "servicebus":
+            assert "ServiceBusConnection" in output
+        elif trigger == "eventhub":
+            assert "EventHubConnection" in output
+        elif trigger == "cosmosdb":
+            assert "CosmosDBConnection" in output
+    else:
+        assert "Connection" not in output
+
+
+def test_update_function_app_rejects_when_already_registered(tmp_path: Path) -> None:
+    """Test that _update_function_app raises error when function is already registered.
+
+    This directly tests the registration check at line 146.
+    """
+    function_app_path = tmp_path / "function_app.py"
+    content = """from azure.functions import FunctionApp, Blueprint
+
+configure_logging()
+
+app = FunctionApp()
+
+app.register_functions(sync_data_blueprint)
+"""
+    function_app_path.write_text(content, encoding="utf-8")
+
+    # Try to register the same function again - should raise error
+    with pytest.raises(ScaffoldError, match="Function is already registered"):
+        _update_function_app(
+            function_app_path,
+            import_stmt="from app.functions.sync_data import sync_data_blueprint",
+            registration_stmt="app.register_functions(sync_data_blueprint)",
+        )
+
+
+
+def test_insert_near_marker_raises_when_fallback_anchor_missing(tmp_path: Path) -> None:
+    """Test that _insert_near_marker raises error when fallback anchor not found."""
+    content = "some content without any anchor"
+
+    with pytest.raises(
+        ScaffoldError,
+        match="Could not update function_app.py because 'missing_anchor' was not found",
+    ):
+        _insert_near_marker(
+            content,
+            marker="# some marker",
+            line="new line",
+            fallback_anchor="missing_anchor",
+        )
+
+
+def test_insert_near_marker_inserts_before_anchor_when_not_specified() -> None:
+    """Test that _insert_near_marker inserts before anchor when after_anchor=False (line 188)."""
+    content = """configure_logging()
+
+app = FunctionApp()"""
+
+    result = _insert_near_marker(
+        content,
+        marker="# marker",
+        line="import my_module",
+        fallback_anchor="configure_logging()",
+        after_anchor=False,
+    )
+
+    assert "import my_module\n\nconfigure_logging()" in result
+
+
+def test_insert_near_marker_inserts_after_anchor_when_specified() -> None:
+    """Test that _insert_near_marker inserts after anchor when after_anchor=True (line 186)."""
+    content = """app = FunctionApp()
+
+app.register_functions(my_blueprint)"""
+
+    result = _insert_near_marker(
+        content,
+        marker="# marker",
+        line="new_line_here",
+        fallback_anchor="app = FunctionApp()",
+        after_anchor=True,
+    )
+
+    assert "app = FunctionApp()\nnew_line_here" in result
+
+
+
+def test_render_function_module_raises_for_unknown_trigger() -> None:
+    """Test that _render_function_module raises error for unknown trigger."""
+    with pytest.raises(ScaffoldError, match="No function module template for trigger"):
+        _render_function_module(trigger="unknown", function_name="test_func")
+
+
+def test_render_function_test_raises_for_unknown_trigger() -> None:
+    """Test that _render_function_test raises error for unknown trigger."""
+    with pytest.raises(ScaffoldError, match="No function test template for trigger"):
+        _render_function_test(trigger="unknown", function_name="test_func")
+
+
+def test_add_function_with_http_trigger_skips_host_extensions(tmp_path: Path) -> None:
+    """Test that http trigger does not update host.json (line 583 branch)."""
+    project_root = scaffold_project("sample", tmp_path)
+    original_host = (project_root / "host.json").read_text(encoding="utf-8")
+
+    add_function(project_root=project_root, trigger="http", function_name="web-api")
+
+    # host.json should not be modified for http trigger
+    assert (project_root / "host.json").read_text(encoding="utf-8") == original_host
+
+
+def test_add_function_skips_local_settings_when_example_missing(tmp_path: Path) -> None:
+    """Test _ensure_local_settings_values returns early when example file missing (line 613)."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    # Remove the local.settings.json.example file
+    local_settings_path = project_root / "local.settings.json.example"
+    if local_settings_path.exists():
+        local_settings_path.unlink()
+
+    # This should not raise an error even though the file is missing
+    add_function(
+        project_root=project_root,
+        trigger="servicebus",
+        function_name="event-handler",
+    )
+
+    # Verify the function was still created
+    assert (project_root / "app" / "functions" / "event_handler.py").exists()
