@@ -94,8 +94,23 @@ jobs:
       - name: Publish scaffolded app
         run: |
           cd "$E2E_SCAFFOLDED_DIR"
+          # func publish requires requirements.txt — export from pyproject.toml
+          pip install pip-tools --quiet
+          pip-compile pyproject.toml --output-file requirements.txt --no-header --no-annotate --quiet
           func azure functionapp publish "${{ steps.names.outputs.app }}" --python --build remote
 
+      - name: Wait for app to start and diagnose
+        run: |
+          APP_URL="https://${{ steps.names.outputs.app }}.azurewebsites.net"
+          echo "Waiting 60s for app startup..."
+          sleep 60
+          echo "Probing app status:"
+          for i in 1 2 3 4 5; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${APP_URL}/api/hello?name=probe" || echo "curl-failed")
+            echo "  attempt $i: ${APP_URL}/api/hello -> ${STATUS}"
+            [ "$STATUS" = "200" ] && break
+            sleep 10
+          done
       - name: Run e2e HTTP tests
         run: pytest tests/e2e -v -k "not scaffolded" --no-cov --html=e2e-report/report.html --self-contained-html
         env:
