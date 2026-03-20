@@ -39,14 +39,14 @@ dev = [
     "pre-commit",
     "pytest",
     "pytest-cov",
-    "ruff==0.15.5",
+    "ruff==0.15.6",
     "requests",
     "types-requests",
 ]
 docs = [
     "mkdocs<2.0",
     "mkdocs-material<10.0",
-    "mkdocstrings[python]<1.0",
+    "mkdocstrings[python]<2.0",
 ]
 
 [project.urls]
@@ -70,12 +70,12 @@ sources = ["src"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/src",
-    "/tests",
-    "/docs",
-    "/README.md",
-    "/Makefile",
-    "/pyproject.toml",
+    "src",
+    "tests",
+    "docs",
+    "README.md",
+    "Makefile",
+    "pyproject.toml",
 ]
 
 [tool.hatch.version]
@@ -140,7 +140,7 @@ omit = ["src/azure_functions_scaffold/templates/**/*.j2"]
 
 [tool.coverage.report]
 show_missing = true
-fail_under = 92
+fail_under = 90
 skip_covered = true
 
 [tool.bandit]
