@@ -1,14 +1,32 @@
-.venv/
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Build artifacts
 build/
 dist/
 *.egg-info/
-coverage.xml
-.coverage
-htmlcov/
+
+# IDE
+.vscode/
+.idea/
+
+# Docs
 site/
+
+# Review
 .venv-review/
