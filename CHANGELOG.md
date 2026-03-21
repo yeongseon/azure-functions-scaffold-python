@@ -4,14 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-03-21
+
 ### Added
 
 - Real Azure end-to-end test workflow (`e2e-azure.yml`) deploying to Consumption plan (`koreacentral`)
-- `docs/testing.md` — Real Azure E2E Tests section (new file)
+- `docs/testing.md` — Real Azure E2E Tests section
+- EventHub, CosmosDB, Durable, and AI scaffold templates
+- Mermaid diagrams to architecture and README
+- Generator coverage tests
 
 ### Changed
 
-- GitHub Actions versions upgraded to Node.js 24 compatible: `checkout@v6`, `setup-python@v6`, `upload-artifact@v7`, `azure/login@v2.3.0`
+- GitHub Actions versions upgraded to Node.js 24 compatible versions
+- Repository consistency fixes (LICENSE, .gitignore standardization)
+
+### Fixed
+
+- Generate `requirements.txt` from `pyproject.toml` before `func publish`, add startup probe
+- Fix scaffold e2e warmup route, pyproject.toml check, cleanup resilience
+- Fix e2e workflow to use correct scaffold CLI `new` command
+
 ## [0.3.1] - 2026-03-14
 
 ### Added
