@@ -398,6 +398,33 @@ def test_initialize_git_repository_rejects_missing_git(
         _initialize_git_repository(tmp_path)
 
 
+def test_initialize_git_repository_handles_missing_stderr_on_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fake_run(
+        command: list[str],
+        *,
+        cwd: Path,
+        check: bool,
+        capture_output: bool,
+        text: bool,
+    ) -> object:
+        raise subprocess.CalledProcessError(returncode=1, cmd=command, stderr=None)
+
+    monkeypatch.setattr(
+        "azure_functions_scaffold.scaffolder.shutil.which",
+        lambda _: "/usr/bin/git",
+    )
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    with pytest.raises(
+        ScaffoldError,
+        match="Failed to initialize a git repository: git init failed",
+    ):
+        _initialize_git_repository(tmp_path)
+
+
 def _run_generated_project_checks(project_path: Path) -> None:
     subprocess.run(
         ["make", "install"],

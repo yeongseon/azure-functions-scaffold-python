@@ -283,5 +283,5 @@ def _initialize_git_repository(project_root: Path) -> None:
     except FileNotFoundError as exc:
         raise ScaffoldError("Git is not installed or not available on PATH.") from exc
     except subprocess.CalledProcessError as exc:
-        stderr = exc.stderr.strip() or "git init failed"
+        stderr = (exc.stderr or "").strip() or "git init failed"
         raise ScaffoldError(f"Failed to initialize a git repository: {stderr}") from exc
