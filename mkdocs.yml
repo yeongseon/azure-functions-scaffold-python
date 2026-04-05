@@ -2,6 +2,7 @@ site_name: Azure Functions Scaffold
 site_description: Scaffolding CLI for Azure Functions Python v2 projects
 site_author: Yeongseon Choe
 repo_url: https://github.com/yeongseon/azure-functions-scaffold
+site_url: https://yeongseon.github.io/azure-functions-scaffold/
 edit_uri: edit/main/docs/
 
 theme:
@@ -81,4 +82,4 @@ extra:
     © 2026 Yeongseon Choe – MIT Licensed
 
 extra_javascript:
-  - https://unpkg.com/mermaid@11/dist/mermaid.min.js
+  - https://unpkg.com/mermaid@11.14.0/dist/mermaid.min.js
