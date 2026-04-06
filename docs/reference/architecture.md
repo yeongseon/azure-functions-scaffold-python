@@ -37,8 +37,8 @@ A CLI tool built with Typer and Jinja2. It provides offline-capable, determinist
 | Module | Responsibility |
 | :--- | :--- |
 | `cli.py` | Entry point, CLI command definitions, Typer logic. |
-| `scaffolder.py` | High-level workflow coordination and orchestration. |
-| `generator.py` | Jinja2 rendering, file system I/O, placeholder expansion. |
+| `scaffolder.py` | Project scaffolding: template resolution, Jinja2 rendering, file I/O, git init. |
+| `generator.py` | Function module generation for `afs add`: renders function files, updates `function_app.py` registration. |
 | `template_registry.py` | Mapping template names to source directories. |
 | `models.py` | Data structures, type definitions, and validation logic. |
 | `errors.py` | Custom exception types for the scaffolding lifecycle. |
@@ -102,13 +102,17 @@ The following functions and types are importable and documented in the [API Refe
 ```mermaid
 graph TD;
     cli.py --> scaffolder.py;
-    scaffolder.py --> generator.py;
+    cli.py --> generator.py;
+    cli.py --> template_registry.py;
+    cli.py --> models.py;
+    cli.py --> errors.py;
     scaffolder.py --> template_registry.py;
     scaffolder.py --> models.py;
+    scaffolder.py --> errors.py;
     generator.py --> template_registry.py;
-    generator.py --> models.py;
+    generator.py --> errors.py;
     template_registry.py --> models.py;
-    models.py --> errors.py;
+    template_registry.py --> errors.py;
 ```
 
 ## Runtime Sequence
@@ -121,16 +125,15 @@ sequenceDiagram
     participant CLI as cli.py
     participant SC as scaffolder.py
     participant TR as template_registry.py
-    participant GEN as generator.py
     participant FS as File System
 
     Dev->>CLI: afs new my-api --template http
-    CLI->>SC: ProjectOptions(name, template, preset, features)
-    SC->>TR: resolve template path
-    TR-->>SC: template directory
-    SC->>GEN: render(template_dir, context)
-    GEN->>FS: write project files
-    GEN-->>SC: generated file list
+    CLI->>SC: scaffold_project(name, template, options)
+    SC->>TR: get_template(template_name)
+    TR-->>SC: TemplateSpec (template directory)
+    SC->>SC: build Jinja2 Environment, render templates
+    SC->>FS: write rendered project files
+    SC->>FS: initialize git (if requested)
     SC-->>Dev: project ready at ./my-api
 ```
 
@@ -147,7 +150,7 @@ sequenceDiagram
     CLI->>GEN: verify project root
     GEN->>FS: read function_app.py
     GEN->>FS: render new function module
-    GEN->>FS: append import + register_blueprint
+    GEN->>FS: append import + app.register_functions(blueprint)
     GEN-->>Dev: function added
 ```
 
