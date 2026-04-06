@@ -199,11 +199,18 @@ make build
 
 ## 에코시스템
 
-- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — 요청 및 응답 검증
-- [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) — OpenAPI 및 Swagger UI
-- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — 구조화된 로깅
-- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — 진단 CLI
-- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — 레시피 및 예제
+이 패키지는 **Azure Functions Python DX Toolkit**의 일부입니다.
+
+| 패키지 | 역할 |
+|---------|------|
+| **azure-functions-scaffold** | 프로젝트 스캐폴딩 CLI |
+| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) | 요청/응답 검증 및 직렬화 |
+| [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) | OpenAPI 사양 생성 및 Swagger UI |
+| [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph) | Azure Functions용 LangGraph 배포 어댑터 |
+| [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) | 구조화된 로깅 및 관측성 |
+| [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) | 배포 전 진단 CLI |
+| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph) | Durable Functions 기반 그래프 런타임 *(계획)* |
+| [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) | 레시피 및 예제 |
 
 ## 면책 조항
 

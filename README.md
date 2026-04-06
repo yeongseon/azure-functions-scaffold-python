@@ -41,6 +41,14 @@ flowchart LR
 
 This tool generates project scaffolds. It does **not** provide runtime libraries.
 
+## What this package does not do
+
+This package does not own:
+
+- **Runtime behavior** — generated projects wire up optional packages (`--with-openapi`, `--with-validation`, `--with-doctor`), but runtime logic belongs to those packages
+- **API documentation** — use [`azure-functions-openapi`](https://github.com/yeongseon/azure-functions-openapi) for OpenAPI spec generation and Swagger UI
+- **Request validation** — use [`azure-functions-validation`](https://github.com/yeongseon/azure-functions-validation) for Pydantic-based validation
+
 ## Features
 
 - `azure-functions-scaffold new` command for project generation
@@ -213,12 +221,20 @@ make build
 
 ## Ecosystem
 
-- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — Request and response validation
-- [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) — OpenAPI and Swagger UI
-- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — Structured logging
-- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — Diagnostic CLI
-- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — Recipes and examples
+This package is part of the **Azure Functions Python DX Toolkit**.
 
+**Design principle:** `azure-functions-scaffold` owns project generation and template expansion. It does not provide runtime libraries — runtime behavior belongs to [`azure-functions-openapi`](https://github.com/yeongseon/azure-functions-openapi) (API documentation and spec generation), [`azure-functions-validation`](https://github.com/yeongseon/azure-functions-validation) (request/response validation), and [`azure-functions-langgraph`](https://github.com/yeongseon/azure-functions-langgraph) (LangGraph runtime exposure).
+
+| Package | Role |
+|---------|------|
+| **azure-functions-scaffold** | Project scaffolding CLI |
+| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) | Request/response validation and serialization |
+| [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) | OpenAPI spec generation and Swagger UI |
+| [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph) | LangGraph deployment adapter for Azure Functions |
+| [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) | Structured logging and observability |
+| [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) | Pre-deploy diagnostic CLI |
+| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph) | Manifest-first graph runtime with Durable Functions *(planned)* |
+| [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) | Recipes and examples |
 ## Disclaimer
 
 This project is an independent community project and is not affiliated with,

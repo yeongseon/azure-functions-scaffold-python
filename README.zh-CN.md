@@ -199,11 +199,18 @@ make build
 
 ## 生态系统
 
-- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — 请求与响应校验
-- [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) — OpenAPI 与 Swagger UI
-- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — 结构化日志
-- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — 诊断 CLI
-- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — 食谱与示例
+本包是 **Azure Functions Python DX Toolkit** 的一部分。
+
+| 包 | 角色 |
+|---------|------|
+| **azure-functions-scaffold** | 项目脚手架 CLI |
+| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) | 请求/响应校验与序列化 |
+| [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) | OpenAPI 规范生成与 Swagger UI |
+| [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph) | Azure Functions 的 LangGraph 部署适配器 |
+| [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) | 结构化日志与可观测性 |
+| [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) | 部署前诊断 CLI |
+| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph) | 基于 Durable Functions 的图运行时 *(计划中)* |
+| [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) | 食谱与示例 |
 
 ## 免责声明
 

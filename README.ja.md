@@ -199,11 +199,18 @@ make build
 
 ## エコシステム
 
-- [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) — リクエストとレスポンスのバリデーション
-- [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) — OpenAPI と Swagger UI
-- [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) — 構造化ロギング
-- [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) — 診断 CLI
-- [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) — レシピとサンプル
+このパッケージは **Azure Functions Python DX Toolkit** の一部です。
+
+| パッケージ | 役割 |
+|---------|------|
+| **azure-functions-scaffold** | プロジェクトスキャフォールディング CLI |
+| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) | リクエスト/レスポンスバリデーションとシリアライゼーション |
+| [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) | OpenAPI 仕様生成と Swagger UI |
+| [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph) | Azure Functions 向け LangGraph デプロイアダプター |
+| [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) | 構造化ロギングとオブザーバビリティ |
+| [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) | デプロイ前診断 CLI |
+| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph) | Durable Functions ベースのグラフランタイム *(計画中)* |
+| [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) | レシピとサンプル |
 
 ## 免責事項
 
