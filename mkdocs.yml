@@ -25,6 +25,9 @@ nav:
       - Features & Presets: guide/features.md
       - Expanding Your Project: guide/expanding.md
       - Deploying: guide/deploying.md
+  - Deployment:
+      - Choose a Plan: choose-a-plan.md
+      - Deploy to Azure: deployment.md
   - Examples:
       - Overview: examples/index.md
       - HTTP API: examples/http_api.md

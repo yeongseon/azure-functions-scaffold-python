@@ -5,7 +5,7 @@ No Azure experience required — every command is explained and copy-paste ready
 
 ## Who this guide is for
 
-You know Python and pip. You have used the `afs` CLI to scaffold a project locally (see [README](../README.md)).
+You know Python and pip. You have used the `afs` CLI to scaffold a project locally (see [README](https://github.com/yeongseon/azure-functions-scaffold/blob/main/README.md)).
 Now you want to deploy it to Azure so it runs in the cloud. This guide assumes you have **never used Azure before**.
 
 ## What you are deploying
@@ -46,7 +46,7 @@ After following this guide, your scaffolded project will be running on Azure and
 | Azure Functions Core Tools v4 | `func --version` | [Install Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools) |
 | Python 3.10–3.13 | `python --version` | [python.org](https://www.python.org/downloads/) |
 | `afs` CLI installed | `afs --version` | `pip install azure-functions-scaffold` |
-| Local project working | `func start` → responds to `curl` | See [README Quick Start](../README.md) |
+| Local project working | `func start` → responds to `curl` | See [README Quick Start](https://github.com/yeongseon/azure-functions-scaffold/blob/main/README.md) |
 
 > ⚠️ **Verify locally first.** If your project doesn't work locally, it won't work on Azure either.
 
