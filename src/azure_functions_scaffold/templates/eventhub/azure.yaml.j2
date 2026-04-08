@@ -1,0 +1,8 @@
+# Azure Developer CLI (azd) project configuration
+# See: https://learn.microsoft.com/azure/developer/azure-developer-cli/
+name: {{ project_slug }}
+services:
+  api:
+    project: .
+    language: python
+    host: function
