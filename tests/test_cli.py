@@ -222,7 +222,7 @@ def test_new_command_supports_interactive_mode(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="interactive-api\nhttp\nstrict\n3.12\ny\nn\ny\ny\ny\nn\nn\nn\n",
+        input="interactive-api\nhttp\nstrict\n3.12\ny\nn\ny\ny\ny\nn\nn\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -237,7 +237,7 @@ def test_new_command_supports_interactive_custom_tooling(tmp_path: Path) -> None
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="custom-api\nhttp\nstandard\n3.11\nn\nn\ny\ny\nn\nn\nn\nn\n",
+        input="custom-api\nhttp\nstandard\n3.11\nn\nn\ny\ny\nn\nn\nn\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -255,7 +255,7 @@ def test_new_command_reprompts_invalid_interactive_choices(tmp_path: Path) -> No
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="\ninvalid-template\nhttp\ninvalid-preset\nstandard\n3.9\n3.12\nn\nn\ny\nn\ny\nn\nn\nn\n",
+        input="\ninvalid-template\nhttp\ninvalid-preset\nstandard\n3.9\n3.12\nn\nn\ny\nn\ny\nn\nn\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -362,7 +362,7 @@ def test_new_command_interactive_with_openapi_and_validation(tmp_path: Path) -> 
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="full-interactive-api\nhttp\nstandard\n3.10\nn\nn\ny\nn\ny\ny\ny\nn\n",
+        input="full-interactive-api\nhttp\nstandard\n3.10\nn\nn\ny\nn\ny\ny\ny\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -589,3 +589,144 @@ def test_version_option_prints_package_version() -> None:
 
     assert result.exit_code == 0
     assert __version__ in result.stdout
+
+
+def test_new_command_with_azd_flag(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "azd-api", "--destination", str(tmp_path), "--azd"],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "azd-api"
+    azure_yaml = project_dir / "azure.yaml"
+    assert azure_yaml.exists()
+    azure_yaml_text = azure_yaml.read_text(encoding="utf-8")
+    assert "name: azd-api" in azure_yaml_text
+    assert "language: python" in azure_yaml_text
+    assert "host: function" in azure_yaml_text
+
+
+def test_new_command_without_azd_excludes_azure_yaml(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "no-azd-api", "--destination", str(tmp_path)],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "no-azd-api"
+    assert not (project_dir / "azure.yaml").exists()
+
+
+def test_new_command_dry_run_reports_azd(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "new",
+            "dry-api",
+            "--destination",
+            str(tmp_path),
+            "--azd",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Azure Developer CLI (azd): enabled" in result.stdout
+    assert "azure.yaml" in result.stdout
+    assert not (tmp_path / "dry-api").exists()
+
+
+def test_new_command_with_profile_api(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "profiled-api", "--destination", str(tmp_path), "--profile", "api"],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "profiled-api"
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+    http_text = (project_dir / "app/functions/http.py").read_text(encoding="utf-8")
+    makefile_text = (project_dir / "Makefile").read_text(encoding="utf-8")
+    # Profile api resolves to: template=http, preset=strict, openapi, validation, doctor
+    assert "azure-functions-openapi>=0.13.0" in pyproject_text
+    assert "azure-functions-validation>=0.5.0" in pyproject_text
+    assert "azure-functions-doctor>=0.15.0" in pyproject_text
+    assert "mypy>=1.17.1" in pyproject_text  # strict preset includes mypy
+    assert "@openapi(" in http_text
+    assert "@validate_http(" in http_text
+    assert "get_openapi_json" in function_app_text
+    assert "doctor:" in makefile_text or "make doctor" in makefile_text
+    # azd defaults to False in api profile
+    assert not (project_dir / "azure.yaml").exists()
+
+
+def test_new_command_profile_with_explicit_override(tmp_path: Path) -> None:
+    """Profile defaults apply, and explicit additive flags extend them.
+
+    Note: --no-* flags cannot override profile True values with the current
+    OR-merge strategy. This is a known limitation; only additive overrides
+    (e.g. --azd adding to a profile that defaults azd=False) work.
+    """
+    result = runner.invoke(
+        app,
+        [
+            "new",
+            "override-api",
+            "--destination",
+            str(tmp_path),
+            "--profile",
+            "api",
+            "--azd",
+        ],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "override-api"
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    # openapi, validation, doctor from profile
+    assert "azure-functions-openapi>=0.13.0" in pyproject_text
+    assert "azure-functions-validation>=0.5.0" in pyproject_text
+    assert "azure-functions-doctor>=0.15.0" in pyproject_text
+    # azd enabled by explicit --azd override (profile default is False)
+    assert (project_dir / "azure.yaml").exists()
+
+
+def test_new_command_profile_rejects_unknown_profile(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "bad-api", "--destination", str(tmp_path), "--profile", "enterprise"],
+    )
+
+    assert result.exit_code == 1
+    assert "Unknown profile 'enterprise'" in result.stdout
+
+
+def test_profiles_command_lists_available_profiles() -> None:
+    result = runner.invoke(app, ["profiles"])
+
+    assert result.exit_code == 0
+    assert "api:" in result.stdout
+    assert "template: http" in result.stdout
+    assert "preset: strict" in result.stdout
+    assert "openapi" in result.stdout
+    assert "validation" in result.stdout
+    assert "doctor" in result.stdout
+
+
+def test_new_command_interactive_with_azd(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "--destination", str(tmp_path), "--interactive"],
+        input="azd-interactive-api\nhttp\nstandard\n3.10\nn\nn\ny\nn\ny\nn\nn\nn\ny\n",
+    )
+
+    assert result.exit_code == 0
+    project_dir = tmp_path / "azd-interactive-api"
+    assert project_dir.exists()
+    assert (project_dir / "azure.yaml").exists()

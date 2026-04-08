@@ -23,8 +23,10 @@ from azure_functions_scaffold.scaffolder import (
 from azure_functions_scaffold.template_registry import (
     build_project_options,
     get_preset,
+    get_profile,
     get_template,
     list_presets,
+    list_profiles,
     list_templates,
     validate_python_version,
     validate_tooling,
@@ -100,6 +102,7 @@ def test_build_template_context_creates_slug() -> None:
         include_openapi=False,
         include_validation=False,
         include_doctor=False,
+        include_azd=False,
     )
 
 
@@ -135,6 +138,7 @@ def test_render_path_strips_jinja_suffix_and_replaces_placeholders() -> None:
         include_openapi=False,
         include_validation=False,
         include_doctor=False,
+        include_azd=False,
     )
 
     rendered = _render_path(Path("__project_name__/README.md.j2"), context)
@@ -478,3 +482,103 @@ def test_simple_trigger_templates_pass_generated_checks(
     )
 
     _run_generated_project_checks(project_path)
+
+
+def test_scaffold_project_with_azd_generates_azure_yaml(tmp_path: Path) -> None:
+    project_path = scaffold_project(
+        "azd-sample",
+        tmp_path,
+        template_name="http",
+        options=build_project_options(
+            preset_name="standard",
+            python_version="3.10",
+            include_github_actions=False,
+            initialize_git=False,
+            include_azd=True,
+        ),
+    )
+
+    azure_yaml = project_path / "azure.yaml"
+    assert azure_yaml.exists()
+    azure_yaml_text = azure_yaml.read_text(encoding="utf-8")
+    assert "name: azd-sample" in azure_yaml_text
+    assert "language: python" in azure_yaml_text
+    assert "host: function" in azure_yaml_text
+
+
+def test_scaffold_project_without_azd_excludes_azure_yaml(tmp_path: Path) -> None:
+    project_path = scaffold_project(
+        "no-azd-sample",
+        tmp_path,
+        template_name="http",
+        options=build_project_options(
+            preset_name="standard",
+            python_version="3.10",
+            include_github_actions=False,
+            initialize_git=False,
+            include_azd=False,
+        ),
+    )
+
+    assert not (project_path / "azure.yaml").exists()
+
+
+def test_describe_scaffold_project_reports_azd_when_enabled(tmp_path: Path) -> None:
+    lines = describe_scaffold_project(
+        "sample",
+        tmp_path,
+        template_name="http",
+        options=build_project_options(
+            preset_name="standard",
+            python_version="3.10",
+            include_github_actions=False,
+            initialize_git=False,
+            include_azd=True,
+        ),
+    )
+
+    assert "Azure Developer CLI (azd): enabled" in lines
+    assert "  - azure.yaml" in lines
+
+
+def test_describe_scaffold_project_excludes_azd_when_disabled(tmp_path: Path) -> None:
+    lines = describe_scaffold_project(
+        "sample",
+        tmp_path,
+        template_name="http",
+        options=build_project_options(
+            preset_name="standard",
+            python_version="3.10",
+            include_github_actions=False,
+            initialize_git=False,
+            include_azd=False,
+        ),
+    )
+
+    assert "Azure Developer CLI (azd): enabled" not in lines
+    assert "  - azure.yaml" not in lines
+
+
+def test_list_profiles_returns_api_profile() -> None:
+    profiles = list_profiles()
+
+    assert [profile.name for profile in profiles] == ["api"]
+    api_profile = profiles[0]
+    assert api_profile.template == "http"
+    assert api_profile.preset == "strict"
+    assert api_profile.include_openapi is True
+    assert api_profile.include_validation is True
+    assert api_profile.include_doctor is True
+    assert api_profile.include_azd is False
+
+
+def test_get_profile_returns_api_profile() -> None:
+    profile = get_profile("api")
+
+    assert profile.name == "api"
+    assert profile.template == "http"
+
+
+def test_get_profile_rejects_unknown_name() -> None:
+    with pytest.raises(ScaffoldError, match="Unknown profile"):
+        get_profile("enterprise")
