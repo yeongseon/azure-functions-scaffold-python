@@ -19,6 +19,7 @@ class TemplateContext:
     include_openapi: bool
     include_validation: bool
     include_doctor: bool
+    include_azd: bool
 
 
 @dataclass(frozen=True)
@@ -45,3 +46,16 @@ class ProjectOptions:
     include_openapi: bool
     include_validation: bool
     include_doctor: bool
+    include_azd: bool
+
+
+@dataclass(frozen=True)
+class ProfileSpec:
+    name: str
+    description: str
+    template: str
+    preset: str
+    include_openapi: bool
+    include_validation: bool
+    include_doctor: bool
+    include_azd: bool
