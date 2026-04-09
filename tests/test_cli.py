@@ -222,7 +222,7 @@ def test_new_command_supports_interactive_mode(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="interactive-api\nhttp\nstrict\n3.12\ny\nn\ny\ny\ny\nn\nn\nn\nn\n",
+        input="interactive-api\nhttp\nstrict\n3.12\ny\nn\ny\ny\ny\nn\nn\nn\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -237,7 +237,7 @@ def test_new_command_supports_interactive_custom_tooling(tmp_path: Path) -> None
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="custom-api\nhttp\nstandard\n3.11\nn\nn\ny\ny\nn\nn\nn\nn\nn\n",
+        input="custom-api\nhttp\nstandard\n3.11\nn\nn\ny\ny\nn\nn\nn\nn\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -255,7 +255,7 @@ def test_new_command_reprompts_invalid_interactive_choices(tmp_path: Path) -> No
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="\ninvalid-template\nhttp\ninvalid-preset\nstandard\n3.9\n3.12\nn\nn\ny\nn\ny\nn\nn\nn\nn\n",
+        input="\ninvalid-template\nhttp\ninvalid-preset\nstandard\n3.9\n3.12\nn\nn\ny\nn\ny\nn\nn\nn\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -362,7 +362,7 @@ def test_new_command_interactive_with_openapi_and_validation(tmp_path: Path) -> 
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="full-interactive-api\nhttp\nstandard\n3.10\nn\nn\ny\nn\ny\ny\ny\nn\nn\n",
+        input="full-interactive-api\nhttp\nstandard\n3.10\nn\nn\ny\nn\ny\ny\ny\nn\nn\nn\n",
     )
 
     assert result.exit_code == 0
@@ -582,7 +582,7 @@ def test_templates_command_lists_available_templates() -> None:
     assert "cosmosdb: CosmosDB-trigger Azure Functions Python v2 application." in result.stdout
     assert "durable: Durable Functions Azure Functions Python v2 application." in result.stdout
     assert "ai: AI/Azure OpenAI Azure Functions Python v2 application." in result.stdout
-
+    assert "langgraph: LangGraph agent deployment on Azure Functions Python v2." in result.stdout
 
 def test_version_option_prints_package_version() -> None:
     result = runner.invoke(app, ["--version"])
@@ -712,6 +712,7 @@ def test_profiles_command_lists_available_profiles() -> None:
 
     assert result.exit_code == 0
     assert "api:" in result.stdout
+    assert "db-api:" in result.stdout
     assert "template: http" in result.stdout
     assert "preset: strict" in result.stdout
     assert "openapi" in result.stdout
@@ -723,10 +724,108 @@ def test_new_command_interactive_with_azd(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         ["new", "--destination", str(tmp_path), "--interactive"],
-        input="azd-interactive-api\nhttp\nstandard\n3.10\nn\nn\ny\nn\ny\nn\nn\nn\ny\n",
+        input="azd-interactive-api\nhttp\nstandard\n3.10\nn\nn\ny\nn\ny\nn\nn\nn\nn\ny\n",
     )
 
     assert result.exit_code == 0
     project_dir = tmp_path / "azd-interactive-api"
     assert project_dir.exists()
     assert (project_dir / "azure.yaml").exists()
+
+
+def test_new_command_with_db_flag(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "db-api", "--destination", str(tmp_path), "--with-db"],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "db-api"
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+    local_settings_text = (project_dir / "local.settings.json.example").read_text(encoding="utf-8")
+    assert "azure-functions-db[postgres]>=0.1.0" in pyproject_text
+    assert (project_dir / "app/functions/db_items.py").exists()
+    assert "from app.functions.db_items import db_items_blueprint" in function_app_text
+    assert "app.register_functions(db_items_blueprint)" in function_app_text
+    assert "DB_URL" in local_settings_text
+
+
+def test_new_command_without_db_excludes_db(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "no-db-api", "--destination", str(tmp_path)],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "no-db-api"
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+    assert "azure-functions-db" not in pyproject_text
+    assert not (project_dir / "app/functions/db_items.py").exists()
+    assert "db_items_blueprint" not in function_app_text
+
+
+def test_new_command_dry_run_reports_db(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "new",
+            "dry-api",
+            "--destination",
+            str(tmp_path),
+            "--with-db",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Database: enabled" in result.stdout
+    assert "app/functions/db_items.py" in result.stdout
+    assert not (tmp_path / "dry-api").exists()
+
+
+def test_new_command_with_profile_db_api(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "crud-api", "--destination", str(tmp_path), "--profile", "db-api"],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "crud-api"
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+    # db-api profile resolves to: template=http, preset=strict, openapi, validation, doctor, db
+    assert "azure-functions-openapi>=0.13.0" in pyproject_text
+    assert "azure-functions-validation>=0.5.0" in pyproject_text
+    assert "azure-functions-doctor>=0.15.0" in pyproject_text
+    assert "azure-functions-db[postgres]>=0.1.0" in pyproject_text
+    assert "mypy>=1.17.1" in pyproject_text  # strict preset includes mypy
+    assert "get_openapi_json" in function_app_text
+    assert (project_dir / "app/functions/db_items.py").exists()
+    assert "db_items_blueprint" in function_app_text
+    # azd defaults to False in db-api profile
+    assert not (project_dir / "azure.yaml").exists()
+
+
+def test_new_command_with_langgraph_template(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        ["new", "my-agent", "--destination", str(tmp_path), "--template", "langgraph"],
+    )
+
+    assert result.exit_code == 0
+
+    project_dir = tmp_path / "my-agent"
+    function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+    pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
+    assert (project_dir / "app/graphs/echo_agent.py").exists()
+    assert (project_dir / "tests/test_echo_agent.py").exists()
+    assert "LangGraphApp" in function_app_text
+    assert "lg_app.register" in function_app_text
+    assert "func_app = lg_app.function_app" in function_app_text
+    assert "azure-functions-langgraph>=0.5.0" in pyproject_text
+    assert "langgraph>=0.2.0" in pyproject_text

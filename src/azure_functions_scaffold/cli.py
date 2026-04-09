@@ -141,6 +141,13 @@ def new_project(
             help="Include azure-functions-doctor health checks.",
         ),
     ] = False,
+    with_db: Annotated[
+        bool,
+        typer.Option(
+            "--with-db/--no-db",
+            help="Include database bindings support (azure-functions-db).",
+        ),
+    ] = False,
     with_azd: Annotated[
         bool,
         typer.Option(
@@ -184,6 +191,7 @@ def new_project(
             include_openapi=with_openapi,
             include_validation=with_validation,
             include_doctor=with_doctor,
+            include_db=with_db,
             include_azd=with_azd,
             interactive=interactive or project_name is None,
         )
@@ -290,6 +298,8 @@ def show_profiles() -> None:
             features.append("doctor")
         if profile_spec.include_azd:
             features.append("azd")
+        if profile_spec.include_db:
+            features.append("db")
         features_str = ", ".join(features) or "none"
         typer.echo(
             f"{profile_spec.name}: {profile_spec.description} "
@@ -318,6 +328,7 @@ def _resolve_new_project_inputs(
     include_openapi: bool,
     include_validation: bool,
     include_doctor: bool,
+    include_db: bool,
     include_azd: bool,
     interactive: bool,
 ) -> tuple[str, str, ProjectOptions]:
@@ -337,6 +348,7 @@ def _resolve_new_project_inputs(
         include_openapi = include_openapi or profile_spec.include_openapi
         include_validation = include_validation or profile_spec.include_validation
         include_doctor = include_doctor or profile_spec.include_doctor
+        include_db = include_db or profile_spec.include_db
         include_azd = include_azd or profile_spec.include_azd
     if interactive:
         resolved_name = _prompt_project_name(project_name or "my-api")
@@ -373,6 +385,10 @@ def _resolve_new_project_inputs(
             "Include azure-functions-doctor health checks?",
             default=include_doctor,
         )
+        resolved_include_db = typer.confirm(
+            "Include database bindings?",
+            default=include_db,
+        )
         resolved_include_azd = typer.confirm(
             "Include Azure Developer CLI (azd) support?",
             default=include_azd,
@@ -390,6 +406,7 @@ def _resolve_new_project_inputs(
         resolved_include_openapi = include_openapi
         resolved_include_validation = include_validation
         resolved_include_doctor = include_doctor
+        resolved_include_db = include_db
         resolved_include_azd = include_azd
 
     options = build_project_options(
@@ -401,6 +418,7 @@ def _resolve_new_project_inputs(
         include_openapi=resolved_include_openapi,
         include_validation=resolved_include_validation,
         include_doctor=resolved_include_doctor,
+        include_db=resolved_include_db,
         include_azd=resolved_include_azd,
     )
     return resolved_name, resolved_template, options

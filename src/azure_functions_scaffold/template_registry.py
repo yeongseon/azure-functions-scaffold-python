@@ -54,6 +54,11 @@ TEMPLATE_SPECS = (
         description="AI/Azure OpenAI Azure Functions Python v2 application.",
         root=TEMPLATE_ROOT / "ai",
     ),
+    TemplateSpec(
+        name="langgraph",
+        description="LangGraph agent deployment on Azure Functions Python v2.",
+        root=TEMPLATE_ROOT / "langgraph",
+    ),
 )
 PRESET_SPECS = (
     PresetSpec(
@@ -85,6 +90,21 @@ PROFILE_SPECS = (
         include_validation=True,
         include_doctor=True,
         include_azd=False,
+        include_db=False,
+    ),
+    ProfileSpec(
+        name="db-api",
+        description=(
+            "Full CRUD API stack: HTTP template "
+            "with strict tooling, database bindings, OpenAPI, validation, and doctor."
+        ),
+        template="http",
+        preset="strict",
+        include_openapi=True,
+        include_validation=True,
+        include_doctor=True,
+        include_azd=False,
+        include_db=True,
     ),
 )
 
@@ -127,6 +147,7 @@ def build_project_options(
     include_validation: bool = False,
     include_doctor: bool = False,
     include_azd: bool = False,
+    include_db: bool = False,
 ) -> ProjectOptions:
     preset = get_preset(preset_name)
     validate_python_version(python_version)
@@ -142,6 +163,7 @@ def build_project_options(
         include_validation=include_validation,
         include_doctor=include_doctor,
         include_azd=include_azd,
+        include_db=include_db,
     )
 
 

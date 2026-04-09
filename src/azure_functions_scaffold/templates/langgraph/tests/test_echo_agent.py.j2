@@ -1,0 +1,12 @@
+from __future__ import annotations
+
+from app.graphs.echo_agent import graph
+
+
+def test_echo_agent_invokes_successfully() -> None:
+    result = graph.invoke(
+        {"messages": [{"role": "human", "content": "Hello!"}]}
+    )
+    assert len(result["messages"]) == 2
+    assert result["messages"][-1]["role"] == "assistant"
+    assert "Echo: Hello!" in result["messages"][-1]["content"]

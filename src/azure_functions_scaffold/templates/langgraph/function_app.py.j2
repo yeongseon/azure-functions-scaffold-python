@@ -1,0 +1,14 @@
+from __future__ import annotations
+
+import azure.functions as func
+
+from azure_functions_langgraph import LangGraphApp
+
+from app.graphs.echo_agent import graph
+
+# Create LangGraph app with Azure Functions
+lg_app = LangGraphApp(auth_level=func.AuthLevel.ANONYMOUS)
+lg_app.register(graph=graph, name="echo_agent")
+
+# Azure Functions entrypoint
+func_app = lg_app.function_app

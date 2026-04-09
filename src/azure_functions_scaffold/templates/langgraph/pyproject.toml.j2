@@ -20,28 +20,13 @@ include = [
 [project]
 name = "{{ project_name }}"
 version = "0.1.0"
-description = "Azure Functions Python v2 app scaffolded by azure-functions-scaffold."
+description = "LangGraph agent on Azure Functions Python v2, scaffolded by azure-functions-scaffold."
 readme = "README.md"
 requires-python = ">={{ python_version }},<{{ python_upper_bound }}"
 dependencies = [
   "azure-functions>=1.23.0",
-  "azure-functions-logging>=0.2.0",
-{% if include_openapi -%}
-  "azure-functions-openapi>=0.13.0",
-{% endif -%}
-{% if include_validation -%}
-  "azure-functions-validation>=0.5.0",
-{% endif -%}
-{% if include_validation -%}
-  "pydantic>=2.0.0",
-{% endif -%}
-{% if include_doctor -%}
-  "azure-functions-doctor>=0.15.0",
-{% endif -%}
-{% if include_db -%}
-  # Database: default postgres driver. Alternatives: [mysql], [mssql], or omit for SQLite.
-  "azure-functions-db[postgres]>=0.1.0",
-{% endif -%}
+  "azure-functions-langgraph>=0.5.0",
+  "langgraph>=0.2.0",
 ]
 
 [project.optional-dependencies]

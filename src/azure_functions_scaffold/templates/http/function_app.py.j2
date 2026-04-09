@@ -10,12 +10,18 @@ from app.core.logging import configure_logging
 from app.functions.http import http_blueprint
 
 # azure-functions-scaffold: function imports
+{%- if include_db %}
+from app.functions.db_items import db_items_blueprint
+{%- endif %}
 
 configure_logging()
 
 app = func.FunctionApp()
 # azure-functions-scaffold: function registrations
 app.register_functions(http_blueprint)
+{%- if include_db %}
+app.register_functions(db_items_blueprint)
+{%- endif %}
 {%- if include_openapi %}
 
 

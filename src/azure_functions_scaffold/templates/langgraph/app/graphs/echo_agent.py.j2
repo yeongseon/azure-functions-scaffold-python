@@ -1,0 +1,23 @@
+from __future__ import annotations
+
+from langgraph.graph import END, START, StateGraph
+from typing_extensions import TypedDict
+
+
+class AgentState(TypedDict):
+    messages: list[dict[str, str]]
+
+
+def chat(state: AgentState) -> dict:
+    user_msg = state["messages"][-1]["content"]
+    return {
+        "messages": state["messages"]
+        + [{"role": "assistant", "content": f"Echo: {user_msg}"}]
+    }
+
+
+builder = StateGraph(AgentState)
+builder.add_node("chat", chat)
+builder.add_edge(START, "chat")
+builder.add_edge("chat", END)
+graph = builder.compile()
