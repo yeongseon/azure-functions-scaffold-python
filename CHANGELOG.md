@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2025-04-09
+
+### Features
+
+- Add `--with-db/--no-db` CLI flag with interactive prompt support
+- Add `langgraph` template with LangGraphApp, echo agent, and full project structure
+- Add `db-api` profile (http + strict preset + db + openapi + validation + doctor)
+- Add `db_items` blueprint template (GET/POST /items) for database showcase
+- Conditional `azure-functions-db[postgres]` dependency in generated pyproject.toml
+- Conditional `DB_URL` in generated local.settings.json.example
+
+### Testing
+
+- Add tests for `--with-db` flag, langgraph template, and db-api profile (178 pass, 97% coverage)
+
+## [0.4.0] - 2025-03-17
+
 ### Bug Fixes
 
 - Resolve MkDocs strict-mode failures for nav and links (#38) (#39) 
