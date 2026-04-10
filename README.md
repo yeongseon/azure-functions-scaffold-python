@@ -25,19 +25,22 @@ flowchart LR
     T["Templates"]
     P["Generated Project"]
     VAL["azure-functions-validation"]
+    DB["azure-functions-db"]
 
     Dev --> CLI
     CLI --> T
     T --> P
     CLI -- "--with-validation" --> VAL
+    CLI -- "--with-db" --> DB
     VAL --> P
+    DB --> P
 ```
 ## Scope
 
 - Azure Functions Python **v2 programming model**
 - Decorator-based `func.FunctionApp()` applications
 - CLI-driven project generation and expansion
-- Templates for HTTP, Timer, Queue, Blob, and Service Bus triggers
+- Templates for HTTP, Timer, Queue, Blob, Service Bus, and LangGraph triggers
 
 This tool generates project scaffolds. It does **not** provide runtime libraries.
 
@@ -45,18 +48,20 @@ This tool generates project scaffolds. It does **not** provide runtime libraries
 
 This package does not own:
 
-- **Runtime behavior** — generated projects wire up optional packages (`--with-openapi`, `--with-validation`, `--with-doctor`), but runtime logic belongs to those packages
+- **Runtime behavior** — generated projects wire up optional packages (`--with-openapi`, `--with-validation`, `--with-doctor`, `--with-db`), but runtime logic belongs to those packages
 - **API documentation** — use [`azure-functions-openapi`](https://github.com/yeongseon/azure-functions-openapi) for API documentation and spec generation
 - **Request validation** — use [`azure-functions-validation`](https://github.com/yeongseon/azure-functions-validation) for request/response validation and serialization
+- **Database bindings** — use [`azure-functions-db`](https://github.com/yeongseon/azure-functions-db) for database input/output bindings
 
 ## Features
 
 - `azure-functions-scaffold new` command for project generation
-- Five built-in templates: HTTP, Timer, Queue, Blob, Service Bus
+- Six built-in templates: HTTP, Timer, Queue, Blob, Service Bus, LangGraph
 - `azure-functions-scaffold add` command for expanding existing projects
-- Optional integrations: `--with-openapi`, `--with-validation`, `--with-doctor`
+- Optional integrations: `--with-openapi`, `--with-validation`, `--with-doctor`, `--with-db`
 - Preset tooling levels: `--preset minimal|standard|strict`
 - Interactive guided setup via `--interactive`
+- Profile-based generation: `--profile api`, `--profile db-api`
 - Short alias: `afs` works as a drop-in for `azure-functions-scaffold`
 
 ## Installation
@@ -134,6 +139,7 @@ Why this layout works:
 | queue | `azure-functions-scaffold new my-worker --template queue` | Message processing (Azurite) |
 | blob | `azure-functions-scaffold new my-blob --template blob` | File processing (Azurite) |
 | servicebus | `azure-functions-scaffold new my-bus --template servicebus` | Enterprise messaging |
+| langgraph | `afs new my-agent --template langgraph` | LangGraph AI agent deployment |
 
 Note: `afs` is short for `azure-functions-scaffold`. Both work.
 
@@ -150,6 +156,7 @@ Template defaults:
 - `--with-openapi` - Swagger UI + OpenAPI spec endpoints
 - `--with-validation` - Pydantic request/response validation
 - `--with-doctor` - Health check diagnostics
+- `--with-db` - Database bindings (SQLAlchemy)
 - `--preset minimal|standard|strict` - Tooling level
 - `--interactive` - Guided project setup
 
@@ -159,8 +166,21 @@ Example combinations:
 azure-functions-scaffold new my-api --preset strict --with-validation
 azure-functions-scaffold new my-api --with-openapi --with-validation
 azure-functions-scaffold new my-api --template timer --preset minimal
+afs new my-api --with-db
+afs new my-agent --template langgraph
+afs new my-api --profile db-api
 ```
 
+## Profiles
+
+Profiles combine a template with pre-selected optional features for common project archetypes:
+
+| Profile | Template | Features Included | Command |
+|---------|----------|-------------------|---------|
+| `api` | http | openapi, validation | `afs new my-api --profile api` |
+| `db-api` | http | openapi, validation, db | `afs new my-api --profile db-api` |
+
+Profiles are a convenience — they set the same flags you could pass individually.
 ## Expand Your Project
 
 Add functions to an existing scaffolded project:
@@ -227,13 +247,14 @@ This package is part of the **Azure Functions Python DX Toolkit**.
 
 | Package | Role |
 |---------|------|
-| **azure-functions-scaffold** | Project scaffolding CLI |
-| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) | Request/response validation and serialization |
 | [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi) | OpenAPI spec generation and Swagger UI |
+| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation) | Request/response validation and serialization |
+| [azure-functions-db](https://github.com/yeongseon/azure-functions-db) | Database bindings for SQL, PostgreSQL, MySQL, SQLite, and Cosmos DB |
 | [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph) | LangGraph deployment adapter for Azure Functions |
+| **azure-functions-scaffold** | Project scaffolding CLI |
 | [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging) | Structured logging and observability |
 | [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor) | Pre-deploy diagnostic CLI |
-| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph) | Manifest-first graph runtime with Durable Functions *(planned)* |
+| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph) | Manifest-first graph runtime with Durable Functions *(experimental)* |
 | [azure-functions-python-cookbook](https://github.com/yeongseon/azure-functions-python-cookbook) | Recipes and examples |
 
 ## For AI Coding Assistants
