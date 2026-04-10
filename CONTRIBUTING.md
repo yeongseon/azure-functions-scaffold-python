@@ -1,64 +1,78 @@
-# Contributing
+# Contributing Guide
 
-## Scope
+We welcome contributions to the `azure-functions-scaffold` project.
 
-This project provides a pragmatic scaffold for Azure Functions Python v2 applications.
-Contributions should improve one of these areas:
+## Branch Strategy
 
-- CLI usability
-- template quality
-- generated project quality
-- test coverage
-- documentation
+Use GitHub Flow and branch from `main`.
 
-## Development Setup
+Recommended branch prefixes:
+
+- `feat/` for new features
+- `fix/` for bug fixes
+- `docs/` for documentation-only changes
+- `chore/` for tooling and maintenance
+- `ci/` for workflow updates
+
+## Development Workflow
+
+1. Create a branch from `main`.
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feat/your-feature-name
+   ```
+2. Write code and tests.
+3. Run the local quality gate.
+   ```bash
+   make check-all
+   ```
+4. Push and create a pull request.
+   ```bash
+   git push origin feat/your-feature-name
+   ```
+
+## Project Commands
 
 ```bash
-make install
+make format      # Format code with ruff
+make lint        # Lint with ruff
+make typecheck   # Type check with mypy
+make test        # Run tests
+make cov         # Run tests with coverage
+make check-all   # Run the full local gate
 ```
 
-## Local Checks
+## Example Coverage Policy
 
-Run these before opening a PR:
+Examples are part of the supported API experience and should stay verified.
+
+- Keep one representative example for the minimal scaffolding workflow.
+- Keep one complex example for custom templates and multi-project generation.
+- Add or update smoke tests whenever an example changes.
+- Prefer lightweight smoke coverage over infrastructure-heavy end-to-end tests.
+
+## Commit Message Guidelines
+
+We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+
+### Examples
 
 ```bash
-make check-all
-make docs
+git commit -m "feat: add OpenAPI 3.1 support"
+git commit -m "fix: handle empty request body gracefully"
+git commit -m "docs: improve quickstart documentation"
+git commit -m "refactor: extract schema builder logic"
+git commit -m "chore: update dev dependencies"
 ```
 
-## Project Layout
+Use imperative present tense and keep the message concise.
 
-```text
-src/azure_functions_scaffold/
-|- cli.py
-|- scaffolder.py
-`- templates/
-   `- http/
+## Deployment
 
-tests/
-docs/
-```
-
-## Contribution Guidelines
-
-- Keep changes aligned with the product direction in `PRD.md`.
-- Keep changes aligned with the design guardrails in `DESIGN.md`.
-- Write all documentation and code comments in English.
-- Prefer small, reviewable pull requests.
-- Update documentation when behavior or public interfaces change.
-- Add or update tests for any CLI or rendering behavior change.
-- Keep repository test coverage at or above 90 percent.
-- Keep generated output lint-clean and format-clean.
-
-## Template Changes
-
-When changing files under `src/azure_functions_scaffold/templates/`:
-
-- verify the generated project still runs `pytest`
-- verify the generated project passes `ruff check .`
-- verify the generated project passes `ruff format --check .`
-- preserve Azure Functions Python v2 compatibility
+- A merge to `main` triggers the production deployment workflow.
+- Deployment status can be tracked from the related GitHub Actions run.
 
 ## Code of Conduct
 
-Be respectful and inclusive. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for details.
+Be respectful and inclusive. See our [Code of Conduct](CODE_OF_CONDUCT.md) for details.
