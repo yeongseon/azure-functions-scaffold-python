@@ -25,15 +25,12 @@ flowchart LR
     T["Templates"]
     P["Generated Project"]
     VAL["azure-functions-validation"]
-    DB["azure-functions-db"]
 
     Dev --> CLI
     CLI --> T
     T --> P
     CLI --> VAL
-    CLI --> DB
     VAL --> P
-    DB --> P
 ```
 ## Scope
 
@@ -56,11 +53,11 @@ This package does not own:
 ## Features
 
 - Intent-based command groups: `afs api`, `afs worker`, `afs ai`, and `afs advanced`
-- API project commands: `afs api new`, `afs api crud`, and `afs api add`
+- API project commands: `afs api new` and `afs api add`
 - Worker project commands: `afs worker timer|queue|blob|servicebus|eventhub`
 - AI project command: `afs ai agent` for LangGraph scaffolds
 - Advanced power-user commands: `afs advanced new` and `afs advanced add`
-- Optional feature flags (`--with-openapi`, `--with-validation`, `--with-doctor`, `--with-db`) and `--preset minimal|standard|strict` available via `afs advanced new`
+- Optional feature flags (`--with-openapi`, `--with-validation`, `--with-doctor`) and `--preset minimal|standard|strict` available via `afs advanced new`
 - Discovery commands: `afs templates` and `afs presets`
 - Short alias: `afs` is the primary CLI entry point for `azure-functions-scaffold`
 
@@ -86,12 +83,12 @@ pip install -e .
 func start
 ```
 
-Open `http://localhost:7071/api/hello` in your browser.
+Open `http://localhost:7071/api/health` in your browser.
 
 Expected response:
 
-```text
-Hello, World!
+```json
+{"status": "healthy"}
 ```
 
 Project names must start with an alphanumeric character and use only letters,
@@ -111,15 +108,21 @@ my-api/
 |- pyproject.toml           # Dependencies and tooling config
 |- app/
 |  |- core/
+|  |  |- config.py          # Application settings
 |  |  `- logging.py         # Structured JSON logging
+|  |- dependencies/
+|  |  `- __init__.py        # Shared dependencies
 |  |- functions/
-|  |  `- http.py            # HTTP trigger (Blueprint)
+|  |  |- health.py          # Health check (Blueprint)
+|  |  `- users.py           # Users CRUD (Blueprint)
 |  |- schemas/
-|  |  `- request_models.py  # Request/response models
+|  |  `- users.py           # Pydantic request/response models
 |  `- services/
-|     `- hello_service.py   # Business logic
+|     |- health_service.py   # Health check logic
+|     `- users_service.py    # Users business logic
 `- tests/
-   `- test_http.py          # Pytest tests
+   |- test_health.py        # Health endpoint tests
+   `- test_users.py         # Users CRUD tests
 ```
 
 Why this layout works:
@@ -145,7 +148,7 @@ Note: `afs` is short for `azure-functions-scaffold`. Both work.
 
 Template defaults:
 
-- `http`: public HTTP endpoint and service module.
+- `http`: health endpoint and users CRUD with service layer.
 - `timer`: scheduled trigger using NCRONTAB expression settings.
 - `queue`: Storage Queue trigger ready for local Azurite development.
 - `blob`: Blob trigger scaffold for file-ingestion pipelines.
@@ -156,7 +159,6 @@ Template defaults:
 Intent commands pre-select optional features based on project intent:
 
 - `afs api new <name>` includes OpenAPI, validation, and doctor integration
-- `afs api crud <name>` includes OpenAPI, validation, doctor, and database integration
 - `afs worker <trigger> <name>` and `afs ai agent <name>` apply trigger-specific defaults
 
 Use `afs advanced new <name>` when you need direct control over feature flags:
@@ -164,7 +166,7 @@ Use `afs advanced new <name>` when you need direct control over feature flags:
 - `--with-openapi` - Swagger UI + OpenAPI spec endpoints
 - `--with-validation` - Pydantic request/response validation
 - `--with-doctor` - Health check diagnostics
-- `--with-db` - Database bindings (SQLAlchemy)
+- `--with-db` - Database bindings (SQLAlchemy) *(planned — currently not wired)*
 - `--preset minimal|standard|strict` - Tooling level
 ## Expand Your Project
 

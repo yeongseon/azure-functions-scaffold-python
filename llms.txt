@@ -27,7 +27,6 @@ afs [GROUP] [COMMAND] [OPTIONS]                    # Short alias
 ### Main Commands
 
 - `afs api new <name>` — Create HTTP API project with strict preset, OpenAPI, validation, and doctor
-- `afs api crud <name>` — Create CRUD API project with API features plus database bindings
 - `afs api add <name>` — Add HTTP function to an existing project
 - `afs worker timer <name>` — Create timer-trigger worker project
 - `afs worker queue <name>` — Create queue-trigger worker project
@@ -57,7 +56,7 @@ afs [GROUP] [COMMAND] [OPTIONS]                    # Short alias
 - `--with-openapi/--no-openapi` — Include OpenAPI support (HTTP template)
 - `--with-validation/--no-validation` — Include request validation support (HTTP template)
 - `--with-doctor/--no-doctor` — Include `azure-functions-doctor`
-- `--with-db/--no-db` — Include `azure-functions-db` bindings
+- `--with-db/--no-db` — Include `azure-functions-db` bindings *(planned)*
 
 ### Global options
 
@@ -100,7 +99,7 @@ pip install -e .
 # Step 4: Run locally
 func start
 
-# Open http://localhost:7071/api/hello in browser
+# Open http://localhost:7071/api/health in browser
 ```
 
 ## Optional Features
@@ -108,7 +107,6 @@ func start
 Intent commands auto-select features based on project goal:
 
 - `afs api new <name>` automatically enables OpenAPI, validation, and doctor
-- `afs api crud <name>` automatically enables OpenAPI, validation, doctor, and db
 - `afs worker <trigger> <name>` and `afs ai agent <name>` apply trigger-specific defaults
 
 Use `afs advanced new <name>` for explicit feature control:
@@ -116,7 +114,7 @@ Use `afs advanced new <name>` for explicit feature control:
 - `--with-openapi` — Swagger UI + OpenAPI spec endpoints
 - `--with-validation` — Pydantic request/response validation
 - `--with-doctor` — azure-functions-doctor health checks
-- `--with-db` — Database bindings
+- `--with-db` — Database bindings *(planned)*
 
 ## Generated Project Layout
 
@@ -127,16 +125,28 @@ my-api/
 |- local.settings.json.example
 |- pyproject.toml           # Dependencies
 |- app/
+|  |- __init__.py
 |  |- core/
+|  |  |- __init__.py
+|  |  |- config.py
 |  |  `- logging.py
+|  |- dependencies/
+|  |  `- __init__.py
 |  |- functions/
-|  |  `- http.py
+|  |  |- __init__.py
+|  |  |- health.py
+|  |  `- users.py
 |  |- schemas/
-|  |  `- request_models.py
+|  |  |- __init__.py
+|  |  `- users.py
 |  `- services/
-|     `- hello_service.py
+|     |- __init__.py
+|     |- health_service.py
+|     `- users_service.py
 `- tests/
-   `- test_http.py
+   |- __init__.py
+   |- test_health.py
+   `- test_users.py
 ```
 
 ## Project Requirements

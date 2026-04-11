@@ -107,7 +107,6 @@ def run_intent(
             include_validation="validation" in spec.features,
             include_doctor="doctor" in spec.features,
             include_azd=include_azd,
-            include_db="db" in spec.features,
         )
     except ScaffoldError as exc:
         typer.secho(str(exc), fg=typer.colors.RED)
@@ -180,8 +179,6 @@ def _print_success_message(
         features.append("validation")
     if options.include_doctor:
         features.append("doctor")
-    if options.include_db:
-        features.append("db")
     if options.include_azd:
         features.append("azd")
     if options.include_github_actions:

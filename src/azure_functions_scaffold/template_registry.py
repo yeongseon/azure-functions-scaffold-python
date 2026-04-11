@@ -83,11 +83,6 @@ INTENT_SPECS: dict[str, IntentSpec] = {
         preset="strict",
         features=frozenset({"openapi", "validation", "doctor"}),
     ),
-    "api/crud": IntentSpec(
-        template="http",
-        preset="strict",
-        features=frozenset({"openapi", "validation", "doctor", "db"}),
-    ),
     "worker/timer": IntentSpec(template="timer", preset="standard"),
     "worker/queue": IntentSpec(template="queue", preset="standard"),
     "worker/blob": IntentSpec(template="blob", preset="standard"),
@@ -135,7 +130,6 @@ def build_project_options(
     include_validation: bool = False,
     include_doctor: bool = False,
     include_azd: bool = False,
-    include_db: bool = False,
 ) -> ProjectOptions:
     preset = get_preset(preset_name)
     validate_python_version(python_version)
@@ -151,7 +145,6 @@ def build_project_options(
         include_validation=include_validation,
         include_doctor=include_doctor,
         include_azd=include_azd,
-        include_db=include_db,
     )
 
 

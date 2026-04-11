@@ -1,0 +1,169 @@
+from __future__ import annotations
+
+import json
+
+import azure.functions as func
+
+from app.functions.users import create_user, delete_user, get_user, list_users, update_user
+from app.services.users_service import users_store
+
+
+def _make_request(
+    method: str,
+    url: str,
+    *,
+    body: bytes = b"",
+    route_params: dict[str, str] | None = None,
+    headers: dict[str, str] | None = None,
+) -> func.HttpRequest:
+    return func.HttpRequest(
+        method=method,
+        url=url,
+        params={},
+        body=body,
+        route_params=route_params or {},
+        headers=headers or {},
+    )
+
+
+class TestListUsers:
+    def test_returns_empty_list_initially(self) -> None:
+        users_store._users.clear()
+        request = _make_request("GET", "http://localhost/api/users")
+        response = list_users(request)
+
+        assert response.status_code == 200
+        assert json.loads(response.get_body()) == []
+
+    def test_returns_created_users(self) -> None:
+        users_store._users.clear()
+        users_store.create("Alice", "alice@example.com")
+
+        request = _make_request("GET", "http://localhost/api/users")
+        response = list_users(request)
+
+        body = json.loads(response.get_body())
+        assert len(body) == 1
+        assert body[0]["name"] == "Alice"
+
+
+class TestGetUser:
+    def test_returns_user_by_id(self) -> None:
+        users_store._users.clear()
+        user = users_store.create("Bob", "bob@example.com")
+
+        request = _make_request(
+            "GET",
+            f"http://localhost/api/users/{user['id']}",
+            route_params={"user_id": user["id"]},
+        )
+        response = get_user(request)
+
+        assert response.status_code == 200
+        body = json.loads(response.get_body())
+        assert body["name"] == "Bob"
+
+    def test_returns_404_for_unknown_id(self) -> None:
+        users_store._users.clear()
+
+        request = _make_request(
+            "GET",
+            "http://localhost/api/users/unknown",
+            route_params={"user_id": "unknown"},
+        )
+        response = get_user(request)
+
+        assert response.status_code == 404
+
+
+class TestCreateUser:
+    def test_creates_user_successfully(self) -> None:
+        users_store._users.clear()
+
+        request = _make_request(
+            "POST",
+            "http://localhost/api/users",
+            body=json.dumps({"name": "Carol", "email": "carol@example.com"}).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        response = create_user(request)
+
+        assert response.status_code == 201
+        body = json.loads(response.get_body())
+        assert body["name"] == "Carol"
+        assert body["email"] == "carol@example.com"
+        assert "id" in body
+
+class TestUpdateUser:
+    def test_updates_existing_user(self) -> None:
+        users_store._users.clear()
+        user = users_store.create("Eve", "eve@example.com")
+
+        request = _make_request(
+            "PUT",
+            f"http://localhost/api/users/{user['id']}",
+            body=json.dumps({"name": "Eve Updated", "email": "eve2@example.com"}).encode(),
+            route_params={"user_id": user["id"]},
+            headers={"Content-Type": "application/json"},
+        )
+        response = update_user(request)
+
+        assert response.status_code == 200
+        body = json.loads(response.get_body())
+        assert body["name"] == "Eve Updated"
+        assert body["email"] == "eve2@example.com"
+
+    def test_returns_404_for_unknown_id(self) -> None:
+        users_store._users.clear()
+
+        request = _make_request(
+            "PUT",
+            "http://localhost/api/users/unknown",
+            body=json.dumps({"name": "Ghost", "email": "ghost@example.com"}).encode(),
+            route_params={"user_id": "unknown"},
+            headers={"Content-Type": "application/json"},
+        )
+        response = update_user(request)
+
+        assert response.status_code == 404
+
+    def test_returns_400_for_invalid_json(self) -> None:
+        users_store._users.clear()
+        user = users_store.create("Frank", "frank@example.com")
+
+        request = _make_request(
+            "PUT",
+            f"http://localhost/api/users/{user['id']}",
+            body=b"not-json",
+            route_params={"user_id": user["id"]},
+            headers={"Content-Type": "application/json"},
+        )
+        response = update_user(request)
+
+        assert response.status_code == 400
+
+class TestDeleteUser:
+    def test_deletes_existing_user(self) -> None:
+        users_store._users.clear()
+        user = users_store.create("Dave", "dave@example.com")
+
+        request = _make_request(
+            "DELETE",
+            f"http://localhost/api/users/{user['id']}",
+            route_params={"user_id": user["id"]},
+        )
+        response = delete_user(request)
+
+        assert response.status_code == 204
+
+    def test_returns_404_for_unknown_id(self) -> None:
+        users_store._users.clear()
+
+        request = _make_request(
+            "DELETE",
+            "http://localhost/api/users/unknown",
+            route_params={"user_id": "unknown"},
+        )
+        response = delete_user(request)
+
+        assert response.status_code == 404

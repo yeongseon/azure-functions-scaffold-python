@@ -3,17 +3,13 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 
-class HelloRequest(BaseModel):
-    name: str
-
-
-class HelloResponse(BaseModel):
-    message: str
+class HealthResponse(BaseModel):
+    status: str
 {%- else %}
 from dataclasses import dataclass
 
 
 @dataclass(slots=True)
-class HelloRequest:
-    name: str
+class HealthResponse:
+    status: str
 {%- endif %}

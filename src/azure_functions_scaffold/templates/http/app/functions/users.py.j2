@@ -1,0 +1,221 @@
+from __future__ import annotations
+
+import json
+
+import azure.functions as func
+{%- if include_openapi %}
+from azure_functions_openapi.decorator import openapi
+{%- endif %}
+{%- if include_validation %}
+from azure_functions_validation import validate_http
+{%- endif %}
+
+{% if include_validation -%}
+from app.schemas.users import CreateUserRequest, UpdateUserRequest, UserResponse
+{% endif -%}
+from app.services.users_service import users_store
+
+users_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
+
+
+# ---------------------------------------------------------------------------
+# GET /api/users — list all users
+# ---------------------------------------------------------------------------
+
+@users_blueprint.route(
+    route="users",
+    methods=["GET"],
+    auth_level=func.AuthLevel.ANONYMOUS,
+)
+{% if include_openapi -%}
+@openapi(
+    summary="List users",
+    description="Returns all users.",
+    tags=["users"],
+)
+{% endif -%}
+def list_users(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse(
+        body=json.dumps(users_store.list_all()),
+        mimetype="application/json",
+        status_code=200,
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET /api/users/{user_id} — get a single user
+# ---------------------------------------------------------------------------
+
+@users_blueprint.route(
+    route="users/{user_id}",
+    methods=["GET"],
+    auth_level=func.AuthLevel.ANONYMOUS,
+)
+{% if include_openapi -%}
+@openapi(
+    summary="Get user by ID",
+    description="Returns a single user by their unique identifier.",
+    tags=["users"],
+)
+{% endif -%}
+def get_user(req: func.HttpRequest) -> func.HttpResponse:
+    user_id = req.route_params.get("user_id", "")
+    user = users_store.get(user_id)
+    if user is None:
+        return func.HttpResponse(
+            body=json.dumps({"error": "User not found"}),
+            mimetype="application/json",
+            status_code=404,
+        )
+    return func.HttpResponse(
+        body=json.dumps(user),
+        mimetype="application/json",
+        status_code=200,
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /api/users — create a new user
+# ---------------------------------------------------------------------------
+
+@users_blueprint.route(
+    route="users",
+    methods=["POST"],
+    auth_level=func.AuthLevel.ANONYMOUS,
+)
+{% if include_openapi -%}
+@openapi(
+    summary="Create user",
+    description="Creates a new user.",
+    tags=["users"],
+{%- if include_validation %}
+    request_model=CreateUserRequest,
+    response_model=UserResponse,
+    response={201: {"description": "User created"}},
+{%- endif %}
+)
+{% endif -%}
+{% if include_validation -%}
+@validate_http(body=CreateUserRequest, response_model=UserResponse)
+{% endif -%}
+{% if include_validation -%}
+def create_user(req: func.HttpRequest, body: CreateUserRequest) -> func.HttpResponse:
+    user = users_store.create(body.name, body.email)
+    return func.HttpResponse(
+        body=UserResponse(**user).model_dump_json(),
+        mimetype="application/json",
+        status_code=201,
+    )
+{%- else -%}
+def create_user(req: func.HttpRequest) -> func.HttpResponse:
+    try:
+        body = req.get_json()
+    except ValueError:
+        return func.HttpResponse(
+            body=json.dumps({"error": "Invalid JSON body"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+    name = body.get("name", "")
+    email = body.get("email", "")
+    if not name or not email:
+        return func.HttpResponse(
+            body=json.dumps({"error": "name and email are required"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+    user = users_store.create(name, email)
+    return func.HttpResponse(
+        body=json.dumps(user),
+        mimetype="application/json",
+        status_code=201,
+    )
+{%- endif %}
+
+
+# ---------------------------------------------------------------------------
+# PUT /api/users/{user_id} — update an existing user
+# ---------------------------------------------------------------------------
+
+@users_blueprint.route(
+    route="users/{user_id}",
+    methods=["PUT"],
+    auth_level=func.AuthLevel.ANONYMOUS,
+)
+{% if include_openapi -%}
+@openapi(
+    summary="Update user",
+    description="Updates an existing user by ID.",
+    tags=["users"],
+{%- if include_validation %}
+    request_model=UpdateUserRequest,
+    response_model=UserResponse,
+{%- endif %}
+)
+{% endif -%}
+{% if include_validation -%}
+@validate_http(body=UpdateUserRequest, response_model=UserResponse)
+{% endif -%}
+{% if include_validation -%}
+def update_user(req: func.HttpRequest, body: UpdateUserRequest) -> UserResponse | func.HttpResponse:
+    user_id = req.route_params.get("user_id", "")
+    user = users_store.update(user_id, name=body.name, email=body.email)
+    if user is None:
+        return func.HttpResponse(
+            body=json.dumps({"error": "User not found"}),
+            mimetype="application/json",
+            status_code=404,
+        )
+    return UserResponse(**user)
+{%- else -%}
+def update_user(req: func.HttpRequest) -> func.HttpResponse:
+    user_id = req.route_params.get("user_id", "")
+    try:
+        body = req.get_json()
+    except ValueError:
+        return func.HttpResponse(
+            body=json.dumps({"error": "Invalid JSON body"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+    user = users_store.update(user_id, name=body.get("name"), email=body.get("email"))
+    if user is None:
+        return func.HttpResponse(
+            body=json.dumps({"error": "User not found"}),
+            mimetype="application/json",
+            status_code=404,
+        )
+    return func.HttpResponse(
+        body=json.dumps(user),
+        mimetype="application/json",
+        status_code=200,
+    )
+{%- endif %}
+
+
+# ---------------------------------------------------------------------------
+# DELETE /api/users/{user_id} — delete a user
+# ---------------------------------------------------------------------------
+
+@users_blueprint.route(
+    route="users/{user_id}",
+    methods=["DELETE"],
+    auth_level=func.AuthLevel.ANONYMOUS,
+)
+{% if include_openapi -%}
+@openapi(
+    summary="Delete user",
+    description="Deletes a user by ID.",
+    tags=["users"],
+)
+{% endif -%}
+def delete_user(req: func.HttpRequest) -> func.HttpResponse:
+    user_id = req.route_params.get("user_id", "")
+    deleted = users_store.delete(user_id)
+    if not deleted:
+        return func.HttpResponse(
+            body=json.dumps({"error": "User not found"}),
+            mimetype="application/json",
+            status_code=404,
+        )
+    return func.HttpResponse(status_code=204)

@@ -29,9 +29,9 @@
 
 ## 機能
 
-- 意図中心の生成コマンド: `afs api new`、`afs api crud`、`afs worker <trigger>`、`afs ai agent`
+- 意図中心の生成コマンド: `afs api new`、`afs worker <trigger>`、`afs ai agent`
 - プロジェクト拡張コマンド: `afs api add`、`afs advanced add`
-- オプション統合: `--with-openapi`、`--with-validation`、`--with-doctor`、`--with-db`
+- オプション統合: `--with-openapi`、`--with-validation`、`--with-doctor`
 - プリセットツーリングレベル: `--preset minimal|standard|strict`
 - パワーユーザー向けの詳細フラグ制御: `afs advanced new`
 - ショートエイリアス: `afs` を `azure-functions-scaffold` の代わりに使用可能
@@ -58,12 +58,12 @@ pip install -e .
 func start
 ```
 
-ブラウザで `http://localhost:7071/api/hello` を開いてください。
+ブラウザで `http://localhost:7071/api/health` を開いてください。
 
 期待されるレスポンス:
 
-```text
-Hello, World!
+```json
+{"status": "healthy"}
 ```
 
 プロジェクト名は英数字で始める必要があり、使用できるのは文字、数字、
@@ -83,15 +83,21 @@ my-api/
 |- pyproject.toml           # Dependencies and tooling config
 |- app/
 |  |- core/
+|  |  |- config.py          # Application settings
 |  |  `- logging.py         # Structured JSON logging
+|  |- dependencies/
+|  |  `- __init__.py        # Shared dependencies
 |  |- functions/
-|  |  `- http.py            # HTTP trigger (Blueprint)
+|  |  |- health.py          # Health check (Blueprint)
+|  |  `- users.py           # Users CRUD (Blueprint)
 |  |- schemas/
-|  |  `- request_models.py  # Request/response models
+|  |  `- users.py           # Pydantic request/response models
 |  `- services/
-|     `- hello_service.py   # Business logic
+|     |- health_service.py   # Health check logic
+|     `- users_service.py    # Users business logic
 `- tests/
-   `- test_http.py          # Pytest tests
+   |- test_health.py        # Health endpoint tests
+   `- test_users.py         # Users CRUD tests
 ```
 
 このレイアウトが機能する理由:
@@ -116,7 +122,7 @@ my-api/
 
 テンプレートの既定値:
 
-- `http`: 公開 HTTP エンドポイントとサービスモジュール。
+- `http`: ヘルスチェックエンドポイントとユーザー CRUD サービスモジュール。
 - `timer`: NCRONTAB 式設定を使用するスケジュールトリガー。
 - `queue`: ローカル Azurite 開発向けに準備された Storage Queue トリガー。
 - `blob`: ファイル取り込みパイプライン向け Blob トリガースキャフォールド。
@@ -127,7 +133,7 @@ my-api/
 - `--with-openapi` - Swagger UI + OpenAPI 仕様エンドポイント
 - `--with-validation` - Pydantic リクエスト/レスポンス検証
 - `--with-doctor` - ヘルスチェック診断
-- `--with-db` - データベースバインディング (SQLAlchemy)
+- `--with-db` - データベースバインディング (SQLAlchemy) *(計画 — 現在未対応)*
 - `--preset minimal|standard|strict` - ツーリングレベル
 
 意図中心コマンドは一般的な機能構成を事前選択します。フラグを直接制御したい場合は `afs advanced new <name>` を使用してください。
@@ -136,7 +142,7 @@ my-api/
 
 ```bash
 afs api new my-api --preset strict --with-validation
-afs api crud my-api --preset standard
+afs api new my-api --preset strict --with-validation
 afs worker timer my-job --preset minimal
 afs advanced new my-api --with-openapi --with-validation
 ```

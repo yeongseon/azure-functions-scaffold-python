@@ -38,10 +38,6 @@ dependencies = [
 {% if include_doctor -%}
   "azure-functions-doctor>=0.16.0",
 {% endif -%}
-{% if include_db -%}
-  # Database: default postgres driver. Alternatives: [mysql], [mssql], or omit for SQLite.
-  "azure-functions-db[postgres]>=0.2.0",
-{% endif -%}
 ]
 
 [project.optional-dependencies]

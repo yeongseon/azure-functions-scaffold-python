@@ -29,9 +29,9 @@
 
 ## 功能
 
-- 意图驱动的生成命令: `afs api new`、`afs api crud`、`afs worker <trigger>`、`afs ai agent`
+- 意图驱动的生成命令: `afs api new`、`afs worker <trigger>`、`afs ai agent`
 - 项目扩展命令: `afs api add`、`afs advanced add`
-- 可选集成: `--with-openapi`、`--with-validation`、`--with-doctor`、`--with-db`
+- 可选集成: `--with-openapi`、`--with-validation`、`--with-doctor`
 - 预设工具级别: `--preset minimal|standard|strict`
 - 面向高级用户的细粒度参数控制: `afs advanced new`
 - 短别名: `afs` 可替代 `azure-functions-scaffold`
@@ -58,12 +58,12 @@ pip install -e .
 func start
 ```
 
-在浏览器中打开 `http://localhost:7071/api/hello`。
+在浏览器中打开 `http://localhost:7071/api/health`。
 
 预期响应:
 
-```text
-Hello, World!
+```json
+{"status": "healthy"}
 ```
 
 项目名称必须以字母或数字开头，并且只能使用字母、数字、
@@ -83,15 +83,21 @@ my-api/
 |- pyproject.toml           # Dependencies and tooling config
 |- app/
 |  |- core/
+|  |  |- config.py          # Application settings
 |  |  `- logging.py         # Structured JSON logging
+|  |- dependencies/
+|  |  `- __init__.py        # Shared dependencies
 |  |- functions/
-|  |  `- http.py            # HTTP trigger (Blueprint)
+|  |  |- health.py          # Health check (Blueprint)
+|  |  `- users.py           # Users CRUD (Blueprint)
 |  |- schemas/
-|  |  `- request_models.py  # Request/response models
+|  |  `- users.py           # Pydantic request/response models
 |  `- services/
-|     `- hello_service.py   # Business logic
+|     |- health_service.py   # Health check logic
+|     `- users_service.py    # Users business logic
 `- tests/
-   `- test_http.py          # Pytest tests
+   |- test_health.py        # Health endpoint tests
+   `- test_users.py         # Users CRUD tests
 ```
 
 此布局的优势:
@@ -116,7 +122,7 @@ my-api/
 
 模板默认值:
 
-- `http`: 公开 HTTP 端点和服务模块。
+- `http`: 健康检查端点和用户 CRUD 服务模块。
 - `timer`: 使用 NCRONTAB 表达式设置的定时触发器。
 - `queue`: 为本地 Azurite 开发准备好的 Storage Queue 触发器。
 - `blob`: 用于文件摄取流水线的 Blob 触发器脚手架。
@@ -127,7 +133,7 @@ my-api/
 - `--with-openapi` - Swagger UI + OpenAPI 规范端点
 - `--with-validation` - Pydantic 请求/响应校验
 - `--with-doctor` - 健康检查诊断
-- `--with-db` - 数据库绑定 (SQLAlchemy)
+- `--with-db` - 数据库绑定 (SQLAlchemy) *(计划中 — 当前未启用)*
 - `--preset minimal|standard|strict` - 工具配置等级
 
 意图驱动命令会预先选择常见功能组合。如果需要直接控制参数，请使用 `afs advanced new <name>`。
@@ -136,7 +142,7 @@ my-api/
 
 ```bash
 afs api new my-api --preset strict --with-validation
-afs api crud my-api --preset standard
+afs api new my-api --preset strict --with-validation
 afs worker timer my-job --preset minimal
 afs advanced new my-api --with-openapi --with-validation
 ```

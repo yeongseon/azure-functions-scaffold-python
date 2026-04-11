@@ -7,21 +7,17 @@ from azure_functions_openapi.swagger_ui import render_swagger_ui
 {%- endif %}
 
 from app.core.logging import configure_logging
-from app.functions.http import http_blueprint
+from app.functions.health import health_blueprint
+from app.functions.users import users_blueprint
 
 # azure-functions-scaffold: function imports
-{%- if include_db %}
-from app.functions.db_items import db_items_blueprint
-{%- endif %}
 
 configure_logging()
 
 app = func.FunctionApp()
 # azure-functions-scaffold: function registrations
-app.register_functions(http_blueprint)
-{%- if include_db %}
-app.register_functions(db_items_blueprint)
-{%- endif %}
+app.register_functions(health_blueprint)
+app.register_functions(users_blueprint)
 {%- if include_openapi %}
 
 

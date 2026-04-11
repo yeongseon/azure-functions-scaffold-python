@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import ast
 import importlib
+import os
 from pathlib import Path
+import subprocess
 import sys
 from typing import Callable, cast
 
@@ -61,13 +63,11 @@ def _get_sdist_includes(pyproject_data: dict[str, object]) -> list[str]:
         "include_openapi",
         "include_validation",
         "include_doctor",
-        "include_db",
     ),
     [
-        ("http", "strict", True, True, True, False),
-        ("http", "standard", False, False, False, False),
-        ("http", "strict", False, False, False, True),
-        ("timer", "standard", False, False, False, False),
+        ("http", "strict", True, True, True),
+        ("http", "standard", False, False, False),
+        ("timer", "standard", False, False, False),
     ],
 )
 def test_scaffolded_templates_produce_parseable_python_and_toml(
@@ -77,14 +77,12 @@ def test_scaffolded_templates_produce_parseable_python_and_toml(
     include_openapi: bool,
     include_validation: bool,
     include_doctor: bool,
-    include_db: bool,
 ) -> None:
     project_name = (
         f"{template_name}-{preset_name}-"
         f"openapi-{int(include_openapi)}-"
         f"validation-{int(include_validation)}-"
-        f"doctor-{int(include_doctor)}-"
-        f"db-{int(include_db)}"
+        f"doctor-{int(include_doctor)}"
     )
     options = build_project_options(
         preset_name=preset_name,
@@ -94,7 +92,6 @@ def test_scaffolded_templates_produce_parseable_python_and_toml(
         include_openapi=include_openapi,
         include_validation=include_validation,
         include_doctor=include_doctor,
-        include_db=include_db,
     )
     project_root = scaffold_project(
         project_name=project_name,
@@ -119,12 +116,10 @@ def test_scaffolded_templates_produce_parseable_python_and_toml(
         "include_openapi",
         "include_validation",
         "include_doctor",
-        "include_db",
     ),
     [
-        ("http", "strict", True, True, True, False),
-        ("http", "strict", False, False, False, True),
-        ("timer", "standard", False, False, False, False),
+        ("http", "strict", True, True, True),
+        ("timer", "standard", False, False, False),
     ],
 )
 def test_scaffolded_pyproject_sdist_includes_do_not_use_leading_slashes(
@@ -134,14 +129,12 @@ def test_scaffolded_pyproject_sdist_includes_do_not_use_leading_slashes(
     include_openapi: bool,
     include_validation: bool,
     include_doctor: bool,
-    include_db: bool,
 ) -> None:
     project_name = (
         f"sdist-{template_name}-{preset_name}-"
         f"openapi-{int(include_openapi)}-"
         f"validation-{int(include_validation)}-"
-        f"doctor-{int(include_doctor)}-"
-        f"db-{int(include_db)}"
+        f"doctor-{int(include_doctor)}"
     )
     options = build_project_options(
         preset_name=preset_name,
@@ -151,7 +144,6 @@ def test_scaffolded_pyproject_sdist_includes_do_not_use_leading_slashes(
         include_openapi=include_openapi,
         include_validation=include_validation,
         include_doctor=include_doctor,
-        include_db=include_db,
     )
     project_root = scaffold_project(
         project_name=project_name,
@@ -163,3 +155,81 @@ def test_scaffolded_pyproject_sdist_includes_do_not_use_leading_slashes(
     pyproject_data = _load_pyproject(project_root)
     sdist_includes = _get_sdist_includes(pyproject_data)
     assert all(not path.startswith("/") for path in sdist_includes)
+
+
+@pytest.mark.slow
+def test_rendered_strict_http_project_tests_pass(tmp_path: Path) -> None:
+    """Scaffold a strict HTTP project and run its generated tests."""
+    options = build_project_options(
+        preset_name="strict",
+        python_version="3.10",
+        include_github_actions=False,
+        initialize_git=False,
+        include_openapi=True,
+        include_validation=True,
+        include_doctor=True,
+    )
+    project_root = scaffold_project(
+        project_name="smoke-strict",
+        destination=tmp_path,
+        template_name="http",
+        options=options,
+    )
+
+    # Run the generated project's own tests using the current interpreter.
+    # All runtime deps (azure-functions, pydantic, etc.) are already installed.
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "-x", "-q", str(project_root / "tests")],
+        cwd=str(project_root),
+        capture_output=True,
+        text=True,
+        env={
+            **os.environ,
+            "PYTHONPATH": os.pathsep.join(
+                filter(None, [str(project_root), os.environ.get("PYTHONPATH", "")])
+            ),
+        },
+    )
+    assert result.returncode == 0, (
+        f"Generated project tests failed (rc={result.returncode}):\n"
+        f"stdout:\n{result.stdout}\n"
+        f"stderr:\n{result.stderr}"
+    )
+
+
+@pytest.mark.slow
+def test_rendered_standard_http_project_tests_pass(tmp_path: Path) -> None:
+    """Scaffold a standard HTTP project (no openapi/validation) and run its generated tests."""
+    options = build_project_options(
+        preset_name="standard",
+        python_version="3.10",
+        include_github_actions=False,
+        initialize_git=False,
+        include_openapi=False,
+        include_validation=False,
+        include_doctor=False,
+    )
+    project_root = scaffold_project(
+        project_name="smoke-standard",
+        destination=tmp_path,
+        template_name="http",
+        options=options,
+    )
+
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "-x", "-q", str(project_root / "tests")],
+        cwd=str(project_root),
+        capture_output=True,
+        text=True,
+        env={
+            **os.environ,
+            "PYTHONPATH": os.pathsep.join(
+                filter(None, [str(project_root), os.environ.get("PYTHONPATH", "")])
+            ),
+        },
+    )
+    assert result.returncode == 0, (
+        f"Generated project tests failed (rc={result.returncode}):\n"
+        f"stdout:\n{result.stdout}\n"
+        f"stderr:\n{result.stderr}"
+    )

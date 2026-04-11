@@ -28,15 +28,19 @@ class TestApiNew:
         assert project_dir.exists()
         pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
         function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
-        http_text = (project_dir / "app/functions/http.py").read_text(encoding="utf-8")
+        users_text = (project_dir / "app/functions/users.py").read_text(encoding="utf-8")
         makefile_text = (project_dir / "Makefile").read_text(encoding="utf-8")
         # api intent: strict preset + openapi + validation + doctor
         assert "azure-functions-openapi>=0.17.0" in pyproject_text
         assert "azure-functions-validation>=0.7.0" in pyproject_text
         assert "azure-functions-doctor>=0.16.0" in pyproject_text
         assert "mypy>=1.17.1" in pyproject_text  # strict preset
-        assert "@openapi(" in http_text
-        assert "@validate_http(" in http_text
+        assert "@openapi(" in users_text
+        assert "@validate_http(" in users_text
+        assert (project_dir / "app/functions/health.py").exists()
+        assert (project_dir / "app/functions/users.py").exists()
+        assert "health_blueprint" in function_app_text
+        assert "users_blueprint" in function_app_text
         assert "get_openapi_json" in function_app_text
         assert "doctor:" in makefile_text or "make doctor" in makefile_text
         # no azd by default
@@ -83,30 +87,6 @@ class TestApiNew:
         assert result.exit_code == 0
         pyproject_text = (tmp_path / "py312-api" / "pyproject.toml").read_text(encoding="utf-8")
         assert 'requires-python = ">=3.12,<3.13"' in pyproject_text
-
-
-# ---------------------------------------------------------------------------
-# afs api crud
-# ---------------------------------------------------------------------------
-
-
-class TestApiCrud:
-    def test_creates_crud_project_with_db(self, tmp_path: Path) -> None:
-        result = runner.invoke(app, ["api", "crud", "my-crud", "--destination", str(tmp_path)])
-
-        assert result.exit_code == 0
-
-        project_dir = tmp_path / "my-crud"
-        pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
-        function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
-        # crud = api + db
-        assert "azure-functions-openapi>=0.17.0" in pyproject_text
-        assert "azure-functions-validation>=0.7.0" in pyproject_text
-        assert "azure-functions-doctor>=0.16.0" in pyproject_text
-        assert "azure-functions-db[postgres]>=0.2.0" in pyproject_text
-        assert "mypy>=1.17.1" in pyproject_text
-        assert (project_dir / "app/functions/db_items.py").exists()
-        assert "db_items_blueprint" in function_app_text
 
 
 # ---------------------------------------------------------------------------
@@ -271,7 +251,6 @@ class TestAdvanced:
                 "--with-openapi",
                 "--with-validation",
                 "--with-doctor",
-                "--with-db",
                 "--azd",
             ],
         )
@@ -281,7 +260,6 @@ class TestAdvanced:
         assert "azure-functions-openapi>=0.17.0" in pyproject_text
         assert "azure-functions-validation>=0.7.0" in pyproject_text
         assert "azure-functions-doctor>=0.16.0" in pyproject_text
-        assert "azure-functions-db[postgres]>=0.2.0" in pyproject_text
         assert (project_dir / "azure.yaml").exists()
 
     def test_new_dry_run(self, tmp_path: Path) -> None:

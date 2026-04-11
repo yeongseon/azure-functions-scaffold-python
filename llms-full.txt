@@ -67,29 +67,7 @@ Options:
 - `--dry-run` (default: `False`)
 - `--overwrite` (default: `False`)
 
-#### `afs api crud <project_name>`
-
-Create a CRUD API project with opinionated defaults:
-- Template: `http`
-- Preset: `strict`
-- Features: OpenAPI + validation + doctor + db
-
-```bash
-afs api crud <project_name> [OPTIONS]
-```
-
-Arguments:
-- `project_name` (required) — Directory name for the new project
-
-Options:
-- `-d, --destination PATH` (default: `.`)
-- `--python-version VERSION` (default: `3.10`; choices: `3.10`, `3.11`, `3.12`, `3.13`, `3.14`)
-- `--github-actions/--no-github-actions` (default: `--no-github-actions`)
-- `--git/--no-git` (default: `--no-git`)
-- `--azd/--no-azd` (default: `--no-azd`)
-- `--dry-run` (default: `False`)
-- `--overwrite` (default: `False`)
-
+#### `afs api add <function_name>`
 #### `afs api add <function_name>`
 
 Add an HTTP function module to an existing scaffolded project.
@@ -182,7 +160,7 @@ Options (full set):
 - `--with-openapi/--no-openapi` (default: `--no-openapi`)
 - `--with-validation/--no-validation` (default: `--no-validation`)
 - `--with-doctor/--no-doctor` (default: `--no-doctor`)
-- `--with-db/--no-db` (default: `--no-db`)
+- `--with-db/--no-db` (default: `--no-db`) *(planned)*
 - `--azd/--no-azd` (default: `--no-azd`)
 - `--dry-run` (default: `False`)
 - `--overwrite` (default: `False`)
@@ -243,17 +221,7 @@ afs advanced new my-api --preset strict --with-openapi --with-validation
 afs api new my-api
 ```
 
-### Workflow 2: CRUD API with database bindings
-
-```bash
-afs api crud my-crud-api
-cd my-crud-api
-pip install -e .
-func start
-```
-
-Creates an HTTP CRUD-oriented scaffold with OpenAPI, validation, doctor, and db integrations.
-
+### Workflow 2: Worker project by trigger intent
 ### Workflow 3: Worker project by trigger intent
 
 ```bash
@@ -297,19 +265,25 @@ my-api/
 |  |- __init__.py
 |  |- core/
 |  |  |- __init__.py
+|  |  |- config.py
 |  |  `- logging.py
+|  |- dependencies/
+|  |  `- __init__.py
 |  |- functions/
 |  |  |- __init__.py
-|  |  `- http.py
+|  |  |- health.py
+|  |  `- users.py
 |  |- schemas/
 |  |  |- __init__.py
-|  |  `- request_models.py
+|  |  `- users.py
 |  `- services/
 |     |- __init__.py
-|     `- hello_service.py
+|     |- health_service.py
+|     `- users_service.py
 `- tests/
    |- __init__.py
-   `- test_http.py
+   |- test_health.py
+   `- test_users.py
 ```
 
 ### Worker scaffolds

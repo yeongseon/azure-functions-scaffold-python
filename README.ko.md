@@ -29,9 +29,9 @@
 
 ## 기능
 
-- 의도 중심 생성 명령: `afs api new`, `afs api crud`, `afs worker <trigger>`, `afs ai agent`
+- 의도 중심 생성 명령: `afs api new`, `afs worker <trigger>`, `afs ai agent`
 - 프로젝트 확장 명령: `afs api add`, `afs advanced add`
-- 선택적 통합: `--with-openapi`, `--with-validation`, `--with-doctor`, `--with-db`
+- 선택적 통합: `--with-openapi`, `--with-validation`, `--with-doctor`
 - 사전 설정 도구 수준: `--preset minimal|standard|strict`
 - 파워 유저를 위한 고급 플래그 제어: `afs advanced new`
 - 단축 별칭: `afs`를 `azure-functions-scaffold` 대신 사용 가능
@@ -58,12 +58,12 @@ pip install -e .
 func start
 ```
 
-브라우저에서 `http://localhost:7071/api/hello`를 여세요.
+브라우저에서 `http://localhost:7071/api/health`를 여세요.
 
 예상 응답:
 
-```text
-Hello, World!
+```json
+{"status": "healthy"}
 ```
 
 프로젝트 이름은 영문자 또는 숫자로 시작해야 하며 문자, 숫자,
@@ -83,15 +83,21 @@ my-api/
 |- pyproject.toml           # Dependencies and tooling config
 |- app/
 |  |- core/
+|  |  |- config.py          # Application settings
 |  |  `- logging.py         # Structured JSON logging
+|  |- dependencies/
+|  |  `- __init__.py        # Shared dependencies
 |  |- functions/
-|  |  `- http.py            # HTTP trigger (Blueprint)
+|  |  |- health.py          # Health check (Blueprint)
+|  |  `- users.py           # Users CRUD (Blueprint)
 |  |- schemas/
-|  |  `- request_models.py  # Request/response models
+|  |  `- users.py           # Pydantic request/response models
 |  `- services/
-|     `- hello_service.py   # Business logic
+|     |- health_service.py   # Health check logic
+|     `- users_service.py    # Users business logic
 `- tests/
-   `- test_http.py          # Pytest tests
+   |- test_health.py        # Health endpoint tests
+   `- test_users.py         # Users CRUD tests
 ```
 
 이 구조가 효과적인 이유:
@@ -116,7 +122,7 @@ my-api/
 
 템플릿 기본값:
 
-- `http`: 공개 HTTP 엔드포인트와 서비스 모듈.
+- `http`: 상태 확인 엔드포인트와 사용자 CRUD 서비스 모듈.
 - `timer`: NCRONTAB 표현식 설정을 사용하는 예약 트리거.
 - `queue`: 로컬 Azurite 개발에 바로 사용할 수 있는 Storage Queue 트리거.
 - `blob`: 파일 수집 파이프라인을 위한 Blob 트리거 스캐폴드.
@@ -127,7 +133,7 @@ my-api/
 - `--with-openapi` - Swagger UI + OpenAPI 사양 엔드포인트
 - `--with-validation` - Pydantic 요청/응답 검증
 - `--with-doctor` - 상태 확인 진단
-- `--with-db` - 데이터베이스 바인딩 (SQLAlchemy)
+- `--with-db` - 데이터베이스 바인딩 (SQLAlchemy) *(계획 — 현재 미연결)*
 - `--preset minimal|standard|strict` - 도구 구성 수준
 
 의도 중심 명령은 일반적인 기능 조합을 미리 선택합니다. 세부 플래그를 직접 제어하려면 `afs advanced new <name>`을 사용하세요.
@@ -136,7 +142,7 @@ my-api/
 
 ```bash
 afs api new my-api --preset strict --with-validation
-afs api crud my-api --preset standard
+afs api new my-api --preset strict --with-validation
 afs worker timer my-job --preset minimal
 afs advanced new my-api --with-openapi --with-validation
 ```
