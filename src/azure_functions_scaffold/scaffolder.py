@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 import re
 import shutil
@@ -10,6 +11,8 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import ProjectOptions, TemplateContext, TemplateSpec
 from azure_functions_scaffold.template_registry import build_project_options, get_template
+
+logger = logging.getLogger(__name__)
 
 
 def scaffold_project(
@@ -25,11 +28,19 @@ def scaffold_project(
         template_name=template_name,
         options=options,
     )
+    logger.info(
+        "Scaffolding project '%s' at %s (template=%s, preset=%s)",
+        project_name,
+        target_dir,
+        template.name,
+        context.preset_name,
+    )
     if target_dir.exists():
         if not overwrite:
             raise ScaffoldError(
                 f"Target directory already exists: {target_dir}. Use --overwrite to replace it."
             )
+        logger.warning("Overwriting existing directory: %s", target_dir)
         shutil.rmtree(target_dir)
 
     template_root = template.root
@@ -74,11 +85,13 @@ def scaffold_project(
             rendered_path=rendered_path,
             rendered_content=rendered_content,
         )
+        logger.debug("Rendering template: %s -> %s", template_rel_name, output_path)
         output_path.write_text(rendered_content, encoding="utf-8")
 
     if context.initialize_git:
         _initialize_git_repository(target_dir)
 
+    logger.info("Project scaffolded successfully: %s", target_dir)
     return target_dir
 
 
@@ -279,6 +292,7 @@ def _resolve_scaffold_inputs(
 
 
 def _initialize_git_repository(project_root: Path) -> None:
+    logger.debug("Initializing git repository in %s", project_root)
     git_executable = shutil.which("git")
     if not git_executable:
         raise ScaffoldError("Git is not installed or not available on PATH.")

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import azure.functions as func
+import logging
 
 {{ resource_name }}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
@@ -11,6 +12,7 @@ import azure.functions as func
     auth_level=func.AuthLevel.ANONYMOUS,
 )
 def {{ resource_name }}(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info("{{ route_name }} endpoint called")
     return func.HttpResponse(
         body="TODO: implement {{ route_name }}",
         status_code=200,

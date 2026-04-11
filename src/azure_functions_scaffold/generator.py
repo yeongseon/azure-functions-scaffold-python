@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 import re
 
@@ -13,7 +14,44 @@ FUNCTION_IMPORT_MARKER = "# azure-functions-scaffold: function imports"
 FUNCTION_REGISTRATION_MARKER = "# azure-functions-scaffold: function registrations"
 SUPPORTED_TRIGGERS = tuple(template.name for template in list_templates())
 PARTIALS_ROOT = Path(__file__).parent / "templates" / "partials"
+logger = logging.getLogger(__name__)
 
+
+def _validate_function_app_updatable(
+    function_app_path: Path,
+    *,
+    import_stmt: str,
+    registration_stmt: str,
+) -> None:
+    """Pre-validate that function_app.py can be updated before writing files.
+
+    Raises ScaffoldError if markers/anchors are missing or the function is
+    already registered.  This must be called **before** creating any files so
+    that a failure never leaves the project in a half-applied state.
+    """
+    content = function_app_path.read_text(encoding="utf-8")
+
+    if import_stmt in content or registration_stmt in content:
+        raise ScaffoldError("Function is already registered in function_app.py.")
+
+    has_import_target = (
+        FUNCTION_IMPORT_MARKER in content or "configure_logging()" in content
+    )
+    has_registration_target = (
+        FUNCTION_REGISTRATION_MARKER in content
+        or "app = func.FunctionApp()" in content
+    )
+
+    if not has_import_target:
+        raise ScaffoldError(
+            "Cannot update function_app.py: neither the import marker nor "
+            "'configure_logging()' was found."
+        )
+    if not has_registration_target:
+        raise ScaffoldError(
+            "Cannot update function_app.py: neither the registration marker nor "
+            "'app = func.FunctionApp()' was found."
+        )
 
 def add_function(
     *,
@@ -21,6 +59,7 @@ def add_function(
     trigger: str,
     function_name: str,
 ) -> Path:
+    logger.info("Adding %s function '%s' to %s", trigger, function_name, project_root)
     normalized_trigger = _normalize_trigger(trigger)
     normalized_name = _normalize_function_name(function_name)
 
@@ -30,11 +69,18 @@ def add_function(
     if function_path.exists():
         raise ScaffoldError(f"Function module already exists: {function_path}")
 
+    _validate_function_app_updatable(
+        project_root / "function_app.py",
+        import_stmt=f"from app.functions.{normalized_name} import {normalized_name}_blueprint",
+        registration_stmt=f"app.register_functions({normalized_name}_blueprint)",
+    )
+
     function_path.parent.mkdir(parents=True, exist_ok=True)
     function_path.write_text(
         _render_function_module(normalized_trigger, normalized_name),
         encoding="utf-8",
     )
+    logger.debug("Created function module: %s", function_path)
 
     if (project_root / "tests").is_dir():
         test_path = project_root / "tests" / f"test_{normalized_name}.py"
@@ -43,6 +89,7 @@ def add_function(
                 _render_function_test(normalized_trigger, normalized_name),
                 encoding="utf-8",
             )
+            logger.debug("Created test: %s", test_path)
 
     _update_function_app(
         project_root / "function_app.py",
@@ -143,6 +190,7 @@ def _update_function_app(
     import_stmt: str,
     registration_stmt: str,
 ) -> None:
+    logger.debug("Updating function_app.py: %s", import_stmt)
     content = function_app_path.read_text(encoding="utf-8")
 
     if import_stmt in content or registration_stmt in content:
@@ -589,6 +637,7 @@ def _ensure_host_extensions(host_json_path: Path, trigger: str) -> None:
         "id": "Microsoft.Azure.Functions.ExtensionBundle",
         "version": "[4.*, 5.0.0)",
     }
+    logger.debug("Adding extensionBundle to host.json")
     host_json_path.write_text(f"{json.dumps(host_config, indent=2)}\n", encoding="utf-8")
 
 
@@ -619,6 +668,7 @@ def _ensure_local_settings_values(project_root: Path, trigger: str) -> None:
     values = local_settings.setdefault("Values", {})
     key, default = connection_keys[trigger]
     values.setdefault(key, default)
+    logger.debug("Adding %s to local.settings.json.example", key)
     local_settings_path.write_text(
         f"{json.dumps(local_settings, indent=2)}\n",
         encoding="utf-8",
@@ -659,17 +709,20 @@ def _derive_resource_names(resource_name: str) -> dict[str, str]:
     store_class = "".join(part.capitalize() for part in resource_name.split("_")) + "Store"
     route_name = resource_name.replace("_", "-")
 
-    return {
+    result = {
         "resource_name": resource_name,
         "resource_singular": singular,
         "resource_class": class_name,
         "route_name": route_name,
         "store_class": store_class,
     }
+    logger.debug("Derived resource names for '%s': %s", resource_name, result)
+    return result
 
 
 def _render_partial(template_name: str, context: dict[str, str]) -> str:
     """Render a Jinja partial template with the given context."""
+    logger.debug("Rendering partial template: %s", template_name)
     env = Environment(
         loader=FileSystemLoader(str(PARTIALS_ROOT)),
         autoescape=select_autoescape(
@@ -700,6 +753,7 @@ def add_resource(
 
     Returns the list of created file paths.
     """
+    logger.info("Adding resource '%s' to %s", resource_name, project_root)
     normalized = _normalize_function_name(resource_name)
     _validate_project_root(project_root)
     names = _derive_resource_names(normalized)
@@ -713,26 +767,37 @@ def add_resource(
         if path.exists():
             raise ScaffoldError(f"File already exists: {path}")
 
+    # Pre-validate function_app.py can be updated before writing files.
+    _validate_function_app_updatable(
+        project_root / "function_app.py",
+        import_stmt=f"from app.functions.{normalized} import {normalized}_blueprint",
+        registration_stmt=f"app.register_functions({normalized}_blueprint)",
+    )
+
     # Render and write files.
     created: list[Path] = []
 
     blueprint_path.parent.mkdir(parents=True, exist_ok=True)
     blueprint_path.write_text(_render_partial("resource_blueprint.py.j2", names), encoding="utf-8")
     created.append(blueprint_path)
+    logger.debug("Created %s", blueprint_path)
 
     service_path.parent.mkdir(parents=True, exist_ok=True)
     service_path.write_text(_render_partial("resource_service.py.j2", names), encoding="utf-8")
     created.append(service_path)
+    logger.debug("Created %s", service_path)
 
     schema_path.parent.mkdir(parents=True, exist_ok=True)
     schema_path.write_text(_render_partial("resource_schema.py.j2", names), encoding="utf-8")
     created.append(schema_path)
+    logger.debug("Created %s", schema_path)
 
     if (project_root / "tests").is_dir():
         test_path = project_root / "tests" / f"test_{normalized}.py"
         if not test_path.exists():
             test_path.write_text(_render_partial("resource_test.py.j2", names), encoding="utf-8")
             created.append(test_path)
+            logger.debug("Created %s", test_path)
 
     _update_function_app(
         project_root / "function_app.py",
@@ -802,12 +867,19 @@ def add_route(
 
     Returns the path to the created blueprint file.
     """
+    logger.info("Adding route '%s' to %s", route_name, project_root)
     normalized = _normalize_function_name(route_name)
     _validate_project_root(project_root)
 
     blueprint_path = project_root / "app" / "functions" / f"{normalized}.py"
     if blueprint_path.exists():
         raise ScaffoldError(f"Function module already exists: {blueprint_path}")
+
+    _validate_function_app_updatable(
+        project_root / "function_app.py",
+        import_stmt=f"from app.functions.{normalized} import {normalized}_blueprint",
+        registration_stmt=f"app.register_functions({normalized}_blueprint)",
+    )
 
     names = {
         "resource_name": normalized,
@@ -816,11 +888,13 @@ def add_route(
 
     blueprint_path.parent.mkdir(parents=True, exist_ok=True)
     blueprint_path.write_text(_render_partial("route_blueprint.py.j2", names), encoding="utf-8")
+    logger.debug("Created %s", blueprint_path)
 
     if (project_root / "tests").is_dir():
         test_path = project_root / "tests" / f"test_{normalized}.py"
         if not test_path.exists():
             test_path.write_text(_render_partial("route_test.py.j2", names), encoding="utf-8")
+            logger.debug("Created %s", test_path)
 
     _update_function_app(
         project_root / "function_app.py",

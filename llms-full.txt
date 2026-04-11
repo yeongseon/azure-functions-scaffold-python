@@ -202,7 +202,7 @@ Options (full set):
 - `--with-openapi/--no-openapi` (default: `--no-openapi`)
 - `--with-validation/--no-validation` (default: `--no-validation`)
 - `--with-doctor/--no-doctor` (default: `--no-doctor`)
-- `--with-db/--no-db` (default: `--no-db`) *(planned)*
+- `--with-db/--no-db` (default: `--no-db`) *(planned — not yet available in CLI)*
 - `--azd/--no-azd` (default: `--no-azd`)
 - `--dry-run` (default: `False`)
 - `--overwrite` (default: `False`)

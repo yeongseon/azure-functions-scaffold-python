@@ -63,7 +63,7 @@ func start
 期待されるレスポンス:
 
 ```json
-{"status": "healthy"}
+{"status": "ok"}
 ```
 
 プロジェクト名は英数字で始める必要があり、使用できるのは文字、数字、
@@ -133,7 +133,7 @@ my-api/
 - `--with-openapi` - Swagger UI + OpenAPI 仕様エンドポイント
 - `--with-validation` - Pydantic リクエスト/レスポンス検証
 - `--with-doctor` - ヘルスチェック診断
-- `--with-db` - データベースバインディング (SQLAlchemy) *(計画 — 現在未対応)*
+- `--with-db` - データベースバインディング (SQLAlchemy) *(計画 — CLIでは未対応)*
 - `--preset minimal|standard|strict` - ツーリングレベル
 
 意図中心コマンドは一般的な機能構成を事前選択します。フラグを直接制御したい場合は `afs advanced new <name>` を使用してください。

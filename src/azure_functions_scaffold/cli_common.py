@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Annotated
 
@@ -11,6 +12,8 @@ from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import ProjectOptions
 from azure_functions_scaffold.scaffolder import describe_scaffold_project, scaffold_project
 from azure_functions_scaffold.template_registry import INTENT_SPECS, build_project_options
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Reusable Typer option types
@@ -97,6 +100,12 @@ def run_intent(
         spec = INTENT_SPECS.get(intent_key)
         if spec is None:
             raise ScaffoldError(f"Unknown intent '{intent_key}'.")
+        logger.debug(
+            "Resolving intent '%s' with preset=%s, features=%s",
+            intent_key,
+            spec.preset,
+            spec.features,
+        )
 
         options = build_project_options(
             preset_name=spec.preset,
@@ -132,6 +141,12 @@ def run_scaffold(
     overwrite: bool = False,
 ) -> None:
     """Execute scaffold_project (or describe if dry_run) with unified error handling."""
+    logger.debug(
+        "Running scaffold: project=%s, template=%s, dry_run=%s",
+        project_name,
+        template_name,
+        dry_run,
+    )
 
     try:
         if dry_run:

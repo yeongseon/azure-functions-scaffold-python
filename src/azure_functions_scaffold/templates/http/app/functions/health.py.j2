@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 
 import azure.functions as func
 {%- if include_openapi %}
@@ -25,6 +26,7 @@ health_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
     )
 {% endif -%}
 def health(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info("Health check requested")
     result = check_health()
     return func.HttpResponse(
         body=json.dumps(result),

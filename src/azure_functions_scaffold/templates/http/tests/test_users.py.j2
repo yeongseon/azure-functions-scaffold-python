@@ -94,6 +94,35 @@ class TestCreateUser:
         assert body["email"] == "carol@example.com"
         assert "id" in body
 
+    def test_returns_400_for_invalid_json(self) -> None:
+        users_store._users.clear()
+
+        request = _make_request(
+            "POST",
+            "http://localhost/api/users",
+            body=b"not-json",
+            headers={"Content-Type": "application/json"},
+        )
+        response = create_user(request)
+
+        assert response.status_code == 400
+
+{% if not include_validation %}
+    def test_returns_400_for_non_object_json(self) -> None:
+        users_store._users.clear()
+
+        request = _make_request(
+            "POST",
+            "http://localhost/api/users",
+            body=json.dumps(["not", "an", "object"]).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        response = create_user(request)
+
+        assert response.status_code == 400
+        body = json.loads(response.get_body())
+        assert "JSON object" in body["error"]
+{% endif %}
 class TestUpdateUser:
     def test_updates_existing_user(self) -> None:
         users_store._users.clear()
@@ -142,6 +171,24 @@ class TestUpdateUser:
 
         assert response.status_code == 400
 
+{% if not include_validation %}
+    def test_returns_400_for_non_object_json(self) -> None:
+        users_store._users.clear()
+        user = users_store.create("Frank", "frank@example.com")
+
+        request = _make_request(
+            "PUT",
+            f"http://localhost/api/users/{user['id']}",
+            body=json.dumps(["not", "an", "object"]).encode(),
+            route_params={"user_id": user["id"]},
+            headers={"Content-Type": "application/json"},
+        )
+        response = update_user(request)
+
+        assert response.status_code == 400
+        body = json.loads(response.get_body())
+        assert "JSON object" in body["error"]
+{% endif %}
 class TestDeleteUser:
     def test_deletes_existing_user(self) -> None:
         users_store._users.clear()

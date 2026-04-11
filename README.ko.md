@@ -63,7 +63,7 @@ func start
 예상 응답:
 
 ```json
-{"status": "healthy"}
+{"status": "ok"}
 ```
 
 프로젝트 이름은 영문자 또는 숫자로 시작해야 하며 문자, 숫자,
@@ -133,7 +133,7 @@ my-api/
 - `--with-openapi` - Swagger UI + OpenAPI 사양 엔드포인트
 - `--with-validation` - Pydantic 요청/응답 검증
 - `--with-doctor` - 상태 확인 진단
-- `--with-db` - 데이터베이스 바인딩 (SQLAlchemy) *(계획 — 현재 미연결)*
+- `--with-db` - 데이터베이스 바인딩 (SQLAlchemy) *(계획 — CLI에서 아직 사용 불가)*
 - `--preset minimal|standard|strict` - 도구 구성 수준
 
 의도 중심 명령은 일반적인 기능 조합을 미리 선택합니다. 세부 플래그를 직접 제어하려면 `afs advanced new <name>`을 사용하세요.

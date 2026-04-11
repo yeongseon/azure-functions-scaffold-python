@@ -60,7 +60,7 @@ afs [GROUP] [COMMAND] [OPTIONS]                    # Short alias
 - `--with-openapi/--no-openapi` — Include OpenAPI support (HTTP template)
 - `--with-validation/--no-validation` — Include request validation support (HTTP template)
 - `--with-doctor/--no-doctor` — Include `azure-functions-doctor`
-- `--with-db/--no-db` — Include `azure-functions-db` bindings *(planned)*
+- `--with-db/--no-db` — Include `azure-functions-db` bindings *(planned — not yet available in CLI)*
 
 ### Global options
 
@@ -118,7 +118,7 @@ Use `afs advanced new <name>` for explicit feature control:
 - `--with-openapi` — Swagger UI + OpenAPI spec endpoints
 - `--with-validation` — Pydantic request/response validation
 - `--with-doctor` — azure-functions-doctor health checks
-- `--with-db` — Database bindings *(planned)*
+- `--with-db` — Database bindings *(planned — not yet available in CLI)*
 
 ## Generated Project Layout
 

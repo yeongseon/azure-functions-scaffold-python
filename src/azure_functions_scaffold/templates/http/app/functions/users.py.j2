@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 
 import azure.functions as func
 {%- if include_openapi %}
@@ -35,6 +36,7 @@ users_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 )
 {% endif -%}
 def list_users(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info("Listing all users")
     return func.HttpResponse(
         body=json.dumps(users_store.list_all()),
         mimetype="application/json",
@@ -60,8 +62,10 @@ def list_users(req: func.HttpRequest) -> func.HttpResponse:
 {% endif -%}
 def get_user(req: func.HttpRequest) -> func.HttpResponse:
     user_id = req.route_params.get("user_id", "")
+    logging.info("Getting user: %s", user_id)
     user = users_store.get(user_id)
     if user is None:
+        logging.warning("User not found: %s", user_id)
         return func.HttpResponse(
             body=json.dumps({"error": "User not found"}),
             mimetype="application/json",
@@ -100,7 +104,9 @@ def get_user(req: func.HttpRequest) -> func.HttpResponse:
 {% endif -%}
 {% if include_validation -%}
 def create_user(req: func.HttpRequest, body: CreateUserRequest) -> func.HttpResponse:
-    user = users_store.create(body.name, body.email)
+    name = body.name
+    logging.info("Creating user: name=%s", name)
+    user = users_store.create(name, body.email)
     return func.HttpResponse(
         body=UserResponse(**user).model_dump_json(),
         mimetype="application/json",
@@ -116,8 +122,15 @@ def create_user(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json",
             status_code=400,
         )
+    if not isinstance(body, dict):
+        return func.HttpResponse(
+            body=json.dumps({"error": "Request body must be a JSON object"}),
+            mimetype="application/json",
+            status_code=400,
+        )
     name = body.get("name", "")
     email = body.get("email", "")
+    logging.info("Creating user: name=%s", name)
     if not name or not email:
         return func.HttpResponse(
             body=json.dumps({"error": "name and email are required"}),
@@ -159,8 +172,10 @@ def create_user(req: func.HttpRequest) -> func.HttpResponse:
 {% if include_validation -%}
 def update_user(req: func.HttpRequest, body: UpdateUserRequest) -> UserResponse | func.HttpResponse:
     user_id = req.route_params.get("user_id", "")
+    logging.info("Updating user: %s", user_id)
     user = users_store.update(user_id, name=body.name, email=body.email)
     if user is None:
+        logging.warning("User not found for update: %s", user_id)
         return func.HttpResponse(
             body=json.dumps({"error": "User not found"}),
             mimetype="application/json",
@@ -170,6 +185,7 @@ def update_user(req: func.HttpRequest, body: UpdateUserRequest) -> UserResponse 
 {%- else -%}
 def update_user(req: func.HttpRequest) -> func.HttpResponse:
     user_id = req.route_params.get("user_id", "")
+    logging.info("Updating user: %s", user_id)
     try:
         body = req.get_json()
     except ValueError:
@@ -178,8 +194,15 @@ def update_user(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json",
             status_code=400,
         )
+    if not isinstance(body, dict):
+        return func.HttpResponse(
+            body=json.dumps({"error": "Request body must be a JSON object"}),
+            mimetype="application/json",
+            status_code=400,
+        )
     user = users_store.update(user_id, name=body.get("name"), email=body.get("email"))
     if user is None:
+        logging.warning("User not found for update: %s", user_id)
         return func.HttpResponse(
             body=json.dumps({"error": "User not found"}),
             mimetype="application/json",
@@ -211,8 +234,10 @@ def update_user(req: func.HttpRequest) -> func.HttpResponse:
 {% endif -%}
 def delete_user(req: func.HttpRequest) -> func.HttpResponse:
     user_id = req.route_params.get("user_id", "")
+    logging.info("Deleting user: %s", user_id)
     deleted = users_store.delete(user_id)
     if not deleted:
+        logging.warning("User not found for deletion: %s", user_id)
         return func.HttpResponse(
             body=json.dumps({"error": "User not found"}),
             mimetype="application/json",

@@ -63,7 +63,7 @@ func start
 预期响应:
 
 ```json
-{"status": "healthy"}
+{"status": "ok"}
 ```
 
 项目名称必须以字母或数字开头，并且只能使用字母、数字、
@@ -133,7 +133,7 @@ my-api/
 - `--with-openapi` - Swagger UI + OpenAPI 规范端点
 - `--with-validation` - Pydantic 请求/响应校验
 - `--with-doctor` - 健康检查诊断
-- `--with-db` - 数据库绑定 (SQLAlchemy) *(计划中 — 当前未启用)*
+- `--with-db` - 数据库绑定 (SQLAlchemy) *(计划中 — CLI中尚未可用)*
 - `--preset minimal|standard|strict` - 工具配置等级
 
 意图驱动命令会预先选择常见功能组合。如果需要直接控制参数，请使用 `afs advanced new <name>`。

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 
 import azure.functions as func
 
@@ -19,6 +20,7 @@ from app.services.{{ resource_name }}_service import {{ resource_name }}_store
     auth_level=func.AuthLevel.ANONYMOUS,
 )
 def list_{{ resource_name }}(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info("Listing all {{ route_name }}")
     return func.HttpResponse(
         body=json.dumps({{ resource_name }}_store.list_all()),
         mimetype="application/json",
@@ -37,8 +39,10 @@ def list_{{ resource_name }}(req: func.HttpRequest) -> func.HttpResponse:
 )
 def get_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
     item_id = req.route_params.get("item_id", "")
+    logging.info("Getting {{ resource_singular }}: %s", item_id)
     item = {{ resource_name }}_store.get(item_id)
     if item is None:
+        logging.warning("{{ resource_class }} not found: %s", item_id)
         return func.HttpResponse(
             body=json.dumps({"error": "{{ resource_class }} not found"}),
             mimetype="application/json",
@@ -76,6 +80,7 @@ def create_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
             status_code=400,
         )
     name = body.get("name", "")
+    logging.info("Creating {{ resource_singular }}: name=%s", name)
     if not name:
         return func.HttpResponse(
             body=json.dumps({"error": "name is required"}),
@@ -101,6 +106,7 @@ def create_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
 )
 def update_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
     item_id = req.route_params.get("item_id", "")
+    logging.info("Updating {{ resource_singular }}: %s", item_id)
     try:
         body = req.get_json()
     except ValueError:
@@ -117,6 +123,7 @@ def update_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
         )
     item = {{ resource_name }}_store.update(item_id, name=body.get("name"))
     if item is None:
+        logging.warning("{{ resource_class }} not found for update: %s", item_id)
         return func.HttpResponse(
             body=json.dumps({"error": "{{ resource_class }} not found"}),
             mimetype="application/json",
@@ -140,8 +147,10 @@ def update_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
 )
 def delete_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
     item_id = req.route_params.get("item_id", "")
+    logging.info("Deleting {{ resource_singular }}: %s", item_id)
     deleted = {{ resource_name }}_store.delete(item_id)
     if not deleted:
+        logging.warning("{{ resource_class }} not found for deletion: %s", item_id)
         return func.HttpResponse(
             body=json.dumps({"error": "{{ resource_class }} not found"}),
             mimetype="application/json",

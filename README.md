@@ -89,7 +89,7 @@ Open `http://localhost:7071/api/health` in your browser.
 Expected response:
 
 ```json
-{"status": "healthy"}
+{"status": "ok"}
 ```
 
 Project names must start with an alphanumeric character and use only letters,
@@ -167,7 +167,7 @@ Use `afs advanced new <name>` when you need direct control over feature flags:
 - `--with-openapi` - Swagger UI + OpenAPI spec endpoints
 - `--with-validation` - Pydantic request/response validation
 - `--with-doctor` - Health check diagnostics
-- `--with-db` - Database bindings (SQLAlchemy) *(planned — currently not wired)*
+- `--with-db` - Database bindings (SQLAlchemy) *(planned — not yet available in CLI)*
 - `--preset minimal|standard|strict` - Tooling level
 
 ## Expand Your Project

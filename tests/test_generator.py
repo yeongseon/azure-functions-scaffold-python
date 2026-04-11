@@ -83,9 +83,21 @@ def test_add_function_rejects_uneditable_function_app(tmp_path: Path) -> None:
     function_app_path = project_root / "function_app.py"
     function_app_path.write_text("import azure.functions as func\n", encoding="utf-8")
 
-    with pytest.raises(ScaffoldError, match="Could not update function_app.py"):
+    with pytest.raises(ScaffoldError, match="Cannot update function_app.py"):
         add_function(project_root=project_root, trigger="http", function_name="sync-data")
 
+
+def test_add_function_does_not_create_files_when_function_app_uneditable(tmp_path: Path) -> None:
+    """Verify no files are left behind when function_app.py cannot be updated."""
+    project_root = scaffold_project("sample", tmp_path)
+    function_app_path = project_root / "function_app.py"
+    function_app_path.write_text("import azure.functions as func\n", encoding="utf-8")
+
+    with pytest.raises(ScaffoldError):
+        add_function(project_root=project_root, trigger="http", function_name="orphan")
+
+    assert not (project_root / "app/functions/orphan.py").exists()
+    assert not (project_root / "tests/test_orphan.py").exists()
 
 def test_add_function_can_skip_test_generation_for_minimal_preset(tmp_path: Path) -> None:
     project_root = scaffold_project(
@@ -646,6 +658,20 @@ def test_add_resource_rejects_invalid_names(tmp_path: Path, resource_name: str) 
         add_resource(project_root=project_root, resource_name=resource_name)
 
 
+def test_add_resource_does_not_create_files_when_function_app_uneditable(tmp_path: Path) -> None:
+    """Verify no files are left behind when function_app.py cannot be updated."""
+    project_root = scaffold_project("sample", tmp_path)
+    function_app_path = project_root / "function_app.py"
+    function_app_path.write_text("import azure.functions as func\n", encoding="utf-8")
+
+    with pytest.raises(ScaffoldError):
+        add_resource(project_root=project_root, resource_name="orphans")
+
+    assert not (project_root / "app/functions/orphans.py").exists()
+    assert not (project_root / "app/services/orphans_service.py").exists()
+    assert not (project_root / "app/schemas/orphans.py").exists()
+    assert not (project_root / "tests/test_orphans.py").exists()
+
 def test_add_resource_skips_test_when_no_tests_dir(tmp_path: Path) -> None:
     project_root = scaffold_project(
         "sample",
@@ -791,6 +817,17 @@ def test_add_route_rejects_non_scaffold_project(tmp_path: Path) -> None:
     ):
         add_route(project_root=project_root, route_name="status")
 
+def test_add_route_does_not_create_files_when_function_app_uneditable(tmp_path: Path) -> None:
+    """Verify no files are left behind when function_app.py cannot be updated."""
+    project_root = scaffold_project("sample", tmp_path)
+    function_app_path = project_root / "function_app.py"
+    function_app_path.write_text("import azure.functions as func\n", encoding="utf-8")
+
+    with pytest.raises(ScaffoldError):
+        add_route(project_root=project_root, route_name="orphan")
+
+    assert not (project_root / "app/functions/orphan.py").exists()
+    assert not (project_root / "tests/test_orphan.py").exists()
 
 def test_add_route_with_hyphenated_name(tmp_path: Path) -> None:
     project_root = scaffold_project("sample", tmp_path)
