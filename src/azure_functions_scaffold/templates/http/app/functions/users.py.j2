@@ -91,6 +91,7 @@ def get_user(req: func.HttpRequest) -> func.HttpResponse:
 {%- if include_validation %}
     request_model=CreateUserRequest,
     response_model=UserResponse,
+    response={201: {"description": "User created"}},
 {%- endif %}
 )
 {% endif -%}
@@ -98,7 +99,7 @@ def get_user(req: func.HttpRequest) -> func.HttpResponse:
 @validate_http(body=CreateUserRequest, response_model=UserResponse)
 {% endif -%}
 {% if include_validation -%}
-def create_user(req: func.HttpRequest, body: CreateUserRequest) -> UserResponse:
+def create_user(req: func.HttpRequest, body: CreateUserRequest) -> func.HttpResponse:
     user = users_store.create(body.name, body.email)
     return func.HttpResponse(
         body=UserResponse(**user).model_dump_json(),
@@ -156,7 +157,7 @@ def create_user(req: func.HttpRequest) -> func.HttpResponse:
 @validate_http(body=UpdateUserRequest, response_model=UserResponse)
 {% endif -%}
 {% if include_validation -%}
-def update_user(req: func.HttpRequest, body: UpdateUserRequest) -> UserResponse:
+def update_user(req: func.HttpRequest, body: UpdateUserRequest) -> UserResponse | func.HttpResponse:
     user_id = req.route_params.get("user_id", "")
     user = users_store.update(user_id, name=body.name, email=body.email)
     if user is None:

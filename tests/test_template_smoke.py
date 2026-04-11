@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import importlib
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -183,8 +184,10 @@ def test_rendered_strict_http_project_tests_pass(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         env={
-            **dict(__import__("os").environ),
-            "PYTHONPATH": str(project_root),
+            **os.environ,
+            "PYTHONPATH": os.pathsep.join(
+                filter(None, [str(project_root), os.environ.get("PYTHONPATH", "")])
+            ),
         },
     )
     assert result.returncode == 0, (
@@ -219,8 +222,10 @@ def test_rendered_standard_http_project_tests_pass(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         env={
-            **dict(__import__("os").environ),
-            "PYTHONPATH": str(project_root),
+            **os.environ,
+            "PYTHONPATH": os.pathsep.join(
+                filter(None, [str(project_root), os.environ.get("PYTHONPATH", "")])
+            ),
         },
     )
     assert result.returncode == 0, (
