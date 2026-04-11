@@ -7,12 +7,17 @@ import pytest
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.generator import (
+    _derive_resource_names,
     _insert_near_marker,
     _render_function_module,
     _render_function_test,
     _update_function_app,
     add_function,
+    add_resource,
+    add_route,
     describe_add_function,
+    describe_add_resource,
+    describe_add_route,
 )
 from azure_functions_scaffold.scaffolder import scaffold_project
 from azure_functions_scaffold.template_registry import build_project_options
@@ -147,16 +152,17 @@ def test_add_timer_function(tmp_path: Path) -> None:
     # Verify files were created
     assert function_path == project_root / "app/functions/schedule_task.py"
     assert (project_root / "tests/test_schedule_task.py").exists()
-    
+
     # Verify function content contains timer-specific code
     func_content = function_path.read_text(encoding="utf-8")
     assert "schedule=" in func_content
     assert "past_due" in func_content
-    
+
     # Verify test content contains timer-specific code
     test_content = (project_root / "tests/test_schedule_task.py").read_text(encoding="utf-8")
     assert "SimpleNamespace" in test_content
     assert "past_due=False" in test_content
+
 
 @pytest.mark.parametrize("trigger", ["queue", "blob", "servicebus", "eventhub", "cosmosdb"])
 def test_add_function_adds_extension_bundle_for_binding_triggers(
@@ -191,6 +197,7 @@ def test_add_function_skips_extension_bundle_when_already_exists(tmp_path: Path)
 
     # Extension bundle should be the same
     assert host_config_2["extensionBundle"] == original_bundle
+
 
 def test_add_servicebus_function_updates_local_settings_example(tmp_path: Path) -> None:
     project_root = scaffold_project("sample", tmp_path)
@@ -229,19 +236,19 @@ def test_add_function_skips_test_file_when_already_exists(tmp_path: Path) -> Non
 
     # Add first function to create test infrastructure
     add_function(project_root=project_root, trigger="http", function_name="sync-data")
-    
+
     # Now delete the function module but keep the test file
     func_path = project_root / "app" / "functions" / "sync_data.py"
     test_path = project_root / "tests" / "test_sync_data.py"
     _original_test_content = test_path.read_text(encoding="utf-8")
-    
+
     # Modify the test file
     modified_content = "# This test file was manually modified"
     test_path.write_text(modified_content, encoding="utf-8")
-    
+
     # Delete the function module file
     func_path.unlink()
-    
+
     # Also need to remove the function from function_app.py to avoid registration conflict
     func_app_path = project_root / "function_app.py"
     content = func_app_path.read_text(encoding="utf-8")
@@ -249,13 +256,12 @@ def test_add_function_skips_test_file_when_already_exists(tmp_path: Path) -> Non
     content = content.replace("from app.functions.sync_data import sync_data_blueprint\n", "")
     content = content.replace("app.register_functions(sync_data_blueprint)\n", "")
     func_app_path.write_text(content, encoding="utf-8")
-    
+
     # Now add the function again - test file should NOT be overwritten
     add_function(project_root=project_root, trigger="http", function_name="sync-data")
-    
+
     # Verify test file was not overwritten (it should still have our modified content)
     assert test_path.read_text(encoding="utf-8") == modified_content
-
 
 
 def test_describe_add_function_rejects_existing_module(tmp_path: Path) -> None:
@@ -362,7 +368,6 @@ app.register_functions(sync_data_blueprint)
         )
 
 
-
 def test_insert_near_marker_raises_when_fallback_anchor_missing(tmp_path: Path) -> None:
     """Test that _insert_near_marker raises error when fallback anchor not found."""
     content = "some content without any anchor"
@@ -413,7 +418,6 @@ app.register_functions(my_blueprint)"""
     assert "app = FunctionApp()\nnew_line_here" in result
 
 
-
 def test_render_function_module_raises_for_unknown_trigger() -> None:
     """Test that _render_function_module raises error for unknown trigger."""
     with pytest.raises(ScaffoldError, match="No function module template for trigger"):
@@ -455,3 +459,383 @@ def test_add_function_skips_local_settings_when_example_missing(tmp_path: Path) 
 
     # Verify the function was still created
     assert (project_root / "app" / "functions" / "event_handler.py").exists()
+
+
+# ---------------------------------------------------------------------------
+# _derive_resource_names
+# ---------------------------------------------------------------------------
+
+
+class TestDeriveResourceNames:
+    def test_basic_plural_name(self) -> None:
+        result = _derive_resource_names("products")
+        assert result == {
+            "resource_name": "products",
+            "resource_singular": "product",
+            "resource_class": "Product",
+            "route_name": "products",
+            "store_class": "ProductsStore",
+        }
+
+    def test_underscore_name(self) -> None:
+        result = _derive_resource_names("line_items")
+        assert result == {
+            "resource_name": "line_items",
+            "resource_singular": "line_item",
+            "resource_class": "LineItem",
+            "route_name": "line-items",
+            "store_class": "LineItemsStore",
+        }
+
+    def test_short_name_not_stripped(self) -> None:
+        """Names with 3 or fewer characters should not have trailing 's' stripped."""
+        result = _derive_resource_names("bus")
+        assert result["resource_singular"] == "bus"
+        assert result["resource_class"] == "Bus"
+
+    def test_non_plural_name(self) -> None:
+        result = _derive_resource_names("health")
+        assert result["resource_singular"] == "health"
+        assert result["resource_class"] == "Health"
+        assert result["route_name"] == "health"
+        assert result["store_class"] == "HealthStore"
+
+    def test_single_word(self) -> None:
+        result = _derive_resource_names("users")
+        assert result["resource_singular"] == "user"
+        assert result["resource_class"] == "User"
+        assert result["store_class"] == "UsersStore"
+
+
+# ---------------------------------------------------------------------------
+# add_resource
+# ---------------------------------------------------------------------------
+
+
+def test_add_resource_creates_all_files(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+
+    created = add_resource(project_root=project_root, resource_name="products")
+
+    assert (project_root / "app/functions/products.py").exists()
+    assert (project_root / "app/services/products_service.py").exists()
+    assert (project_root / "app/schemas/products.py").exists()
+    assert (project_root / "tests/test_products.py").exists()
+    assert len(created) == 4
+
+
+def test_add_resource_blueprint_content_is_valid_python(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+
+    blueprint_text = (project_root / "app/functions/products.py").read_text(encoding="utf-8")
+    # Verify it compiles (valid Python syntax)
+    compile(blueprint_text, "products.py", "exec")
+    # Verify key content
+    assert "products_blueprint" in blueprint_text
+    assert "list_products" in blueprint_text
+    assert "get_product" in blueprint_text
+    assert "create_product" in blueprint_text
+    assert "update_product" in blueprint_text
+    assert "delete_product" in blueprint_text
+    assert "from app.services.products_service import products_store" in blueprint_text
+
+
+def test_add_resource_service_content_is_valid_python(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+
+    service_text = (project_root / "app/services/products_service.py").read_text(encoding="utf-8")
+    compile(service_text, "products_service.py", "exec")
+    assert "ProductsStore" in service_text
+    assert "products_store" in service_text
+    assert "def create" in service_text
+    assert "def delete" in service_text
+
+
+def test_add_resource_schema_content_is_valid_python(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+
+    schema_text = (project_root / "app/schemas/products.py").read_text(encoding="utf-8")
+    compile(schema_text, "products.py", "exec")
+    assert "CreateProductRequest" in schema_text
+    assert "ProductResponse" in schema_text
+
+
+def test_add_resource_test_content_is_valid_python(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+
+    test_text = (project_root / "tests/test_products.py").read_text(encoding="utf-8")
+    compile(test_text, "test_products.py", "exec")
+    assert "TestListProduct" in test_text
+    assert "TestCreateProduct" in test_text
+    assert "TestDeleteProduct" in test_text
+
+
+def test_add_resource_registers_blueprint(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+
+    function_app_text = (project_root / "function_app.py").read_text(encoding="utf-8")
+    assert "from app.functions.products import products_blueprint" in function_app_text
+    assert "app.register_functions(products_blueprint)" in function_app_text
+
+
+def test_add_resource_rejects_existing_blueprint(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+
+    with pytest.raises(ScaffoldError, match="File already exists"):
+        add_resource(project_root=project_root, resource_name="products")
+
+
+def test_add_resource_rejects_non_scaffold_project(tmp_path: Path) -> None:
+    project_root = tmp_path / "not-a-project"
+    project_root.mkdir()
+
+    with pytest.raises(
+        ScaffoldError,
+        match="does not look like a scaffolded Azure Functions project",
+    ):
+        add_resource(project_root=project_root, resource_name="products")
+
+
+def test_add_resource_rejects_missing_project_root(tmp_path: Path) -> None:
+    with pytest.raises(ScaffoldError, match="Project root does not exist"):
+        add_resource(project_root=tmp_path / "missing", resource_name="products")
+
+
+@pytest.mark.parametrize("resource_name", ["", "***", "123-sync"])
+def test_add_resource_rejects_invalid_names(tmp_path: Path, resource_name: str) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+
+    with pytest.raises(ScaffoldError):
+        add_resource(project_root=project_root, resource_name=resource_name)
+
+
+def test_add_resource_skips_test_when_no_tests_dir(tmp_path: Path) -> None:
+    project_root = scaffold_project(
+        "sample",
+        tmp_path,
+        options=build_project_options(
+            preset_name="minimal",
+            python_version="3.10",
+            include_github_actions=False,
+            initialize_git=False,
+        ),
+    )
+
+    created = add_resource(project_root=project_root, resource_name="products")
+
+    # Blueprint + service + schema = 3 files, no test
+    assert len(created) == 3
+    assert not (project_root / "tests/test_products.py").exists()
+
+
+def test_add_resource_with_hyphenated_name(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="line-items")
+
+    assert (project_root / "app/functions/line_items.py").exists()
+    assert (project_root / "app/services/line_items_service.py").exists()
+    assert (project_root / "app/schemas/line_items.py").exists()
+    blueprint_text = (project_root / "app/functions/line_items.py").read_text(encoding="utf-8")
+    assert "line_items_blueprint" in blueprint_text
+    assert "LineItem" in blueprint_text  # resource_class from singular
+
+
+def test_add_multiple_resources(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+    add_resource(project_root=project_root, resource_name="orders")
+
+    function_app_text = (project_root / "function_app.py").read_text(encoding="utf-8")
+    assert "products_blueprint" in function_app_text
+    assert "orders_blueprint" in function_app_text
+
+
+# ---------------------------------------------------------------------------
+# describe_add_resource
+# ---------------------------------------------------------------------------
+
+
+def test_describe_add_resource_reports_expected_changes(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+
+    lines = describe_add_resource(project_root=project_root, resource_name="products")
+
+    assert lines[0] == "Dry run: add resource 'products'"
+    assert "  - app/functions/products.py" in lines
+    assert "  - app/services/products_service.py" in lines
+    assert "  - app/schemas/products.py" in lines
+    assert "  - tests/test_products.py" in lines
+    assert "  - function_app.py import registration" in lines
+
+
+def test_describe_add_resource_rejects_existing_files(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+
+    with pytest.raises(ScaffoldError, match="File already exists"):
+        describe_add_resource(project_root=project_root, resource_name="products")
+
+
+def test_describe_add_resource_excludes_test_when_no_tests_dir(tmp_path: Path) -> None:
+    project_root = scaffold_project(
+        "sample",
+        tmp_path,
+        options=build_project_options(
+            preset_name="minimal",
+            python_version="3.10",
+            include_github_actions=False,
+            initialize_git=False,
+        ),
+    )
+
+    lines = describe_add_resource(project_root=project_root, resource_name="products")
+
+    assert not any("test_products.py" in line for line in lines)
+
+
+# ---------------------------------------------------------------------------
+# add_route
+# ---------------------------------------------------------------------------
+
+
+def test_add_route_creates_blueprint_and_test(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+
+    route_path = add_route(project_root=project_root, route_name="status")
+
+    assert route_path == project_root / "app/functions/status.py"
+    assert (project_root / "tests/test_status.py").exists()
+
+
+def test_add_route_blueprint_content_is_valid_python(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_route(project_root=project_root, route_name="status")
+
+    blueprint_text = (project_root / "app/functions/status.py").read_text(encoding="utf-8")
+    compile(blueprint_text, "status.py", "exec")
+    assert "status_blueprint" in blueprint_text
+    assert 'route="status"' in blueprint_text
+    assert 'body="TODO: implement status"' in blueprint_text
+
+
+def test_add_route_test_content_is_valid_python(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_route(project_root=project_root, route_name="status")
+
+    test_text = (project_root / "tests/test_status.py").read_text(encoding="utf-8")
+    compile(test_text, "test_status.py", "exec")
+    assert "test_status_returns_placeholder_response" in test_text
+
+
+def test_add_route_registers_blueprint(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_route(project_root=project_root, route_name="status")
+
+    function_app_text = (project_root / "function_app.py").read_text(encoding="utf-8")
+    assert "from app.functions.status import status_blueprint" in function_app_text
+    assert "app.register_functions(status_blueprint)" in function_app_text
+
+
+def test_add_route_rejects_existing_module(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_route(project_root=project_root, route_name="status")
+
+    with pytest.raises(ScaffoldError, match="Function module already exists"):
+        add_route(project_root=project_root, route_name="status")
+
+
+def test_add_route_rejects_non_scaffold_project(tmp_path: Path) -> None:
+    project_root = tmp_path / "not-a-project"
+    project_root.mkdir()
+
+    with pytest.raises(
+        ScaffoldError,
+        match="does not look like a scaffolded Azure Functions project",
+    ):
+        add_route(project_root=project_root, route_name="status")
+
+
+def test_add_route_with_hyphenated_name(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    route_path = add_route(project_root=project_root, route_name="health-check")
+
+    assert route_path == project_root / "app/functions/health_check.py"
+    blueprint_text = (project_root / "app/functions/health_check.py").read_text(encoding="utf-8")
+    assert "health_check_blueprint" in blueprint_text
+    assert 'route="health-check"' in blueprint_text
+
+
+def test_add_route_skips_test_when_no_tests_dir(tmp_path: Path) -> None:
+    project_root = scaffold_project(
+        "sample",
+        tmp_path,
+        options=build_project_options(
+            preset_name="minimal",
+            python_version="3.10",
+            include_github_actions=False,
+            initialize_git=False,
+        ),
+    )
+
+    add_route(project_root=project_root, route_name="status")
+
+    assert (project_root / "app/functions/status.py").exists()
+    assert not (project_root / "tests/test_status.py").exists()
+
+
+def test_add_route_and_resource_coexist(tmp_path: Path) -> None:
+    """Verify a route and a resource can be added to the same project."""
+    project_root = scaffold_project("sample", tmp_path)
+    add_route(project_root=project_root, route_name="status")
+    add_resource(project_root=project_root, resource_name="products")
+
+    function_app_text = (project_root / "function_app.py").read_text(encoding="utf-8")
+    assert "status_blueprint" in function_app_text
+    assert "products_blueprint" in function_app_text
+
+
+# ---------------------------------------------------------------------------
+# describe_add_route
+# ---------------------------------------------------------------------------
+
+
+def test_describe_add_route_reports_expected_changes(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+
+    lines = describe_add_route(project_root=project_root, route_name="status")
+
+    assert lines[0] == "Dry run: add route 'status'"
+    assert "  - app/functions/status.py" in lines
+    assert "  - tests/test_status.py" in lines
+    assert "  - function_app.py import registration" in lines
+
+
+def test_describe_add_route_rejects_existing_module(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_route(project_root=project_root, route_name="status")
+
+    with pytest.raises(ScaffoldError, match="Function module already exists"):
+        describe_add_route(project_root=project_root, route_name="status")
+
+
+def test_describe_add_route_excludes_test_when_no_tests_dir(tmp_path: Path) -> None:
+    project_root = scaffold_project(
+        "sample",
+        tmp_path,
+        options=build_project_options(
+            preset_name="minimal",
+            python_version="3.10",
+            include_github_actions=False,
+            initialize_git=False,
+        ),
+    )
+
+    lines = describe_add_route(project_root=project_root, route_name="status")
+
+    assert not any("test_status.py" in line for line in lines)

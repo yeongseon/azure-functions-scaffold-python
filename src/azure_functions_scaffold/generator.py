@@ -4,12 +4,15 @@ import json
 from pathlib import Path
 import re
 
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.template_registry import list_templates
 
 FUNCTION_IMPORT_MARKER = "# azure-functions-scaffold: function imports"
 FUNCTION_REGISTRATION_MARKER = "# azure-functions-scaffold: function registrations"
 SUPPORTED_TRIGGERS = tuple(template.name for template in list_templates())
+PARTIALS_ROOT = Path(__file__).parent / "templates" / "partials"
 
 
 def add_function(
@@ -620,3 +623,235 @@ def _ensure_local_settings_values(project_root: Path, trigger: str) -> None:
         f"{json.dumps(local_settings, indent=2)}\n",
         encoding="utf-8",
     )
+
+
+# ---------------------------------------------------------------------------
+# Resource generation (Jinja partials)
+# ---------------------------------------------------------------------------
+
+
+def _derive_resource_names(resource_name: str) -> dict[str, str]:
+    """Derive all template variable names from a normalized resource name.
+
+    For example, ``products`` yields::
+
+        resource_name   = "products"
+        resource_singular = "product"
+        resource_class  = "Product"
+        route_name      = "products"
+        store_class     = "ProductsStore"
+    """
+    # Simple English singular: strip trailing 's' when it exists and the word
+    # is longer than 3 characters (avoids breaking "bus" → "bu").
+    singular = resource_name
+    if singular.endswith("s") and len(singular) > 3:
+        singular = singular[:-1]
+
+    # PascalCase: split on underscore, capitalise each part.
+    class_name = "".join(part.capitalize() for part in singular.split("_"))
+    store_class = "".join(part.capitalize() for part in resource_name.split("_")) + "Store"
+    route_name = resource_name.replace("_", "-")
+
+    return {
+        "resource_name": resource_name,
+        "resource_singular": singular,
+        "resource_class": class_name,
+        "route_name": route_name,
+        "store_class": store_class,
+    }
+
+
+def _render_partial(template_name: str, context: dict[str, str]) -> str:
+    """Render a Jinja partial template with the given context."""
+    env = Environment(
+        loader=FileSystemLoader(str(PARTIALS_ROOT)),
+        autoescape=select_autoescape(
+            enabled_extensions=("html", "xml"),
+            default_for_string=False,
+            default=False,
+        ),
+        keep_trailing_newline=True,
+    )
+    template = env.get_template(template_name)
+    return template.render(**context)
+
+
+def add_resource(
+    *,
+    project_root: Path,
+    resource_name: str,
+) -> list[Path]:
+    """Add a full CRUD resource to an existing scaffolded project.
+
+    Creates four files:
+        - ``app/functions/{name}.py`` — CRUD blueprint
+        - ``app/services/{name}_service.py`` — in-memory store
+        - ``app/schemas/{name}.py`` — request/response dataclasses
+        - ``tests/test_{name}.py`` — test suite (if ``tests/`` exists)
+
+    Also registers the new blueprint in ``function_app.py`` via markers.
+
+    Returns the list of created file paths.
+    """
+    normalized = _normalize_function_name(resource_name)
+    _validate_project_root(project_root)
+    names = _derive_resource_names(normalized)
+
+    # Check for existing files before writing anything.
+    blueprint_path = project_root / "app" / "functions" / f"{normalized}.py"
+    service_path = project_root / "app" / "services" / f"{normalized}_service.py"
+    schema_path = project_root / "app" / "schemas" / f"{normalized}.py"
+
+    for path in (blueprint_path, service_path, schema_path):
+        if path.exists():
+            raise ScaffoldError(f"File already exists: {path}")
+
+    # Render and write files.
+    created: list[Path] = []
+
+    blueprint_path.parent.mkdir(parents=True, exist_ok=True)
+    blueprint_path.write_text(_render_partial("resource_blueprint.py.j2", names), encoding="utf-8")
+    created.append(blueprint_path)
+
+    service_path.parent.mkdir(parents=True, exist_ok=True)
+    service_path.write_text(_render_partial("resource_service.py.j2", names), encoding="utf-8")
+    created.append(service_path)
+
+    schema_path.parent.mkdir(parents=True, exist_ok=True)
+    schema_path.write_text(_render_partial("resource_schema.py.j2", names), encoding="utf-8")
+    created.append(schema_path)
+
+    if (project_root / "tests").is_dir():
+        test_path = project_root / "tests" / f"test_{normalized}.py"
+        if not test_path.exists():
+            test_path.write_text(_render_partial("resource_test.py.j2", names), encoding="utf-8")
+            created.append(test_path)
+
+    _update_function_app(
+        project_root / "function_app.py",
+        import_stmt=f"from app.functions.{normalized} import {normalized}_blueprint",
+        registration_stmt=f"app.register_functions({normalized}_blueprint)",
+    )
+
+    return created
+
+
+def describe_add_resource(
+    *,
+    project_root: Path,
+    resource_name: str,
+) -> list[str]:
+    """Return a dry-run description of what ``add_resource`` would do."""
+    normalized = _normalize_function_name(resource_name)
+    _validate_project_root(project_root)
+
+    blueprint_path = project_root / "app" / "functions" / f"{normalized}.py"
+    service_path = project_root / "app" / "services" / f"{normalized}_service.py"
+    schema_path = project_root / "app" / "schemas" / f"{normalized}.py"
+
+    for path in (blueprint_path, service_path, schema_path):
+        if path.exists():
+            raise ScaffoldError(f"File already exists: {path}")
+
+    lines = [
+        f"Dry run: add resource '{normalized}'",
+        f"Project root: {project_root}",
+        "Files:",
+        f"  - app/functions/{normalized}.py",
+        f"  - app/services/{normalized}_service.py",
+        f"  - app/schemas/{normalized}.py",
+    ]
+
+    if (project_root / "tests").is_dir():
+        lines.append(f"  - tests/test_{normalized}.py")
+
+    lines.extend(
+        [
+            "Updates:",
+            "  - function_app.py import registration",
+        ]
+    )
+
+    return lines
+
+
+# ---------------------------------------------------------------------------
+# Route generation (Jinja partials)
+# ---------------------------------------------------------------------------
+
+
+def add_route(
+    *,
+    project_root: Path,
+    route_name: str,
+) -> Path:
+    """Add a simple HTTP route blueprint to an existing scaffolded project.
+
+    Creates:
+        - ``app/functions/{name}.py`` — route blueprint
+        - ``tests/test_{name}.py`` — test (if ``tests/`` exists)
+
+    Also registers the new blueprint in ``function_app.py`` via markers.
+
+    Returns the path to the created blueprint file.
+    """
+    normalized = _normalize_function_name(route_name)
+    _validate_project_root(project_root)
+
+    blueprint_path = project_root / "app" / "functions" / f"{normalized}.py"
+    if blueprint_path.exists():
+        raise ScaffoldError(f"Function module already exists: {blueprint_path}")
+
+    names = {
+        "resource_name": normalized,
+        "route_name": normalized.replace("_", "-"),
+    }
+
+    blueprint_path.parent.mkdir(parents=True, exist_ok=True)
+    blueprint_path.write_text(_render_partial("route_blueprint.py.j2", names), encoding="utf-8")
+
+    if (project_root / "tests").is_dir():
+        test_path = project_root / "tests" / f"test_{normalized}.py"
+        if not test_path.exists():
+            test_path.write_text(_render_partial("route_test.py.j2", names), encoding="utf-8")
+
+    _update_function_app(
+        project_root / "function_app.py",
+        import_stmt=f"from app.functions.{normalized} import {normalized}_blueprint",
+        registration_stmt=f"app.register_functions({normalized}_blueprint)",
+    )
+
+    return blueprint_path
+
+
+def describe_add_route(
+    *,
+    project_root: Path,
+    route_name: str,
+) -> list[str]:
+    """Return a dry-run description of what ``add_route`` would do."""
+    normalized = _normalize_function_name(route_name)
+    _validate_project_root(project_root)
+
+    blueprint_path = project_root / "app" / "functions" / f"{normalized}.py"
+    if blueprint_path.exists():
+        raise ScaffoldError(f"Function module already exists: {blueprint_path}")
+
+    lines = [
+        f"Dry run: add route '{normalized}'",
+        f"Project root: {project_root}",
+        "Files:",
+        f"  - app/functions/{normalized}.py",
+    ]
+
+    if (project_root / "tests").is_dir():
+        lines.append(f"  - tests/test_{normalized}.py")
+
+    lines.extend(
+        [
+            "Updates:",
+            "  - function_app.py import registration",
+        ]
+    )
+
+    return lines

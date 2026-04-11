@@ -91,6 +91,7 @@ INTENT_SPECS: dict[str, IntentSpec] = {
     "ai/agent": IntentSpec(template="langgraph", preset="standard"),
 }
 
+
 def list_templates() -> list[TemplateSpec]:
     return list(TEMPLATE_SPECS)
 
@@ -168,5 +169,3 @@ def validate_tooling(tooling: tuple[str, ...]) -> tuple[str, ...]:
             f"Unsupported tooling selection '{invalid_list}'. Supported tooling: {available}"
         )
     return normalized
-
-

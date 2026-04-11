@@ -18,7 +18,11 @@ from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.generator import (
     SUPPORTED_TRIGGERS,
     add_function,
+    add_resource,
+    add_route,
     describe_add_function,
+    describe_add_resource,
+    describe_add_route,
 )
 from azure_functions_scaffold.template_registry import (
     build_project_options,
@@ -185,3 +189,76 @@ def advanced_presets() -> None:
     for preset in list_presets():
         tooling = ", ".join(preset.tooling) or "none"
         typer.echo(f"{preset.name}: {preset.description} [tooling: {tooling}]")
+
+
+@advanced_app.command("add-route")
+def advanced_add_route(
+    route_name: Annotated[
+        str,
+        typer.Argument(..., help="Route name to add."),
+    ],
+    project_root: Annotated[
+        Path,
+        typer.Option(
+            ".",
+            "--project-root",
+            help="Existing scaffolded project directory.",
+        ),
+    ] = Path("."),
+    dry_run: DryRunOption = False,
+) -> None:
+    """Add a simple HTTP route to an existing project."""
+    try:
+        if dry_run:
+            for line in describe_add_route(
+                project_root=project_root,
+                route_name=route_name,
+            ):
+                typer.echo(line)
+            return
+        route_path = add_route(
+            project_root=project_root,
+            route_name=route_name,
+        )
+    except ScaffoldError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Created route at {route_path}")
+
+
+@advanced_app.command("add-resource")
+def advanced_add_resource(
+    resource_name: Annotated[
+        str,
+        typer.Argument(..., help="Resource name to add (e.g. products)."),
+    ],
+    project_root: Annotated[
+        Path,
+        typer.Option(
+            ".",
+            "--project-root",
+            help="Existing scaffolded project directory.",
+        ),
+    ] = Path("."),
+    dry_run: DryRunOption = False,
+) -> None:
+    """Add a full CRUD resource (blueprint, service, schema, test) to an existing project."""
+    try:
+        if dry_run:
+            for line in describe_add_resource(
+                project_root=project_root,
+                resource_name=resource_name,
+            ):
+                typer.echo(line)
+            return
+        created = add_resource(
+            project_root=project_root,
+            resource_name=resource_name,
+        )
+    except ScaffoldError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+
+    for path in created:
+        typer.echo(f"Created {path}")
