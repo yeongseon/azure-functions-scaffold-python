@@ -99,6 +99,19 @@ class TestCreate{{ resource_class }}:
         assert body["name"] == "New Item"
         assert "id" in body
 
+    def test_returns_400_for_non_object_json(self) -> None:
+        {{ resource_name }}_store._items.clear()
+
+        request = _make_request(
+            "POST",
+            "http://localhost/api/{{ route_name }}",
+            body=json.dumps(["not", "an", "object"]).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        response = create_{{ resource_singular }}(request)
+
+        assert response.status_code == 400
+        assert "JSON object" in json.loads(response.get_body())["error"]
 
 class TestUpdate{{ resource_class }}:
     def test_updates_existing_item(self) -> None:
@@ -147,6 +160,21 @@ class TestUpdate{{ resource_class }}:
 
         assert response.status_code == 400
 
+    def test_returns_400_for_non_object_json(self) -> None:
+        {{ resource_name }}_store._items.clear()
+        item = {{ resource_name }}_store.create("Valid")
+
+        request = _make_request(
+            "PUT",
+            f"http://localhost/api/{{ route_name }}/{item['id']}",
+            body=json.dumps([1, 2, 3]).encode(),
+            route_params={"item_id": item["id"]},
+            headers={"Content-Type": "application/json"},
+        )
+        response = update_{{ resource_singular }}(request)
+
+        assert response.status_code == 400
+        assert "JSON object" in json.loads(response.get_body())["error"]
 
 class TestDelete{{ resource_class }}:
     def test_deletes_existing_item(self) -> None:

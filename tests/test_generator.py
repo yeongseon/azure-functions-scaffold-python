@@ -506,6 +506,27 @@ class TestDeriveResourceNames:
         assert result["resource_class"] == "User"
         assert result["store_class"] == "UsersStore"
 
+    def test_no_strip_status(self) -> None:
+        """Names in the no-strip list should keep their trailing 's'."""
+        result = _derive_resource_names("status")
+        assert result["resource_singular"] == "status"
+        assert result["resource_class"] == "Status"
+
+    def test_no_strip_news(self) -> None:
+        result = _derive_resource_names("news")
+        assert result["resource_singular"] == "news"
+        assert result["resource_class"] == "News"
+
+    def test_no_strip_address(self) -> None:
+        result = _derive_resource_names("address")
+        assert result["resource_singular"] == "address"
+        assert result["resource_class"] == "Address"
+
+    def test_no_strip_compound_with_status(self) -> None:
+        """Compound name whose last segment is in the no-strip list."""
+        result = _derive_resource_names("order_status")
+        assert result["resource_singular"] == "order_status"
+        assert result["resource_class"] == "OrderStatus"
 
 # ---------------------------------------------------------------------------
 # add_resource
@@ -541,6 +562,15 @@ def test_add_resource_blueprint_content_is_valid_python(tmp_path: Path) -> None:
     assert "from app.services.products_service import products_store" in blueprint_text
 
 
+def test_add_resource_blueprint_guards_non_dict_json(tmp_path: Path) -> None:
+    """Verify generated blueprint includes isinstance(body, dict) guard."""
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+
+    blueprint_text = (project_root / "app/functions/products.py").read_text(encoding="utf-8")
+    assert "isinstance(body, dict)" in blueprint_text
+    assert "Request body must be a JSON object" in blueprint_text
+
 def test_add_resource_service_content_is_valid_python(tmp_path: Path) -> None:
     project_root = scaffold_project("sample", tmp_path)
     add_resource(project_root=project_root, resource_name="products")
@@ -560,6 +590,7 @@ def test_add_resource_schema_content_is_valid_python(tmp_path: Path) -> None:
     schema_text = (project_root / "app/schemas/products.py").read_text(encoding="utf-8")
     compile(schema_text, "products.py", "exec")
     assert "CreateProductRequest" in schema_text
+    assert "UpdateProductRequest" in schema_text
     assert "ProductResponse" in schema_text
 
 

@@ -12,3 +12,8 @@ class Create{{ resource_class }}Request:
 class {{ resource_class }}Response:
     id: str
     name: str
+
+
+@dataclass(slots=True)
+class Update{{ resource_class }}Request:
+    name: str | None = None

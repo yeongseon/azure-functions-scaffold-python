@@ -69,6 +69,12 @@ def create_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json",
             status_code=400,
         )
+    if not isinstance(body, dict):
+        return func.HttpResponse(
+            body=json.dumps({"error": "Request body must be a JSON object"}),
+            mimetype="application/json",
+            status_code=400,
+        )
     name = body.get("name", "")
     if not name:
         return func.HttpResponse(
@@ -100,6 +106,12 @@ def update_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
     except ValueError:
         return func.HttpResponse(
             body=json.dumps({"error": "Invalid JSON body"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+    if not isinstance(body, dict):
+        return func.HttpResponse(
+            body=json.dumps({"error": "Request body must be a JSON object"}),
             mimetype="application/json",
             status_code=400,
         )

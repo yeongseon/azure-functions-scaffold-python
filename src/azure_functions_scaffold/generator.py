@@ -641,10 +641,17 @@ def _derive_resource_names(resource_name: str) -> dict[str, str]:
         route_name      = "products"
         store_class     = "ProductsStore"
     """
-    # Simple English singular: strip trailing 's' when it exists and the word
-    # is longer than 3 characters (avoids breaking "bus" → "bu").
+    # Simple English singular: strip trailing 's' when safe.
+    # Guard against false positives where stripping 's' produces nonsense.
+    _NO_STRIP = frozenset({
+        "status", "bus", "news", "address", "class", "process",
+        "access", "success", "progress", "focus", "canvas",
+        "analysis", "basis", "crisis", "diagnosis", "thesis",
+    })
     singular = resource_name
-    if singular.endswith("s") and len(singular) > 3:
+    # Check the last segment (after final underscore) for the no-strip list.
+    last_segment = resource_name.rsplit("_", maxsplit=1)[-1]
+    if last_segment not in _NO_STRIP and singular.endswith("s") and len(singular) > 3:
         singular = singular[:-1]
 
     # PascalCase: split on underscore, capitalise each part.
