@@ -427,3 +427,42 @@ class TestErrorPaths:
         )
         assert result.exit_code == 1
         assert "Unknown template" in result.stdout
+
+
+class TestSuccessMessage:
+    """Verify the post-scaffold landing message content."""
+
+    def test_success_message_shows_project_info(self, tmp_path: Path) -> None:
+        result = runner.invoke(app, ["api", "new", "msg-test", "--destination", str(tmp_path)])
+        assert result.exit_code == 0
+        assert "Project created successfully" in result.stdout
+        assert "Template:  http" in result.stdout
+        assert "Preset:    strict" in result.stdout
+        assert "Features:" in result.stdout
+        assert "openapi" in result.stdout
+
+    def test_success_message_shows_full_path_in_cd(self, tmp_path: Path) -> None:
+        result = runner.invoke(app, ["api", "new", "cd-test", "--destination", str(tmp_path)])
+        assert result.exit_code == 0
+        # Must show the full project path, not just the project name
+        expected_path = str(tmp_path / "cd-test")
+        assert f"cd {expected_path}" in result.stdout
+
+    def test_success_message_shows_platform_aware_activate(self, tmp_path: Path) -> None:
+        result = runner.invoke(app, ["api", "new", "act-test", "--destination", str(tmp_path)])
+        assert result.exit_code == 0
+        assert "source .venv/bin/activate" in result.stdout
+        assert ".venv\\Scripts\\activate" in result.stdout
+
+    def test_success_message_shows_openapi_docs_url(self, tmp_path: Path) -> None:
+        result = runner.invoke(app, ["api", "new", "docs-test", "--destination", str(tmp_path)])
+        assert result.exit_code == 0
+        assert "http://localhost:7071/api/docs" in result.stdout
+
+    def test_success_message_omits_openapi_url_for_worker(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app, ["worker", "timer", "timer-test", "--destination", str(tmp_path)]
+        )
+        assert result.exit_code == 0
+        assert "Project created successfully" in result.stdout
+        assert "http://localhost:7071/api/docs" not in result.stdout

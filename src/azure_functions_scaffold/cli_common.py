@@ -192,9 +192,10 @@ def _print_success_message(
     # Next steps
     typer.echo("")
     typer.secho("  Next steps:", bold=True)
-    typer.echo(f"    cd {project_path.name}")
+    typer.echo(f"    cd {project_path}")
     typer.echo("    python -m venv .venv")
-    typer.echo("    source .venv/bin/activate")
+    typer.echo("    source .venv/bin/activate   # Linux/macOS")
+    typer.echo("    .venv\\Scripts\\activate      # Windows")
     dev_extra = "[dev]" if options.tooling else ""
     typer.echo(f"    pip install -e .{dev_extra}")
     typer.echo("    func start")
