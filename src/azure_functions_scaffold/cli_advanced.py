@@ -1,3 +1,5 @@
+"""``afs advanced`` subcommand group — full power-user CLI (wraps legacy new/add)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -5,12 +7,11 @@ from typing import Annotated
 
 import typer
 
-from azure_functions_scaffold import __version__
-from azure_functions_scaffold.cli_advanced import advanced_app
-from azure_functions_scaffold.cli_ai import ai_app
-from azure_functions_scaffold.cli_api import api_app
-from azure_functions_scaffold.cli_common import emit_deprecation_warning
-from azure_functions_scaffold.cli_worker import worker_app
+from azure_functions_scaffold.cli_common import (
+    DestinationOption,
+    DryRunOption,
+    OverwriteOption,
+)
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.generator import (
     SUPPORTED_TRIGGERS,
@@ -33,33 +34,10 @@ from azure_functions_scaffold.template_registry import (
     validate_python_version,
 )
 
-app = typer.Typer(
+advanced_app = typer.Typer(
     add_completion=False,
-    help="Generate opinionated Azure Functions Python v2 projects.",
-    invoke_without_command=True,
+    help="Power-user project scaffolding with full option control.",
 )
-
-# ---------------------------------------------------------------------------
-# Register intent-centric subcommand groups
-# ---------------------------------------------------------------------------
-app.add_typer(api_app, name="api")
-app.add_typer(worker_app, name="worker")
-app.add_typer(ai_app, name="ai")
-app.add_typer(advanced_app, name="advanced")
-
-# ---------------------------------------------------------------------------
-# Reusable Typer option types (kept for legacy commands)
-# ---------------------------------------------------------------------------
-
-DestinationOption = Annotated[
-    Path,
-    typer.Option(
-        ".",
-        "--destination",
-        "-d",
-        help="Base directory where the project folder will be created.",
-    ),
-]
 
 TemplateOption = Annotated[
     str,
@@ -79,25 +57,8 @@ PresetOption = Annotated[
 ]
 
 
-@app.callback()
-def callback(
-    version: Annotated[
-        bool,
-        typer.Option(
-            "--version",
-            help="Show the installed version and exit.",
-            is_eager=True,
-        ),
-    ] = False,
-) -> None:
-    """Azure Functions scaffold CLI."""
-    if version:
-        typer.echo(__version__)
-        raise typer.Exit()
-
-
-@app.command("new", deprecated=True)
-def new_project(
+@advanced_app.command("new")
+def advanced_new(
     project_name: str | None = typer.Argument(
         None,
         help="Directory name for the new project. Omit to enter interactive mode.",
@@ -180,33 +141,12 @@ def new_project(
             help="Prompt for project options interactively.",
         ),
     ] = False,
-    dry_run: Annotated[
-        bool,
-        typer.Option(
-            "--dry-run",
-            help="Preview the generated project without writing files.",
-        ),
-    ] = False,
-    overwrite: Annotated[
-        bool,
-        typer.Option(
-            "--overwrite",
-            help="Replace an existing target directory before generating the project.",
-        ),
-    ] = False,
+    dry_run: DryRunOption = False,
+    overwrite: OverwriteOption = False,
 ) -> None:
-    """Create a new Azure Functions Python v2 scaffold.
-
-    .. deprecated::
-        Use ``afs api new``, ``afs worker <trigger>``, ``afs ai agent``,
-        or ``afs advanced new`` instead.
-    """
-    emit_deprecation_warning(
-        old_command="afs new",
-        new_command="afs api new / afs worker <trigger> / afs advanced new",
-    )
+    """Create a new project with full option control (power-user mode)."""
     try:
-        resolved_name, resolved_template, resolved_options = _resolve_new_project_inputs(
+        resolved_name, resolved_template, resolved_options = _resolve_advanced_inputs(
             project_name=project_name,
             template=template,
             preset=preset,
@@ -245,8 +185,8 @@ def new_project(
     typer.echo(f"Created project at {project_path}")
 
 
-@app.command("add", deprecated=True)
-def add_project_function(
+@advanced_app.command("add")
+def advanced_add(
     trigger: Annotated[
         str,
         typer.Argument(
@@ -266,23 +206,9 @@ def add_project_function(
             help="Existing scaffolded project directory.",
         ),
     ] = Path("."),
-    dry_run: Annotated[
-        bool,
-        typer.Option(
-            "--dry-run",
-            help="Preview the added files without modifying the project.",
-        ),
-    ] = False,
+    dry_run: DryRunOption = False,
 ) -> None:
-    """Add a new function module to an existing scaffolded project.
-
-    .. deprecated::
-        Use ``afs api add`` or ``afs advanced add`` instead.
-    """
-    emit_deprecation_warning(
-        old_command="afs add",
-        new_command="afs api add / afs advanced add",
-    )
+    """Add a function module to an existing project (any trigger type)."""
     try:
         if dry_run:
             for line in describe_add_function(
@@ -304,23 +230,23 @@ def add_project_function(
     typer.echo(f"Created function at {function_path}")
 
 
-@app.command("templates")
-def show_templates() -> None:
+@advanced_app.command("templates")
+def advanced_templates() -> None:
     """List available scaffold templates."""
     for template in list_templates():
         typer.echo(f"{template.name}: {template.description}")
 
 
-@app.command("presets")
-def show_presets() -> None:
+@advanced_app.command("presets")
+def advanced_presets() -> None:
     """List available project presets."""
     for preset in list_presets():
         tooling = ", ".join(preset.tooling) or "none"
         typer.echo(f"{preset.name}: {preset.description} [tooling: {tooling}]")
 
 
-@app.command("profiles")
-def show_profiles() -> None:
+@advanced_app.command("profiles")
+def advanced_profiles() -> None:
     """List available project profiles."""
     for profile_spec in list_profiles():
         features = []
@@ -342,15 +268,13 @@ def show_profiles() -> None:
             f"features: {features_str}]"
         )
 
-def main() -> None:
-    app()
+
+# ---------------------------------------------------------------------------
+# Input resolution (same as legacy _resolve_new_project_inputs)
+# ---------------------------------------------------------------------------
 
 
-if __name__ == "__main__":
-    main()
-
-
-def _resolve_new_project_inputs(
+def _resolve_advanced_inputs(
     *,
     project_name: str | None,
     template: str,
@@ -366,19 +290,12 @@ def _resolve_new_project_inputs(
     include_azd: bool,
     interactive: bool,
 ) -> tuple[str, str, ProjectOptions]:
-    # Apply profile defaults when profile is specified.
-    # Profile provides sensible defaults; explicit CLI flags override them.
     if profile:
         profile_spec = get_profile(profile)
-        # For template/preset: use profile defaults unless user explicitly
-        # changed them from CLI defaults ("http" and "standard" respectively).
         if template == "http":
             template = profile_spec.template
         if preset == "standard":
             preset = profile_spec.preset
-        # For boolean flags: profile sets them to True, explicit --no-* overrides.
-        # Since CLI defaults are False, OR merging means profile defaults apply
-        # unless the user explicitly passes --no-* (which remains False).
         include_openapi = include_openapi or profile_spec.include_openapi
         include_validation = include_validation or profile_spec.include_validation
         include_doctor = include_doctor or profile_spec.include_doctor
@@ -389,12 +306,12 @@ def _resolve_new_project_inputs(
         resolved_template = _prompt_choice(
             label="Template",
             default=template,
-            choices=tuple(template_spec.name for template_spec in list_templates()),
+            choices=tuple(ts.name for ts in list_templates()),
         )
         resolved_preset = _prompt_choice(
             label="Preset",
             default=preset,
-            choices=tuple(preset_spec.name for preset_spec in list_presets()),
+            choices=tuple(ps.name for ps in list_presets()),
         )
         resolved_python_version = _prompt_python_version(python_version)
         resolved_include_github_actions = typer.confirm(
