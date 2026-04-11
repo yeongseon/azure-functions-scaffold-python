@@ -14,8 +14,7 @@ from azure_functions_scaffold.cli_common import (
     GitOption,
     OverwriteOption,
     PythonVersionOption,
-    build_ai_options,
-    run_scaffold,
+    run_intent,
 )
 
 ai_app = typer.Typer(
@@ -36,17 +35,14 @@ def ai_agent(
     overwrite: OverwriteOption = False,
 ) -> None:
     """Create a LangGraph agent project."""
-    options = build_ai_options(
+    run_intent(
+        "ai/agent",
+        project_name,
+        destination=destination,
         python_version=python_version,
         include_github_actions=include_github_actions,
         initialize_git=initialize_git,
         include_azd=include_azd,
-    )
-    run_scaffold(
-        project_name=project_name,
-        template_name="langgraph",
-        options=options,
-        destination=destination,
         dry_run=dry_run,
         overwrite=overwrite,
     )

@@ -21,7 +21,7 @@ Starting a new Azure Functions project means setting up boilerplate: `host.json`
 ```mermaid
 flowchart LR
     Dev(["Developer"])
-    CLI["afs new my-api"]
+    CLI["afs api new my-api"]
     T["Templates"]
     P["Generated Project"]
     VAL["azure-functions-validation"]
@@ -30,8 +30,8 @@ flowchart LR
     Dev --> CLI
     CLI --> T
     T --> P
-    CLI -- "--with-validation" --> VAL
-    CLI -- "--with-db" --> DB
+    CLI --> VAL
+    CLI --> DB
     VAL --> P
     DB --> P
 ```
@@ -40,7 +40,7 @@ flowchart LR
 - Azure Functions Python **v2 programming model**
 - Decorator-based `func.FunctionApp()` applications
 - CLI-driven project generation and expansion
-- Templates for HTTP, Timer, Queue, Blob, Service Bus, and LangGraph triggers
+- Templates for HTTP, Timer, Queue, Blob, Service Bus triggers, and LangGraph agents
 
 This tool generates project scaffolds. It does **not** provide runtime libraries.
 
@@ -48,21 +48,21 @@ This tool generates project scaffolds. It does **not** provide runtime libraries
 
 This package does not own:
 
-- **Runtime behavior** — generated projects wire up optional packages (`--with-openapi`, `--with-validation`, `--with-doctor`, `--with-db`), but runtime logic belongs to those packages
+- **Runtime behavior** — intent commands choose optional package wiring during generation, but runtime logic belongs to those packages
 - **API documentation** — use [`azure-functions-openapi`](https://github.com/yeongseon/azure-functions-openapi) for API documentation and spec generation
 - **Request validation** — use [`azure-functions-validation`](https://github.com/yeongseon/azure-functions-validation) for request/response validation and serialization
 - **Database bindings** — use [`azure-functions-db`](https://github.com/yeongseon/azure-functions-db) for database input/output bindings
 
 ## Features
 
-- `azure-functions-scaffold new` command for project generation
-- Six built-in templates: HTTP, Timer, Queue, Blob, Service Bus, LangGraph
-- `azure-functions-scaffold add` command for expanding existing projects
-- Optional integrations: `--with-openapi`, `--with-validation`, `--with-doctor`, `--with-db`
-- Preset tooling levels: `--preset minimal|standard|strict`
-- Interactive guided setup via `--interactive`
-- Profile-based generation: `--profile api`, `--profile db-api`
-- Short alias: `afs` works as a drop-in for `azure-functions-scaffold`
+- Intent-based command groups: `afs api`, `afs worker`, `afs ai`, and `afs advanced`
+- API project commands: `afs api new`, `afs api crud`, and `afs api add`
+- Worker project commands: `afs worker timer|queue|blob|servicebus|eventhub`
+- AI project command: `afs ai agent` for LangGraph scaffolds
+- Advanced power-user commands: `afs advanced new` and `afs advanced add`
+- Optional feature flags (`--with-openapi`, `--with-validation`, `--with-doctor`, `--with-db`) and `--preset minimal|standard|strict` available via `afs advanced new`
+- Discovery commands: `afs templates` and `afs presets`
+- Short alias: `afs` is the primary CLI entry point for `azure-functions-scaffold`
 
 ## Installation
 
@@ -80,7 +80,7 @@ Use this 4-step flow to create and run a local HTTP function:
 4. Start the local Functions runtime.
 
 ```bash
-azure-functions-scaffold new my-api
+afs api new my-api
 cd my-api
 pip install -e .
 func start
@@ -134,12 +134,12 @@ Why this layout works:
 
 | Template | Command | Use Case |
 | --- | --- | --- |
-| http | `azure-functions-scaffold new my-api` | REST APIs, webhooks |
-| timer | `azure-functions-scaffold new my-job --template timer` | Scheduled tasks, cron |
-| queue | `azure-functions-scaffold new my-worker --template queue` | Message processing (Azurite) |
-| blob | `azure-functions-scaffold new my-blob --template blob` | File processing (Azurite) |
-| servicebus | `azure-functions-scaffold new my-bus --template servicebus` | Enterprise messaging |
-| langgraph | `afs new my-agent --template langgraph` | LangGraph AI agent deployment |
+| http | `afs api new my-api` | REST APIs, webhooks |
+| timer | `afs worker timer my-job` | Scheduled tasks, cron |
+| queue | `afs worker queue my-worker` | Message processing (Azurite) |
+| blob | `afs worker blob my-blob` | File processing (Azurite) |
+| servicebus | `afs worker servicebus my-bus` | Enterprise messaging |
+| langgraph | `afs ai agent my-agent` | LangGraph AI agent deployment |
 
 Note: `afs` is short for `azure-functions-scaffold`. Both work.
 
@@ -153,55 +153,40 @@ Template defaults:
 
 ## Optional Features
 
+Intent commands pre-select optional features based on project intent:
+
+- `afs api new <name>` includes OpenAPI, validation, and doctor integration
+- `afs api crud <name>` includes OpenAPI, validation, doctor, and database integration
+- `afs worker <trigger> <name>` and `afs ai agent <name>` apply trigger-specific defaults
+
+Use `afs advanced new <name>` when you need direct control over feature flags:
+
 - `--with-openapi` - Swagger UI + OpenAPI spec endpoints
 - `--with-validation` - Pydantic request/response validation
 - `--with-doctor` - Health check diagnostics
 - `--with-db` - Database bindings (SQLAlchemy)
 - `--preset minimal|standard|strict` - Tooling level
-- `--interactive` - Guided project setup
-
-Example combinations:
-
-```bash
-azure-functions-scaffold new my-api --preset strict --with-validation
-azure-functions-scaffold new my-api --with-openapi --with-validation
-azure-functions-scaffold new my-api --template timer --preset minimal
-afs new my-api --with-db
-afs new my-agent --template langgraph
-afs new my-api --profile db-api
-```
-
-## Profiles
-
-Profiles combine a template with pre-selected optional features for common project archetypes:
-
-| Profile | Template | Features Included | Command |
-|---------|----------|-------------------|---------|
-| `api` | http | openapi, validation | `afs new my-api --profile api` |
-| `db-api` | http | openapi, validation, db | `afs new my-api --profile db-api` |
-
-Profiles are a convenience — they set the same flags you could pass individually.
 ## Expand Your Project
 
 Add functions to an existing scaffolded project:
 
 ```bash
-azure-functions-scaffold add http get-user --project-root ./my-api
-azure-functions-scaffold add timer cleanup --project-root ./my-api
-azure-functions-scaffold add queue sync-jobs --project-root ./my-api
-azure-functions-scaffold add blob ingest-reports --project-root ./my-api
-azure-functions-scaffold add servicebus process-events --project-root ./my-api
+afs api add get-user --project-root ./my-api
+afs advanced add timer cleanup --project-root ./my-api
+afs advanced add queue sync-jobs --project-root ./my-api
+afs advanced add blob ingest-reports --project-root ./my-api
+afs advanced add servicebus process-events --project-root ./my-api
 ```
 
 Preview additions before writing files:
 
 ```bash
-azure-functions-scaffold add servicebus process-events --project-root ./my-api --dry-run
+afs advanced add servicebus process-events --project-root ./my-api --dry-run
 ```
 
 Common expansion flow:
 
-1. Add a trigger with `azure-functions-scaffold add <trigger> <name>`.
+1. Add API endpoints with `afs api add <name>` or non-HTTP triggers with `afs advanced add <trigger> <name>`.
 2. Implement business logic under `app/services`.
 3. Update contracts in `app/schemas` if needed.
 4. Add or update tests in `tests`.

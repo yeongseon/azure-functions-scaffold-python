@@ -14,9 +14,7 @@ from azure_functions_scaffold.cli_common import (
     GitOption,
     OverwriteOption,
     PythonVersionOption,
-    build_api_crud_options,
-    build_api_options,
-    run_scaffold,
+    run_intent,
 )
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.generator import add_function, describe_add_function
@@ -39,17 +37,14 @@ def api_new(
     overwrite: OverwriteOption = False,
 ) -> None:
     """Create a REST API project with OpenAPI, validation, and doctor."""
-    options = build_api_options(
+    run_intent(
+        "api/new",
+        project_name,
+        destination=destination,
         python_version=python_version,
         include_github_actions=include_github_actions,
         initialize_git=initialize_git,
         include_azd=include_azd,
-    )
-    run_scaffold(
-        project_name=project_name,
-        template_name="http",
-        options=options,
-        destination=destination,
         dry_run=dry_run,
         overwrite=overwrite,
     )
@@ -67,17 +62,14 @@ def api_crud(
     overwrite: OverwriteOption = False,
 ) -> None:
     """Create a CRUD API project with OpenAPI, validation, doctor, and database bindings."""
-    options = build_api_crud_options(
+    run_intent(
+        "api/crud",
+        project_name,
+        destination=destination,
         python_version=python_version,
         include_github_actions=include_github_actions,
         initialize_git=initialize_git,
         include_azd=include_azd,
-    )
-    run_scaffold(
-        project_name=project_name,
-        template_name="http",
-        options=options,
-        destination=destination,
         dry_run=dry_run,
         overwrite=overwrite,
     )

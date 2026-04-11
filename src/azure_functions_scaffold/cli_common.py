@@ -1,17 +1,16 @@
-"""Shared option builders and intent-to-ProjectOptions mapping for intent-centric CLI commands."""
+"""Shared option types and intent-based scaffold execution for CLI commands."""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Annotated
-import warnings
 
 import typer
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import ProjectOptions
-from azure_functions_scaffold.scaffolder import scaffold_project
-from azure_functions_scaffold.template_registry import build_project_options
+from azure_functions_scaffold.scaffolder import describe_scaffold_project, scaffold_project
+from azure_functions_scaffold.template_registry import INTENT_SPECS, build_project_options
 
 # ---------------------------------------------------------------------------
 # Reusable Typer option types
@@ -77,87 +76,51 @@ OverwriteOption = Annotated[
 
 
 # ---------------------------------------------------------------------------
-# Intent → ProjectOptions mapping
+# Intent-based scaffold execution
 # ---------------------------------------------------------------------------
 
 
-def build_api_options(
+def run_intent(
+    intent_key: str,
+    project_name: str,
     *,
+    destination: Path = Path("."),
     python_version: str = "3.10",
     include_github_actions: bool = False,
     initialize_git: bool = False,
     include_azd: bool = False,
-) -> ProjectOptions:
-    """Map ``afs api new`` intent to ProjectOptions (profile: api)."""
-    return build_project_options(
-        preset_name="strict",
-        python_version=python_version,
-        include_github_actions=include_github_actions,
-        initialize_git=initialize_git,
-        include_openapi=True,
-        include_validation=True,
-        include_doctor=True,
-        include_azd=include_azd,
-        include_db=False,
+    dry_run: bool = False,
+    overwrite: bool = False,
+) -> None:
+    """Look up *intent_key* in ``INTENT_SPECS`` and scaffold accordingly."""
+    try:
+        spec = INTENT_SPECS.get(intent_key)
+        if spec is None:
+            raise ScaffoldError(f"Unknown intent '{intent_key}'.")
+
+        options = build_project_options(
+            preset_name=spec.preset,
+            python_version=python_version,
+            include_github_actions=include_github_actions,
+            initialize_git=initialize_git,
+            include_openapi="openapi" in spec.features,
+            include_validation="validation" in spec.features,
+            include_doctor="doctor" in spec.features,
+            include_azd=include_azd,
+            include_db="db" in spec.features,
+        )
+    except ScaffoldError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+
+    run_scaffold(
+        project_name=project_name,
+        template_name=spec.template,
+        options=options,
+        destination=destination,
+        dry_run=dry_run,
+        overwrite=overwrite,
     )
-
-
-def build_api_crud_options(
-    *,
-    python_version: str = "3.10",
-    include_github_actions: bool = False,
-    initialize_git: bool = False,
-    include_azd: bool = False,
-) -> ProjectOptions:
-    """Map ``afs api crud`` intent to ProjectOptions (profile: db-api)."""
-    return build_project_options(
-        preset_name="strict",
-        python_version=python_version,
-        include_github_actions=include_github_actions,
-        initialize_git=initialize_git,
-        include_openapi=True,
-        include_validation=True,
-        include_doctor=True,
-        include_azd=include_azd,
-        include_db=True,
-    )
-
-
-def build_worker_options(
-    *,
-    python_version: str = "3.10",
-    include_github_actions: bool = False,
-    initialize_git: bool = False,
-    include_azd: bool = False,
-) -> ProjectOptions:
-    """Map ``afs worker <trigger>`` intent to ProjectOptions (standard preset, no features)."""
-    return build_project_options(
-        preset_name="standard",
-        python_version=python_version,
-        include_github_actions=include_github_actions,
-        initialize_git=initialize_git,
-    )
-
-
-def build_ai_options(
-    *,
-    python_version: str = "3.10",
-    include_github_actions: bool = False,
-    initialize_git: bool = False,
-    include_azd: bool = False,
-) -> ProjectOptions:
-    """Map ``afs ai agent`` intent to ProjectOptions (standard preset, no features)."""
-    return build_project_options(
-        preset_name="standard",
-        python_version=python_version,
-        include_github_actions=include_github_actions,
-        initialize_git=initialize_git,
-    )
-
-
-# ---------------------------------------------------------------------------
-# Shared scaffold execution
-# ---------------------------------------------------------------------------
 
 
 def run_scaffold(
@@ -170,7 +133,6 @@ def run_scaffold(
     overwrite: bool = False,
 ) -> None:
     """Execute scaffold_project (or describe if dry_run) with unified error handling."""
-    from azure_functions_scaffold.scaffolder import describe_scaffold_project
 
     try:
         if dry_run:
@@ -195,20 +157,3 @@ def run_scaffold(
         raise typer.Exit(code=1) from exc
 
     typer.echo(f"Created project at {project_path}")
-
-
-# ---------------------------------------------------------------------------
-# Deprecation warning helper
-# ---------------------------------------------------------------------------
-
-_DEPRECATION_MESSAGE = (
-    "'{old_command}' is deprecated and will be removed in a future release. "
-    "Use '{new_command}' instead."
-)
-
-
-def emit_deprecation_warning(*, old_command: str, new_command: str) -> None:
-    """Emit a deprecation warning for legacy CLI commands."""
-    msg = _DEPRECATION_MESSAGE.format(old_command=old_command, new_command=new_command)
-    warnings.warn(msg, FutureWarning, stacklevel=3)
-    typer.secho(f"Warning: {msg}", fg=typer.colors.YELLOW, err=True)

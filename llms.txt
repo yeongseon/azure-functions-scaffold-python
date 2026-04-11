@@ -5,7 +5,7 @@
 ## Package Info
 
 - PyPI: `pip install azure-functions-scaffold`
-- Version: 0.3.2
+- Version: 0.5.0
 - Python: >=3.10, <3.15
 - License: MIT
 - Docs: https://yeongseon.github.io/azure-functions-scaffold/
@@ -13,36 +13,53 @@
 
 ## What It Does
 
-CLI tool that generates production-ready Azure Functions Python v2 project scaffolds in one command.
+CLI tool that generates production-ready Azure Functions Python v2 project scaffolds.
 Handles boilerplate setup: `host.json`, `function_app.py`, directory structure, tooling config, and
-tests. Lets developers focus on business logic from the start.
+tests so teams can focus on business logic from the start.
 
 ## CLI Commands
 
-```
-azure-functions-scaffold [COMMAND] [OPTIONS]
-afs [COMMAND] [OPTIONS]                          # Short alias
+```bash
+azure-functions-scaffold [GROUP] [COMMAND] [OPTIONS]
+afs [GROUP] [COMMAND] [OPTIONS]                    # Short alias
 ```
 
 ### Main Commands
 
-- `new [PROJECT_NAME]` — Create a new Azure Functions project
-  - Options: `--template`, `--preset`, `--python-version`, `--github-actions`, `--git`,
-    `--with-openapi`, `--with-validation`, `--with-doctor`, `--interactive`, `--dry-run`, `--overwrite`
-  - Default template: `http`
-  - Default preset: `standard`
-  - Default python version: `3.10`
-  - Omit PROJECT_NAME to enter interactive mode
+- `afs api new <name>` — Create HTTP API project with strict preset, OpenAPI, validation, and doctor
+- `afs api crud <name>` — Create CRUD API project with API features plus database bindings
+- `afs api add <name>` — Add HTTP function to an existing project
+- `afs worker timer <name>` — Create timer-trigger worker project
+- `afs worker queue <name>` — Create queue-trigger worker project
+- `afs worker blob <name>` — Create blob-trigger worker project
+- `afs worker servicebus <name>` — Create Service Bus-trigger worker project
+- `afs worker eventhub <name>` — Create EventHub-trigger worker project
+- `afs ai agent <name>` — Create LangGraph AI agent project
+- `afs advanced new <name>` — Power-user mode with direct flag control
+- `afs advanced add <trigger> <name>` — Add any trigger function to an existing project
+- `afs templates` — List available templates
+- `afs presets` — List available presets
 
-- `add TRIGGER FUNCTION_NAME` — Add a new function to existing project
-  - Arguments: TRIGGER (http, timer, queue, blob, servicebus), FUNCTION_NAME
-  - Options: `--project-root`, `--dry-run`
-  - Default project root: `.`
+### Common options (project creation commands)
 
-- `templates` — List available templates
-- `presets` — List available presets
+- `--destination`, `-d` — Base directory where project folder is created
+- `--python-version` — Target Python version (`3.10`, `3.11`, `3.12`, `3.13`, `3.14`)
+- `--github-actions/--no-github-actions` — Include or skip GitHub Actions workflow
+- `--git/--no-git` — Initialize or skip git repository
+- `--azd/--no-azd` — Include or skip Azure Developer CLI support files
+- `--dry-run` — Preview generation without writing files
+- `--overwrite` — Replace existing target directory
 
-### Options
+### `afs advanced new` additional options
+
+- `--template`, `-t` — Template to render (`http`, `timer`, `queue`, `blob`, `servicebus`, `eventhub`, `cosmosdb`, `durable`, `ai`, `langgraph`)
+- `--preset` — Preset to apply (`minimal`, `standard`, `strict`)
+- `--with-openapi/--no-openapi` — Include OpenAPI support (HTTP template)
+- `--with-validation/--no-validation` — Include request validation support (HTTP template)
+- `--with-doctor/--no-doctor` — Include `azure-functions-doctor`
+- `--with-db/--no-db` — Include `azure-functions-db` bindings
+
+### Global options
 
 - `--version` — Show installed version
 - `-h`, `--help` — Show help
@@ -51,19 +68,21 @@ afs [COMMAND] [OPTIONS]                          # Short alias
 
 | Template | Command | Use Case |
 | --- | --- | --- |
-| http | `azure-functions-scaffold new my-api` | REST APIs, webhooks |
-| timer | `azure-functions-scaffold new my-job --template timer` | Scheduled tasks, cron |
-| queue | `azure-functions-scaffold new my-worker --template queue` | Message processing (Azurite) |
-| blob | `azure-functions-scaffold new my-blob --template blob` | File processing (Azurite) |
-| servicebus | `azure-functions-scaffold new my-bus --template servicebus` | Enterprise messaging |
+| http | `afs api new my-api` | REST APIs, webhooks |
+| timer | `afs worker timer my-job` | Scheduled tasks, cron |
+| queue | `afs worker queue my-worker` | Message processing (Azurite) |
+| blob | `afs worker blob my-blob` | File processing (Azurite) |
+| servicebus | `afs worker servicebus my-bus` | Enterprise messaging |
+| eventhub | `afs worker eventhub my-stream-worker` | Event stream processing |
+| langgraph | `afs ai agent my-agent` | LangGraph AI agent deployment |
 
 ## Presets
 
 Presets combine tooling levels and best practices:
 
 - `minimal` — Bare essentials (host.json, function_app.py)
-- `standard` — Standard tools (ruff, pytest, mypy)
-- `strict` — Production-ready (ruff, mypy, pytest, azure-functions-doctor)
+- `standard` — Standard tools (ruff, pytest)
+- `strict` — Production-ready checks (ruff, mypy, pytest)
 
 ## Quick Start
 
@@ -72,7 +91,7 @@ Presets combine tooling levels and best practices:
 pip install azure-functions-scaffold
 
 # Step 2: Create project
-azure-functions-scaffold new my-api
+afs api new my-api
 
 # Step 3: Install dependencies
 cd my-api
@@ -86,38 +105,43 @@ func start
 
 ## Optional Features
 
-Enable by adding flags to `new` command:
+Intent commands auto-select features based on project goal:
+
+- `afs api new <name>` automatically enables OpenAPI, validation, and doctor
+- `afs api crud <name>` automatically enables OpenAPI, validation, doctor, and db
+- `afs worker <trigger> <name>` and `afs ai agent <name>` apply trigger-specific defaults
+
+Use `afs advanced new <name>` for explicit feature control:
 
 - `--with-openapi` — Swagger UI + OpenAPI spec endpoints
 - `--with-validation` — Pydantic request/response validation
 - `--with-doctor` — azure-functions-doctor health checks
-- `--github-actions` — Basic GitHub Actions CI workflow
-- `--git` — Initialize git repository in project
+- `--with-db` — Database bindings
 
 ## Generated Project Layout
 
-```
+```text
 my-api/
-├── function_app.py          # v2 entrypoint
-├── host.json                # Runtime config
-├── local.settings.json.example
-├── pyproject.toml           # Dependencies
-├── app/
-│  ├── core/
-│  │  └─ logging.py
-│  ├── functions/
-│  │  └─ http.py
-│  ├── schemas/
-│  │  └─ request_models.py
-│  └── services/
-│     └─ hello_service.py
-└── tests/
-   └─ test_http.py
+|- function_app.py          # v2 entrypoint
+|- host.json                # Runtime config
+|- local.settings.json.example
+|- pyproject.toml           # Dependencies
+|- app/
+|  |- core/
+|  |  `- logging.py
+|  |- functions/
+|  |  `- http.py
+|  |- schemas/
+|  |  `- request_models.py
+|  `- services/
+|     `- hello_service.py
+`- tests/
+   `- test_http.py
 ```
 
 ## Project Requirements
 
-- Project names must start with alphanumeric character
+- Project names must start with an alphanumeric character
 - Only letters, numbers, hyphens, underscores allowed
 - Python 3.10+ required
 

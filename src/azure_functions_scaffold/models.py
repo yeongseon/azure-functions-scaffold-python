@@ -38,25 +38,21 @@ class PresetSpec:
 
 
 @dataclass(frozen=True)
+class IntentSpec:
+    """Maps a CLI intent (e.g. 'api/new') to its template, preset, and features."""
+
+    template: str
+    preset: str
+    features: frozenset[str] = frozenset()
+
+
+@dataclass(frozen=True)
 class ProjectOptions:
     preset_name: str
     python_version: str
     tooling: tuple[str, ...]
     include_github_actions: bool
     initialize_git: bool
-    include_openapi: bool
-    include_validation: bool
-    include_doctor: bool
-    include_azd: bool
-    include_db: bool
-
-
-@dataclass(frozen=True)
-class ProfileSpec:
-    name: str
-    description: str
-    template: str
-    preset: str
     include_openapi: bool
     include_validation: bool
     include_doctor: bool

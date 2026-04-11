@@ -23,18 +23,17 @@
 - Azure Functions Python **v2 プログラミングモデル**
 - デコレータベースの `func.FunctionApp()` アプリケーション
 - CLI 駆動のプロジェクト生成と拡張
-- HTTP、Timer、Queue、Blob、Service Bus トリガー用テンプレート
+- HTTP、Timer、Queue、Blob、Service Bus、LangGraph トリガー用テンプレート
 
 このツールはプロジェクトスキャフォールドを生成します。ランタイムライブラリは提供**しません**。
 
 ## 機能
 
-- プロジェクト生成のための `azure-functions-scaffold new` コマンド
-- 5 つの組み込みテンプレート: HTTP、Timer、Queue、Blob、Service Bus
-- 既存プロジェクト拡張のための `azure-functions-scaffold add` コマンド
-- オプション統合: `--with-openapi`、`--with-validation`、`--with-doctor`
+- 意図中心の生成コマンド: `afs api new`、`afs api crud`、`afs worker <trigger>`、`afs ai agent`
+- プロジェクト拡張コマンド: `afs api add`、`afs advanced add`
+- オプション統合: `--with-openapi`、`--with-validation`、`--with-doctor`、`--with-db`
 - プリセットツーリングレベル: `--preset minimal|standard|strict`
-- `--interactive` によるガイド付きセットアップ
+- パワーユーザー向けの詳細フラグ制御: `afs advanced new`
 - ショートエイリアス: `afs` を `azure-functions-scaffold` の代わりに使用可能
 
 ## インストール
@@ -53,7 +52,7 @@ pip install azure-functions-scaffold
 4. ローカル Functions ランタイムを起動します。
 
 ```bash
-azure-functions-scaffold new my-api
+afs api new my-api
 cd my-api
 pip install -e .
 func start
@@ -107,11 +106,11 @@ my-api/
 
 | テンプレート | コマンド | 用途 |
 | --- | --- | --- |
-| http | `azure-functions-scaffold new my-api` | REST API、Webhook |
-| timer | `azure-functions-scaffold new my-job --template timer` | スケジュールタスク、Cron |
-| queue | `azure-functions-scaffold new my-worker --template queue` | メッセージ処理 (Azurite) |
-| blob | `azure-functions-scaffold new my-blob --template blob` | ファイル処理 (Azurite) |
-| servicebus | `azure-functions-scaffold new my-bus --template servicebus` | エンタープライズメッセージング |
+| http | `afs api new my-api` | REST API、Webhook |
+| timer | `afs worker timer my-job` | スケジュールタスク、Cron |
+| queue | `afs worker queue my-worker` | メッセージ処理 (Azurite) |
+| blob | `afs worker blob my-blob` | ファイル処理 (Azurite) |
+| servicebus | `afs worker servicebus my-bus` | エンタープライズメッセージング |
 
 注: `afs` は `azure-functions-scaffold` の短縮形です。どちらも利用できます。
 
@@ -128,15 +127,18 @@ my-api/
 - `--with-openapi` - Swagger UI + OpenAPI 仕様エンドポイント
 - `--with-validation` - Pydantic リクエスト/レスポンス検証
 - `--with-doctor` - ヘルスチェック診断
+- `--with-db` - データベースバインディング (SQLAlchemy)
 - `--preset minimal|standard|strict` - ツーリングレベル
-- `--interactive` - ガイド付きプロジェクトセットアップ
+
+意図中心コマンドは一般的な機能構成を事前選択します。フラグを直接制御したい場合は `afs advanced new <name>` を使用してください。
 
 組み合わせ例:
 
 ```bash
-azure-functions-scaffold new my-api --preset strict --with-validation
-azure-functions-scaffold new my-api --with-openapi --with-validation
-azure-functions-scaffold new my-api --template timer --preset minimal
+afs api new my-api --preset strict --with-validation
+afs api crud my-api --preset standard
+afs worker timer my-job --preset minimal
+afs advanced new my-api --with-openapi --with-validation
 ```
 
 ## プロジェクトの拡張
@@ -144,22 +146,22 @@ azure-functions-scaffold new my-api --template timer --preset minimal
 既存のスキャフォールド済みプロジェクトに関数を追加します:
 
 ```bash
-azure-functions-scaffold add http get-user --project-root ./my-api
-azure-functions-scaffold add timer cleanup --project-root ./my-api
-azure-functions-scaffold add queue sync-jobs --project-root ./my-api
-azure-functions-scaffold add blob ingest-reports --project-root ./my-api
-azure-functions-scaffold add servicebus process-events --project-root ./my-api
+afs api add get-user --project-root ./my-api
+afs advanced add timer cleanup --project-root ./my-api
+afs advanced add queue sync-jobs --project-root ./my-api
+afs advanced add blob ingest-reports --project-root ./my-api
+afs advanced add servicebus process-events --project-root ./my-api
 ```
 
 ファイルを書き込む前に追加内容をプレビューします:
 
 ```bash
-azure-functions-scaffold add servicebus process-events --project-root ./my-api --dry-run
+afs advanced add servicebus process-events --project-root ./my-api --dry-run
 ```
 
 一般的な拡張フロー:
 
-1. `azure-functions-scaffold add <trigger> <name>` でトリガーを追加します。
+1. `afs api add <name>` または `afs advanced add <trigger> <name>` でトリガーを追加します。
 2. `app/services` 配下にビジネスロジックを実装します。
 3. 必要に応じて `app/schemas` の契約を更新します。
 4. `tests` のテストを追加または更新します。

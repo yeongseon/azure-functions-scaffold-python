@@ -23,10 +23,8 @@ from azure_functions_scaffold.scaffolder import (
 from azure_functions_scaffold.template_registry import (
     build_project_options,
     get_preset,
-    get_profile,
     get_template,
     list_presets,
-    list_profiles,
     list_templates,
     validate_python_version,
     validate_tooling,
@@ -562,38 +560,6 @@ def test_describe_scaffold_project_excludes_azd_when_disabled(tmp_path: Path) ->
     assert "  - azure.yaml" not in lines
 
 
-def test_list_profiles_returns_expected_profiles() -> None:
-    profiles = list_profiles()
-
-    assert [profile.name for profile in profiles] == ["api", "db-api"]
-    api_profile = profiles[0]
-    assert api_profile.template == "http"
-    assert api_profile.preset == "strict"
-    assert api_profile.include_openapi is True
-    assert api_profile.include_validation is True
-    assert api_profile.include_doctor is True
-    assert api_profile.include_azd is False
-    assert api_profile.include_db is False
-    db_api_profile = profiles[1]
-    assert db_api_profile.template == "http"
-    assert db_api_profile.preset == "strict"
-    assert db_api_profile.include_openapi is True
-    assert db_api_profile.include_validation is True
-    assert db_api_profile.include_doctor is True
-    assert db_api_profile.include_azd is False
-    assert db_api_profile.include_db is True
-
-def test_get_profile_returns_api_profile() -> None:
-    profile = get_profile("api")
-
-    assert profile.name == "api"
-    assert profile.template == "http"
-
-
-def test_get_profile_rejects_unknown_name() -> None:
-    with pytest.raises(ScaffoldError, match="Unknown profile"):
-        get_profile("enterprise")
-
 
 def test_scaffold_project_with_db_generates_db_items(tmp_path: Path) -> None:
     project_path = scaffold_project(
@@ -686,13 +652,3 @@ def test_scaffold_project_renders_langgraph_template(tmp_path: Path) -> None:
     assert "langgraph>=0.2.0" in pyproject_text
 
 
-def test_get_profile_returns_db_api_profile() -> None:
-    profile = get_profile("db-api")
-
-    assert profile.name == "db-api"
-    assert profile.template == "http"
-    assert profile.preset == "strict"
-    assert profile.include_db is True
-    assert profile.include_openapi is True
-    assert profile.include_validation is True
-    assert profile.include_doctor is True

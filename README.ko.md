@@ -23,18 +23,17 @@
 - Azure Functions Python **v2 프로그래밍 모델**
 - 데코레이터 기반 `func.FunctionApp()` 애플리케이션
 - CLI 기반 프로젝트 생성 및 확장
-- HTTP, Timer, Queue, Blob, Service Bus 트리거 템플릿
+- HTTP, Timer, Queue, Blob, Service Bus, LangGraph 트리거 템플릿
 
 이 도구는 프로젝트 스캐폴드를 생성합니다. 런타임 라이브러리를 제공하지는 **않습니다**.
 
 ## 기능
 
-- 프로젝트 생성을 위한 `azure-functions-scaffold new` 명령
-- 5가지 내장 템플릿: HTTP, Timer, Queue, Blob, Service Bus
-- 기존 프로젝트 확장을 위한 `azure-functions-scaffold add` 명령
-- 선택적 통합: `--with-openapi`, `--with-validation`, `--with-doctor`
+- 의도 중심 생성 명령: `afs api new`, `afs api crud`, `afs worker <trigger>`, `afs ai agent`
+- 프로젝트 확장 명령: `afs api add`, `afs advanced add`
+- 선택적 통합: `--with-openapi`, `--with-validation`, `--with-doctor`, `--with-db`
 - 사전 설정 도구 수준: `--preset minimal|standard|strict`
-- `--interactive`를 통한 가이드형 설정
+- 파워 유저를 위한 고급 플래그 제어: `afs advanced new`
 - 단축 별칭: `afs`를 `azure-functions-scaffold` 대신 사용 가능
 
 ## 설치
@@ -53,7 +52,7 @@ pip install azure-functions-scaffold
 4. 로컬 Functions 런타임을 시작합니다.
 
 ```bash
-azure-functions-scaffold new my-api
+afs api new my-api
 cd my-api
 pip install -e .
 func start
@@ -107,11 +106,11 @@ my-api/
 
 | 템플릿 | 명령어 | 사용 사례 |
 | --- | --- | --- |
-| http | `azure-functions-scaffold new my-api` | REST API, 웹훅 |
-| timer | `azure-functions-scaffold new my-job --template timer` | 예약 작업, 크론 |
-| queue | `azure-functions-scaffold new my-worker --template queue` | 메시지 처리 (Azurite) |
-| blob | `azure-functions-scaffold new my-blob --template blob` | 파일 처리 (Azurite) |
-| servicebus | `azure-functions-scaffold new my-bus --template servicebus` | 엔터프라이즈 메시징 |
+| http | `afs api new my-api` | REST API, 웹훅 |
+| timer | `afs worker timer my-job` | 예약 작업, 크론 |
+| queue | `afs worker queue my-worker` | 메시지 처리 (Azurite) |
+| blob | `afs worker blob my-blob` | 파일 처리 (Azurite) |
+| servicebus | `afs worker servicebus my-bus` | 엔터프라이즈 메시징 |
 
 참고: `afs`는 `azure-functions-scaffold`의 줄임말입니다. 둘 다 동작합니다.
 
@@ -128,15 +127,18 @@ my-api/
 - `--with-openapi` - Swagger UI + OpenAPI 사양 엔드포인트
 - `--with-validation` - Pydantic 요청/응답 검증
 - `--with-doctor` - 상태 확인 진단
+- `--with-db` - 데이터베이스 바인딩 (SQLAlchemy)
 - `--preset minimal|standard|strict` - 도구 구성 수준
-- `--interactive` - 가이드형 프로젝트 설정
+
+의도 중심 명령은 일반적인 기능 조합을 미리 선택합니다. 세부 플래그를 직접 제어하려면 `afs advanced new <name>`을 사용하세요.
 
 조합 예시:
 
 ```bash
-azure-functions-scaffold new my-api --preset strict --with-validation
-azure-functions-scaffold new my-api --with-openapi --with-validation
-azure-functions-scaffold new my-api --template timer --preset minimal
+afs api new my-api --preset strict --with-validation
+afs api crud my-api --preset standard
+afs worker timer my-job --preset minimal
+afs advanced new my-api --with-openapi --with-validation
 ```
 
 ## 프로젝트 확장
@@ -144,22 +146,22 @@ azure-functions-scaffold new my-api --template timer --preset minimal
 기존 스캐폴딩 프로젝트에 함수를 추가합니다:
 
 ```bash
-azure-functions-scaffold add http get-user --project-root ./my-api
-azure-functions-scaffold add timer cleanup --project-root ./my-api
-azure-functions-scaffold add queue sync-jobs --project-root ./my-api
-azure-functions-scaffold add blob ingest-reports --project-root ./my-api
-azure-functions-scaffold add servicebus process-events --project-root ./my-api
+afs api add get-user --project-root ./my-api
+afs advanced add timer cleanup --project-root ./my-api
+afs advanced add queue sync-jobs --project-root ./my-api
+afs advanced add blob ingest-reports --project-root ./my-api
+afs advanced add servicebus process-events --project-root ./my-api
 ```
 
 파일을 쓰기 전에 추가 내용을 미리 확인합니다:
 
 ```bash
-azure-functions-scaffold add servicebus process-events --project-root ./my-api --dry-run
+afs advanced add servicebus process-events --project-root ./my-api --dry-run
 ```
 
 일반적인 확장 흐름:
 
-1. `azure-functions-scaffold add <trigger> <name>`으로 트리거를 추가합니다.
+1. `afs api add <name>` 또는 `afs advanced add <trigger> <name>`으로 트리거를 추가합니다.
 2. `app/services` 아래에 비즈니스 로직을 구현합니다.
 3. 필요하면 `app/schemas`의 계약을 업데이트합니다.
 4. `tests`에 테스트를 추가하거나 업데이트합니다.

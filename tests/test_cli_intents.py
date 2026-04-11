@@ -8,6 +8,7 @@ import pytest
 from typer.testing import CliRunner
 
 from azure_functions_scaffold.cli import app
+from azure_functions_scaffold.template_registry import INTENT_SPECS, list_presets, list_templates
 
 runner = CliRunner()
 
@@ -29,7 +30,7 @@ class TestApiNew:
         function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
         http_text = (project_dir / "app/functions/http.py").read_text(encoding="utf-8")
         makefile_text = (project_dir / "Makefile").read_text(encoding="utf-8")
-        # api profile: strict preset + openapi + validation + doctor
+        # api intent: strict preset + openapi + validation + doctor
         assert "azure-functions-openapi>=0.13.0" in pyproject_text
         assert "azure-functions-validation>=0.5.0" in pyproject_text
         assert "azure-functions-doctor>=0.15.0" in pyproject_text
@@ -42,33 +43,6 @@ class TestApiNew:
         assert not (project_dir / "azure.yaml").exists()
         # no db by default
         assert "azure-functions-db" not in pyproject_text
-
-    def test_equivalent_to_profile_api(self, tmp_path: Path) -> None:
-        """``afs api new`` must produce identical output to ``afs new --profile api``."""
-        api_dir = tmp_path / "via-api"
-        api_dir.mkdir()
-        result_api = runner.invoke(
-            app, ["api", "new", "my-api", "--destination", str(api_dir)]
-        )
-        assert result_api.exit_code == 0
-
-        legacy_dir = tmp_path / "via-legacy"
-        legacy_dir.mkdir()
-        result_legacy = runner.invoke(
-            app, ["new", "my-api", "--destination", str(legacy_dir), "--profile", "api"]
-        )
-        assert result_legacy.exit_code == 0
-
-        # Compare key generated files
-        for rel_path in [
-            "pyproject.toml",
-            "function_app.py",
-            "app/functions/http.py",
-            "Makefile",
-        ]:
-            api_content = (api_dir / "my-api" / rel_path).read_text(encoding="utf-8")
-            legacy_content = (legacy_dir / "my-api" / rel_path).read_text(encoding="utf-8")
-            assert api_content == legacy_content, f"Mismatch in {rel_path}"
 
     def test_with_azd_flag(self, tmp_path: Path) -> None:
         result = runner.invoke(
@@ -125,7 +99,7 @@ class TestApiCrud:
         project_dir = tmp_path / "my-crud"
         pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
         function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
-        # crud = api profile + db
+        # crud = api + db
         assert "azure-functions-openapi>=0.13.0" in pyproject_text
         assert "azure-functions-validation>=0.5.0" in pyproject_text
         assert "azure-functions-doctor>=0.15.0" in pyproject_text
@@ -133,27 +107,6 @@ class TestApiCrud:
         assert "mypy>=1.17.1" in pyproject_text
         assert (project_dir / "app/functions/db_items.py").exists()
         assert "db_items_blueprint" in function_app_text
-
-    def test_equivalent_to_profile_db_api(self, tmp_path: Path) -> None:
-        """``afs api crud`` must produce identical output to ``afs new --profile db-api``."""
-        crud_dir = tmp_path / "via-crud"
-        crud_dir.mkdir()
-        result_crud = runner.invoke(
-            app, ["api", "crud", "my-api", "--destination", str(crud_dir)]
-        )
-        assert result_crud.exit_code == 0
-
-        legacy_dir = tmp_path / "via-legacy"
-        legacy_dir.mkdir()
-        result_legacy = runner.invoke(
-            app, ["new", "my-api", "--destination", str(legacy_dir), "--profile", "db-api"]
-        )
-        assert result_legacy.exit_code == 0
-
-        for rel_path in ["pyproject.toml", "function_app.py"]:
-            crud_content = (crud_dir / "my-api" / rel_path).read_text(encoding="utf-8")
-            legacy_content = (legacy_dir / "my-api" / rel_path).read_text(encoding="utf-8")
-            assert crud_content == legacy_content, f"Mismatch in {rel_path}"
 
 
 # ---------------------------------------------------------------------------
@@ -245,14 +198,15 @@ class TestWorker:
         assert not (tmp_path / "my-worker").exists()
 
     def test_worker_with_azd(self, tmp_path: Path) -> None:
+        """Regression: --azd flag must produce azure.yaml for worker commands."""
         result = runner.invoke(
             app,
             ["worker", "timer", "azd-job", "--destination", str(tmp_path), "--azd"],
         )
         assert result.exit_code == 0
-        # Worker builder currently doesn't pass azd through; verify no crash
         project_dir = tmp_path / "azd-job"
         assert project_dir.exists()
+        assert (project_dir / "azure.yaml").exists()
 
 
 # ---------------------------------------------------------------------------
@@ -282,6 +236,17 @@ class TestAiAgent:
         assert "Dry run: create project at" in result.stdout
         assert not (tmp_path / "my-agent").exists()
 
+    def test_ai_agent_with_azd(self, tmp_path: Path) -> None:
+        """Regression: --azd flag must produce azure.yaml for ai commands."""
+        result = runner.invoke(
+            app,
+            ["ai", "agent", "azd-agent", "--destination", str(tmp_path), "--azd"],
+        )
+        assert result.exit_code == 0
+        project_dir = tmp_path / "azd-agent"
+        assert project_dir.exists()
+        assert (project_dir / "azure.yaml").exists()
+
 
 # ---------------------------------------------------------------------------
 # afs advanced new / add
@@ -295,15 +260,6 @@ class TestAdvanced:
         )
         assert result.exit_code == 0
         assert (tmp_path / "my-api" / "function_app.py").exists()
-
-    def test_new_with_profile(self, tmp_path: Path) -> None:
-        result = runner.invoke(
-            app,
-            ["advanced", "new", "profiled", "--destination", str(tmp_path), "--profile", "api"],
-        )
-        assert result.exit_code == 0
-        pyproject_text = (tmp_path / "profiled" / "pyproject.toml").read_text(encoding="utf-8")
-        assert "azure-functions-openapi>=0.13.0" in pyproject_text
 
     def test_new_with_all_flags(self, tmp_path: Path) -> None:
         result = runner.invoke(
@@ -335,18 +291,6 @@ class TestAdvanced:
         )
         assert result.exit_code == 0
         assert "Dry run: create project at" in result.stdout
-
-    def test_new_rejects_unknown_profile(self, tmp_path: Path) -> None:
-        result = runner.invoke(
-            app,
-            [
-                "advanced", "new", "bad",
-                "--destination", str(tmp_path),
-                "--profile", "enterprise",
-            ],
-        )
-        assert result.exit_code == 1
-        assert "Unknown profile 'enterprise'" in result.stdout
 
     def test_add_function(self, tmp_path: Path) -> None:
         runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])
@@ -397,31 +341,89 @@ class TestAdvanced:
         assert "minimal:" in result.stdout
         assert "strict:" in result.stdout
 
-    def test_profiles_command(self) -> None:
-        result = runner.invoke(app, ["advanced", "profiles"])
-        assert result.exit_code == 0
-        assert "api:" in result.stdout
-        assert "db-api:" in result.stdout
-
 
 # ---------------------------------------------------------------------------
-# Legacy deprecation warnings
+# Legacy commands are removed
 # ---------------------------------------------------------------------------
 
 
-class TestLegacyDeprecation:
-    def test_legacy_new_emits_deprecation_warning(self, tmp_path: Path) -> None:
-        result = runner.invoke(app, ["new", "my-api", "--destination", str(tmp_path)])
-        assert result.exit_code == 0
-        # The project still works
-        assert (tmp_path / "my-api" / "function_app.py").exists()
+class TestLegacyRemoved:
+    def test_legacy_new_command_not_available(self) -> None:
+        result = runner.invoke(app, ["new", "my-api"])
+        assert result.exit_code != 0
+        assert "No such command" in result.stdout or "No such command" in (result.stderr or "")
 
-    def test_legacy_add_emits_deprecation_warning(self, tmp_path: Path) -> None:
-        runner.invoke(app, ["new", "my-api", "--destination", str(tmp_path)])
-        project_dir = tmp_path / "my-api"
+    def test_legacy_add_command_not_available(self) -> None:
+        result = runner.invoke(app, ["add", "http", "get-user"])
+        assert result.exit_code != 0
+        assert "No such command" in result.stdout or "No such command" in (result.stderr or "")
 
-        result = runner.invoke(
-            app, ["add", "http", "get-user", "--project-root", str(project_dir)]
+    def test_legacy_profiles_command_not_available(self) -> None:
+        result = runner.invoke(app, ["profiles"])
+        assert result.exit_code != 0
+        assert "No such command" in result.stdout or "No such command" in (result.stderr or "")
+
+
+# ---------------------------------------------------------------------------
+# INTENT_SPECS completeness
+# ---------------------------------------------------------------------------
+
+
+class TestIntentSpecsCompleteness:
+    """Verify every INTENT_SPECS entry references a valid template and preset."""
+
+    @pytest.mark.parametrize("intent_key", list(INTENT_SPECS.keys()))
+    def test_intent_spec_references_valid_template(self, intent_key: str) -> None:
+        spec = INTENT_SPECS[intent_key]
+        template_names = {t.name for t in list_templates()}
+        assert spec.template in template_names, (
+            f"Intent '{intent_key}' references unknown template '{spec.template}'"
         )
-        assert result.exit_code == 0
-        assert (project_dir / "app/functions/get_user.py").exists()
+
+    @pytest.mark.parametrize("intent_key", list(INTENT_SPECS.keys()))
+    def test_intent_spec_references_valid_preset(self, intent_key: str) -> None:
+        spec = INTENT_SPECS[intent_key]
+        preset_names = {p.name for p in list_presets()}
+        assert spec.preset in preset_names, (
+            f"Intent '{intent_key}' references unknown preset '{spec.preset}'"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Error path tests
+# ---------------------------------------------------------------------------
+
+
+class TestErrorPaths:
+    """Verify invalid inputs produce clean CLI errors, not raw tracebacks."""
+
+    def test_api_new_rejects_invalid_python_version(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app, ["api", "new", "bad", "--destination", str(tmp_path), "--python-version", "3.9"]
+        )
+        assert result.exit_code == 1
+        assert "Unsupported Python version" in result.stdout
+
+    def test_advanced_new_rejects_invalid_preset(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app,
+            ["advanced", "new", "bad", "--destination", str(tmp_path), "--preset", "enterprise"],
+        )
+        assert result.exit_code == 1
+        assert "Unknown preset" in result.stdout
+
+    def test_advanced_new_rejects_invalid_python_version(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app,
+            ["advanced", "new", "bad", "--destination", str(tmp_path), "--python-version", "2.7"],
+        )
+        assert result.exit_code == 1
+        assert "Unsupported Python version" in result.stdout
+
+    def test_advanced_new_rejects_invalid_template(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app,
+            ["advanced", "new", "bad", "--destination", str(tmp_path), "--template", "graphql"],
+        )
+        assert result.exit_code == 1
+        assert "Unknown template" in result.stdout

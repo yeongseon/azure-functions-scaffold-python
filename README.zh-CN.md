@@ -23,18 +23,17 @@
 - Azure Functions Python **v2 编程模型**
 - 基于装饰器的 `func.FunctionApp()` 应用
 - CLI 驱动的项目生成与扩展
-- HTTP、Timer、Queue、Blob 和 Service Bus 触发器模板
+- HTTP、Timer、Queue、Blob、Service Bus 和 LangGraph 触发器模板
 
 此工具用于生成项目脚手架，**不**提供运行时库。
 
 ## 功能
 
-- 用于项目生成的 `azure-functions-scaffold new` 命令
-- 5 个内置模板: HTTP、Timer、Queue、Blob、Service Bus
-- 用于扩展现有项目的 `azure-functions-scaffold add` 命令
-- 可选集成: `--with-openapi`、`--with-validation`、`--with-doctor`
+- 意图驱动的生成命令: `afs api new`、`afs api crud`、`afs worker <trigger>`、`afs ai agent`
+- 项目扩展命令: `afs api add`、`afs advanced add`
+- 可选集成: `--with-openapi`、`--with-validation`、`--with-doctor`、`--with-db`
 - 预设工具级别: `--preset minimal|standard|strict`
-- 通过 `--interactive` 进行引导式设置
+- 面向高级用户的细粒度参数控制: `afs advanced new`
 - 短别名: `afs` 可替代 `azure-functions-scaffold`
 
 ## 安装
@@ -53,7 +52,7 @@ pip install azure-functions-scaffold
 4. 启动本地 Functions 运行时。
 
 ```bash
-azure-functions-scaffold new my-api
+afs api new my-api
 cd my-api
 pip install -e .
 func start
@@ -107,11 +106,11 @@ my-api/
 
 | 模板 | 命令 | 使用场景 |
 | --- | --- | --- |
-| http | `azure-functions-scaffold new my-api` | REST API、Webhook |
-| timer | `azure-functions-scaffold new my-job --template timer` | 定时任务、Cron |
-| queue | `azure-functions-scaffold new my-worker --template queue` | 消息处理 (Azurite) |
-| blob | `azure-functions-scaffold new my-blob --template blob` | 文件处理 (Azurite) |
-| servicebus | `azure-functions-scaffold new my-bus --template servicebus` | 企业消息传递 |
+| http | `afs api new my-api` | REST API、Webhook |
+| timer | `afs worker timer my-job` | 定时任务、Cron |
+| queue | `afs worker queue my-worker` | 消息处理 (Azurite) |
+| blob | `afs worker blob my-blob` | 文件处理 (Azurite) |
+| servicebus | `afs worker servicebus my-bus` | 企业消息传递 |
 
 注意: `afs` 是 `azure-functions-scaffold` 的简称。两者都可用。
 
@@ -128,15 +127,18 @@ my-api/
 - `--with-openapi` - Swagger UI + OpenAPI 规范端点
 - `--with-validation` - Pydantic 请求/响应校验
 - `--with-doctor` - 健康检查诊断
+- `--with-db` - 数据库绑定 (SQLAlchemy)
 - `--preset minimal|standard|strict` - 工具配置等级
-- `--interactive` - 引导式项目设置
+
+意图驱动命令会预先选择常见功能组合。如果需要直接控制参数，请使用 `afs advanced new <name>`。
 
 组合示例:
 
 ```bash
-azure-functions-scaffold new my-api --preset strict --with-validation
-azure-functions-scaffold new my-api --with-openapi --with-validation
-azure-functions-scaffold new my-api --template timer --preset minimal
+afs api new my-api --preset strict --with-validation
+afs api crud my-api --preset standard
+afs worker timer my-job --preset minimal
+afs advanced new my-api --with-openapi --with-validation
 ```
 
 ## 扩展项目
@@ -144,22 +146,22 @@ azure-functions-scaffold new my-api --template timer --preset minimal
 向现有脚手架项目添加函数:
 
 ```bash
-azure-functions-scaffold add http get-user --project-root ./my-api
-azure-functions-scaffold add timer cleanup --project-root ./my-api
-azure-functions-scaffold add queue sync-jobs --project-root ./my-api
-azure-functions-scaffold add blob ingest-reports --project-root ./my-api
-azure-functions-scaffold add servicebus process-events --project-root ./my-api
+afs api add get-user --project-root ./my-api
+afs advanced add timer cleanup --project-root ./my-api
+afs advanced add queue sync-jobs --project-root ./my-api
+afs advanced add blob ingest-reports --project-root ./my-api
+afs advanced add servicebus process-events --project-root ./my-api
 ```
 
 在写入文件前预览新增内容:
 
 ```bash
-azure-functions-scaffold add servicebus process-events --project-root ./my-api --dry-run
+afs advanced add servicebus process-events --project-root ./my-api --dry-run
 ```
 
 常见扩展流程:
 
-1. 使用 `azure-functions-scaffold add <trigger> <name>` 添加触发器。
+1. 使用 `afs api add <name>` 或 `afs advanced add <trigger> <name>` 添加触发器。
 2. 在 `app/services` 下实现业务逻辑。
 3. 必要时更新 `app/schemas` 中的契约。
 4. 在 `tests` 中新增或更新测试。
