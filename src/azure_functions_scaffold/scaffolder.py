@@ -68,7 +68,6 @@ def scaffold_project(
             include_validation=context.include_validation,
             include_doctor=context.include_doctor,
             include_azd=context.include_azd,
-            include_db=context.include_db,
         )
         rendered_content = _normalize_rendered_content(
             template_name=template.name,
@@ -120,8 +119,6 @@ def describe_scaffold_project(
         lines.append("Doctor: enabled")
     if context.include_azd:
         lines.append("Azure Developer CLI (azd): enabled")
-    if context.include_db:
-        lines.append("Database: enabled")
 
     lines.append("Files:")
     for template_path in _iter_template_files(template.root):
@@ -152,7 +149,6 @@ def build_template_context(project_name: str, options: ProjectOptions) -> Templa
         include_validation=options.include_validation,
         include_doctor=options.include_doctor,
         include_azd=options.include_azd,
-        include_db=options.include_db,
     )
 
 
@@ -192,9 +188,6 @@ def _should_render_template(relative_path: Path, context: TemplateContext) -> bo
         return False
 
     if relative_path.parts[0] == "infra" and not context.include_azd:
-        return False
-
-    if "db_items" in str(relative_path) and not context.include_db:
         return False
 
     return True

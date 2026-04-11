@@ -50,31 +50,6 @@ def api_new(
     )
 
 
-@api_app.command("crud")
-def api_crud(
-    project_name: str = typer.Argument(..., help="Directory name for the new project."),
-    destination: DestinationOption = Path("."),
-    python_version: PythonVersionOption = "3.10",
-    include_github_actions: GithubActionsOption = False,
-    initialize_git: GitOption = False,
-    include_azd: AzdOption = False,
-    dry_run: DryRunOption = False,
-    overwrite: OverwriteOption = False,
-) -> None:
-    """Create a CRUD API project with OpenAPI, validation, doctor, and database bindings."""
-    run_intent(
-        "api/crud",
-        project_name,
-        destination=destination,
-        python_version=python_version,
-        include_github_actions=include_github_actions,
-        initialize_git=initialize_git,
-        include_azd=include_azd,
-        dry_run=dry_run,
-        overwrite=overwrite,
-    )
-
-
 @api_app.command("add")
 def api_add(
     function_name: str = typer.Argument(..., help="Function name to add."),

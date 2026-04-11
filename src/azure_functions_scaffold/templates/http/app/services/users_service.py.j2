@@ -1,0 +1,47 @@
+from __future__ import annotations
+
+import uuid
+
+
+class UsersStore:
+    """In-memory user store for demonstration purposes.
+
+    Replace with a real database in production.
+    """
+
+    def __init__(self) -> None:
+        self._users: dict[str, dict[str, str]] = {}
+
+    def list_all(self) -> list[dict[str, str]]:
+        return list(self._users.values())
+
+    def get(self, user_id: str) -> dict[str, str] | None:
+        return self._users.get(user_id)
+
+    def create(self, name: str, email: str) -> dict[str, str]:
+        user_id = uuid.uuid4().hex[:8]
+        user = {"id": user_id, "name": name, "email": email}
+        self._users[user_id] = user
+        return user
+
+    def update(
+        self,
+        user_id: str,
+        *,
+        name: str | None = None,
+        email: str | None = None,
+    ) -> dict[str, str] | None:
+        user = self._users.get(user_id)
+        if user is None:
+            return None
+        if name is not None:
+            user["name"] = name
+        if email is not None:
+            user["email"] = email
+        return user
+
+    def delete(self, user_id: str) -> bool:
+        return self._users.pop(user_id, None) is not None
+
+
+users_store = UsersStore()

@@ -97,13 +97,6 @@ def advanced_new(
             help="Include azure-functions-doctor health checks.",
         ),
     ] = False,
-    with_db: Annotated[
-        bool,
-        typer.Option(
-            "--with-db/--no-db",
-            help="Include database bindings support (azure-functions-db).",
-        ),
-    ] = False,
     with_azd: AzdOption = False,
     dry_run: DryRunOption = False,
     overwrite: OverwriteOption = False,
@@ -119,7 +112,6 @@ def advanced_new(
             include_validation=with_validation,
             include_doctor=with_doctor,
             include_azd=with_azd,
-            include_db=with_db,
         )
     except ScaffoldError as exc:
         typer.secho(str(exc), fg=typer.colors.RED)

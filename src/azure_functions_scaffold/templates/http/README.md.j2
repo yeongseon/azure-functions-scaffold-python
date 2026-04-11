@@ -27,13 +27,23 @@ Validation: enabled — request/response models validated via `azure-functions-v
 .
 ├── function_app.py
 ├── app/
-│   ├── functions/http.py
-{% if include_db %}│   ├── functions/db_items.py
-{% endif %}
-│   ├── schemas/request_models.py
-│   ├── services/hello_service.py
-│   └── core/logging.py
-└── {host.json, local.settings.json.example, .funcignore}
+│   ├── core/
+│   │   ├── config.py
+│   │   └── logging.py
+│   ├── dependencies/
+│   │   └── __init__.py
+│   ├── functions/
+│   │   ├── health.py
+│   │   └── users.py
+│   ├── schemas/
+│   │   ├── health.py
+│   │   └── users.py
+│   └── services/
+│       ├── health_service.py
+│       └── users_service.py
+└── tests/
+    ├── test_health.py
+    └── test_users.py
 ```
 
 ## Configuration
@@ -41,21 +51,14 @@ Validation: enabled — request/response models validated via `azure-functions-v
 - `.funcignore` controls files excluded from local packaging/deployment.
 - `host.json` defines Azure Functions host-level runtime configuration.
 - `local.settings.json.example` documents required local app settings.
+- `app/core/config.py` reads application settings from environment variables.
 
 {% if include_validation %}
 ## Validation
 
 Request and response payloads are validated with `azure-functions-validation`.
-Schemas are defined with `pydantic` models in `app/schemas/request_models.py`.
+Schemas are defined with `pydantic` models in `app/schemas/users.py`.
 Invalid requests return structured 4xx errors before service logic executes.
-{% endif %}
-
-{% if include_db %}
-## Database
-
-The `db_items` endpoint provides a basic CRUD surface for item records.
-Persistence and connection handling are managed through `azure-functions-db`.
-Use this route as a reference for data-access patterns in other functions.
 {% endif %}
 
 {% if include_doctor %}
@@ -64,6 +67,22 @@ Use this route as a reference for data-access patterns in other functions.
 The doctor endpoint exposes a lightweight runtime health signal.
 Use it to verify app startup, dependency wiring, and basic readiness.
 It is intended for local checks and platform health probes.
+{% endif %}
+
+## Endpoints
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/api/health` | Health check |
+| GET | `/api/users` | List all users |
+| GET | `/api/users/{user_id}` | Get user by ID |
+| POST | `/api/users` | Create a new user |
+| PUT | `/api/users/{user_id}` | Update a user |
+| DELETE | `/api/users/{user_id}` | Delete a user |
+{% if include_openapi %}
+| GET | `/api/docs` | Swagger UI |
+| GET | `/api/openapi.json` | OpenAPI JSON schema |
+| GET | `/api/openapi.yaml` | OpenAPI YAML schema |
 {% endif %}
 
 ## Development

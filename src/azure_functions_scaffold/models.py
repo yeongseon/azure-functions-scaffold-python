@@ -20,7 +20,6 @@ class TemplateContext:
     include_validation: bool
     include_doctor: bool
     include_azd: bool
-    include_db: bool
 
 
 @dataclass(frozen=True)
@@ -57,4 +56,3 @@ class ProjectOptions:
     include_validation: bool
     include_doctor: bool
     include_azd: bool
-    include_db: bool

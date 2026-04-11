@@ -1,0 +1,35 @@
+from __future__ import annotations
+{% if include_validation %}
+from pydantic import BaseModel
+
+
+class CreateUserRequest(BaseModel):
+    name: str
+    email: str
+
+
+class UpdateUserRequest(BaseModel):
+    name: str | None = None
+    email: str | None = None
+
+
+class UserResponse(BaseModel):
+    id: str
+    name: str
+    email: str
+{%- else %}
+from dataclasses import dataclass
+
+
+@dataclass(slots=True)
+class CreateUserRequest:
+    name: str
+    email: str
+
+
+@dataclass(slots=True)
+class UserResponse:
+    id: str
+    name: str
+    email: str
+{%- endif %}

@@ -102,7 +102,6 @@ def test_build_template_context_creates_slug() -> None:
         include_validation=False,
         include_doctor=False,
         include_azd=False,
-        include_db=False,
     )
 
 
@@ -139,7 +138,6 @@ def test_render_path_strips_jinja_suffix_and_replaces_placeholders() -> None:
         include_validation=False,
         include_doctor=False,
         include_azd=False,
-        include_db=False,
     )
 
     rendered = _render_path(Path("__project_name__/README.md.j2"), context)
@@ -224,7 +222,7 @@ def test_scaffold_project_renders_template_option(tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("template_name", "expected_function", "expected_service"),
     [
-        ("http", "app/functions/http.py", "app/services/hello_service.py"),
+        ("http", "app/functions/health.py", "app/services/health_service.py"),
         ("timer", "app/functions/timer.py", "app/services/maintenance_service.py"),
         ("queue", "app/functions/queue.py", "app/services/queue_service.py"),
         ("blob", "app/functions/blob.py", "app/services/blob_service.py"),
@@ -561,71 +559,6 @@ def test_describe_scaffold_project_excludes_azd_when_disabled(tmp_path: Path) ->
 
 
 
-def test_scaffold_project_with_db_generates_db_items(tmp_path: Path) -> None:
-    project_path = scaffold_project(
-        "db-sample",
-        tmp_path,
-        template_name="http",
-        options=build_project_options(
-            preset_name="standard",
-            python_version="3.10",
-            include_github_actions=False,
-            initialize_git=False,
-            include_db=True,
-        ),
-    )
-
-    assert (project_path / "app/functions/db_items.py").exists()
-    assert (project_path / "tests/test_db_items.py").exists()
-    function_app_text = (project_path / "function_app.py").read_text(encoding="utf-8")
-    assert "from app.functions.db_items import db_items_blueprint" in function_app_text
-    assert "app.register_functions(db_items_blueprint)" in function_app_text
-    pyproject_text = (project_path / "pyproject.toml").read_text(encoding="utf-8")
-    assert "azure-functions-db[postgres]>=0.2.0" in pyproject_text
-    local_settings = (project_path / "local.settings.json.example").read_text(encoding="utf-8")
-    assert "DB_URL" in local_settings
-
-
-def test_scaffold_project_without_db_excludes_db_items(tmp_path: Path) -> None:
-    project_path = scaffold_project(
-        "no-db-sample",
-        tmp_path,
-        template_name="http",
-        options=build_project_options(
-            preset_name="standard",
-            python_version="3.10",
-            include_github_actions=False,
-            initialize_git=False,
-            include_db=False,
-        ),
-    )
-
-    assert not (project_path / "app/functions/db_items.py").exists()
-    assert not (project_path / "tests/test_db_items.py").exists()
-    function_app_text = (project_path / "function_app.py").read_text(encoding="utf-8")
-    assert "db_items_blueprint" not in function_app_text
-    pyproject_text = (project_path / "pyproject.toml").read_text(encoding="utf-8")
-    assert "azure-functions-db" not in pyproject_text
-
-
-def test_describe_scaffold_project_reports_db_when_enabled(tmp_path: Path) -> None:
-    lines = describe_scaffold_project(
-        "sample",
-        tmp_path,
-        template_name="http",
-        options=build_project_options(
-            preset_name="standard",
-            python_version="3.10",
-            include_github_actions=False,
-            initialize_git=False,
-            include_db=True,
-        ),
-    )
-
-    assert "Database: enabled" in lines
-    assert "  - app/functions/db_items.py" in lines
-
-
 def test_scaffold_project_renders_langgraph_template(tmp_path: Path) -> None:
     project_path = scaffold_project(
         "agent-sample",
@@ -650,5 +583,3 @@ def test_scaffold_project_renders_langgraph_template(tmp_path: Path) -> None:
     pyproject_text = (project_path / "pyproject.toml").read_text(encoding="utf-8")
     assert "azure-functions-langgraph>=0.5.1" in pyproject_text
     assert "langgraph>=0.2.0" in pyproject_text
-
-

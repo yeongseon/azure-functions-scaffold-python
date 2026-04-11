@@ -61,13 +61,11 @@ def _get_sdist_includes(pyproject_data: dict[str, object]) -> list[str]:
         "include_openapi",
         "include_validation",
         "include_doctor",
-        "include_db",
     ),
     [
-        ("http", "strict", True, True, True, False),
-        ("http", "standard", False, False, False, False),
-        ("http", "strict", False, False, False, True),
-        ("timer", "standard", False, False, False, False),
+        ("http", "strict", True, True, True),
+        ("http", "standard", False, False, False),
+        ("timer", "standard", False, False, False),
     ],
 )
 def test_scaffolded_templates_produce_parseable_python_and_toml(
@@ -77,14 +75,12 @@ def test_scaffolded_templates_produce_parseable_python_and_toml(
     include_openapi: bool,
     include_validation: bool,
     include_doctor: bool,
-    include_db: bool,
 ) -> None:
     project_name = (
         f"{template_name}-{preset_name}-"
         f"openapi-{int(include_openapi)}-"
         f"validation-{int(include_validation)}-"
-        f"doctor-{int(include_doctor)}-"
-        f"db-{int(include_db)}"
+        f"doctor-{int(include_doctor)}"
     )
     options = build_project_options(
         preset_name=preset_name,
@@ -94,7 +90,6 @@ def test_scaffolded_templates_produce_parseable_python_and_toml(
         include_openapi=include_openapi,
         include_validation=include_validation,
         include_doctor=include_doctor,
-        include_db=include_db,
     )
     project_root = scaffold_project(
         project_name=project_name,
@@ -119,12 +114,10 @@ def test_scaffolded_templates_produce_parseable_python_and_toml(
         "include_openapi",
         "include_validation",
         "include_doctor",
-        "include_db",
     ),
     [
-        ("http", "strict", True, True, True, False),
-        ("http", "strict", False, False, False, True),
-        ("timer", "standard", False, False, False, False),
+        ("http", "strict", True, True, True),
+        ("timer", "standard", False, False, False),
     ],
 )
 def test_scaffolded_pyproject_sdist_includes_do_not_use_leading_slashes(
@@ -134,14 +127,12 @@ def test_scaffolded_pyproject_sdist_includes_do_not_use_leading_slashes(
     include_openapi: bool,
     include_validation: bool,
     include_doctor: bool,
-    include_db: bool,
 ) -> None:
     project_name = (
         f"sdist-{template_name}-{preset_name}-"
         f"openapi-{int(include_openapi)}-"
         f"validation-{int(include_validation)}-"
-        f"doctor-{int(include_doctor)}-"
-        f"db-{int(include_db)}"
+        f"doctor-{int(include_doctor)}"
     )
     options = build_project_options(
         preset_name=preset_name,
@@ -151,7 +142,6 @@ def test_scaffolded_pyproject_sdist_includes_do_not_use_leading_slashes(
         include_openapi=include_openapi,
         include_validation=include_validation,
         include_doctor=include_doctor,
-        include_db=include_db,
     )
     project_root = scaffold_project(
         project_name=project_name,
