@@ -1,0 +1,150 @@
+from __future__ import annotations
+
+import json
+
+import azure.functions as func
+
+from app.services.{{ resource_name }}_service import {{ resource_name }}_store
+
+{{ resource_name }}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
+
+
+# ---------------------------------------------------------------------------
+# GET /api/{{ route_name }} — list all {{ route_name }}
+# ---------------------------------------------------------------------------
+
+@{{ resource_name }}_blueprint.route(
+    route="{{ route_name }}",
+    methods=["GET"],
+    auth_level=func.AuthLevel.ANONYMOUS,
+)
+def list_{{ resource_name }}(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse(
+        body=json.dumps({{ resource_name }}_store.list_all()),
+        mimetype="application/json",
+        status_code=200,
+    )
+
+
+# ---------------------------------------------------------------------------
+# GET /api/{{ route_name }}/{item_id} — get a single {{ resource_singular }}
+# ---------------------------------------------------------------------------
+
+@{{ resource_name }}_blueprint.route(
+    route="{{ route_name }}/{item_id}",
+    methods=["GET"],
+    auth_level=func.AuthLevel.ANONYMOUS,
+)
+def get_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
+    item_id = req.route_params.get("item_id", "")
+    item = {{ resource_name }}_store.get(item_id)
+    if item is None:
+        return func.HttpResponse(
+            body=json.dumps({"error": "{{ resource_class }} not found"}),
+            mimetype="application/json",
+            status_code=404,
+        )
+    return func.HttpResponse(
+        body=json.dumps(item),
+        mimetype="application/json",
+        status_code=200,
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /api/{{ route_name }} — create a new {{ resource_singular }}
+# ---------------------------------------------------------------------------
+
+@{{ resource_name }}_blueprint.route(
+    route="{{ route_name }}",
+    methods=["POST"],
+    auth_level=func.AuthLevel.ANONYMOUS,
+)
+def create_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
+    try:
+        body = req.get_json()
+    except ValueError:
+        return func.HttpResponse(
+            body=json.dumps({"error": "Invalid JSON body"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+    if not isinstance(body, dict):
+        return func.HttpResponse(
+            body=json.dumps({"error": "Request body must be a JSON object"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+    name = body.get("name", "")
+    if not name:
+        return func.HttpResponse(
+            body=json.dumps({"error": "name is required"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+    item = {{ resource_name }}_store.create(name)
+    return func.HttpResponse(
+        body=json.dumps(item),
+        mimetype="application/json",
+        status_code=201,
+    )
+
+
+# ---------------------------------------------------------------------------
+# PUT /api/{{ route_name }}/{item_id} — update an existing {{ resource_singular }}
+# ---------------------------------------------------------------------------
+
+@{{ resource_name }}_blueprint.route(
+    route="{{ route_name }}/{item_id}",
+    methods=["PUT"],
+    auth_level=func.AuthLevel.ANONYMOUS,
+)
+def update_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
+    item_id = req.route_params.get("item_id", "")
+    try:
+        body = req.get_json()
+    except ValueError:
+        return func.HttpResponse(
+            body=json.dumps({"error": "Invalid JSON body"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+    if not isinstance(body, dict):
+        return func.HttpResponse(
+            body=json.dumps({"error": "Request body must be a JSON object"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+    item = {{ resource_name }}_store.update(item_id, name=body.get("name"))
+    if item is None:
+        return func.HttpResponse(
+            body=json.dumps({"error": "{{ resource_class }} not found"}),
+            mimetype="application/json",
+            status_code=404,
+        )
+    return func.HttpResponse(
+        body=json.dumps(item),
+        mimetype="application/json",
+        status_code=200,
+    )
+
+
+# ---------------------------------------------------------------------------
+# DELETE /api/{{ route_name }}/{item_id} — delete a {{ resource_singular }}
+# ---------------------------------------------------------------------------
+
+@{{ resource_name }}_blueprint.route(
+    route="{{ route_name }}/{item_id}",
+    methods=["DELETE"],
+    auth_level=func.AuthLevel.ANONYMOUS,
+)
+def delete_{{ resource_singular }}(req: func.HttpRequest) -> func.HttpResponse:
+    item_id = req.route_params.get("item_id", "")
+    deleted = {{ resource_name }}_store.delete(item_id)
+    if not deleted:
+        return func.HttpResponse(
+            body=json.dumps({"error": "{{ resource_class }} not found"}),
+            mimetype="application/json",
+            status_code=404,
+        )
+    return func.HttpResponse(status_code=204)

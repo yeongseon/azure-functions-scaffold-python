@@ -558,7 +558,6 @@ def test_describe_scaffold_project_excludes_azd_when_disabled(tmp_path: Path) ->
     assert "  - azure.yaml" not in lines
 
 
-
 def test_scaffold_project_renders_langgraph_template(tmp_path: Path) -> None:
     project_path = scaffold_project(
         "agent-sample",

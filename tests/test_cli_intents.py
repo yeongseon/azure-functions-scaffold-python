@@ -79,9 +79,13 @@ class TestApiNew:
         result = runner.invoke(
             app,
             [
-                "api", "new", "py312-api",
-                "--destination", str(tmp_path),
-                "--python-version", "3.12",
+                "api",
+                "new",
+                "py312-api",
+                "--destination",
+                str(tmp_path),
+                "--python-version",
+                "3.12",
             ],
         )
         assert result.exit_code == 0
@@ -100,9 +104,7 @@ class TestApiAdd:
         runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])
         project_dir = tmp_path / "my-api"
 
-        result = runner.invoke(
-            app, ["api", "add", "get-user", "--project-root", str(project_dir)]
-        )
+        result = runner.invoke(app, ["api", "add", "get-user", "--project-root", str(project_dir)])
         assert result.exit_code == 0
         assert (project_dir / "app/functions/get_user.py").exists()
         assert (project_dir / "tests/test_get_user.py").exists()
@@ -119,6 +121,83 @@ class TestApiAdd:
         assert result.exit_code == 0
         assert "Dry run:" in result.stdout
         assert not (project_dir / "app/functions/list_items.py").exists()
+
+
+class TestApiAddRoute:
+    def test_adds_route(self, tmp_path: Path) -> None:
+        runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])
+        project_dir = tmp_path / "my-api"
+
+        result = runner.invoke(
+            app, ["api", "add-route", "status", "--project-root", str(project_dir)]
+        )
+        assert result.exit_code == 0
+        assert (project_dir / "app/functions/status.py").exists()
+        assert (project_dir / "tests/test_status.py").exists()
+        function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+        assert "status_blueprint" in function_app_text
+
+    def test_dry_run(self, tmp_path: Path) -> None:
+        runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])
+        project_dir = tmp_path / "my-api"
+
+        result = runner.invoke(
+            app, ["api", "add-route", "status", "--project-root", str(project_dir), "--dry-run"]
+        )
+        assert result.exit_code == 0
+        assert "Dry run:" in result.stdout
+        assert not (project_dir / "app/functions/status.py").exists()
+
+    def test_rejects_existing_route(self, tmp_path: Path) -> None:
+        runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])
+        project_dir = tmp_path / "my-api"
+        runner.invoke(app, ["api", "add-route", "status", "--project-root", str(project_dir)])
+
+        result = runner.invoke(
+            app, ["api", "add-route", "status", "--project-root", str(project_dir)]
+        )
+        assert result.exit_code == 1
+        assert "already exists" in result.stdout
+
+
+class TestApiAddResource:
+    def test_adds_resource(self, tmp_path: Path) -> None:
+        runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])
+        project_dir = tmp_path / "my-api"
+
+        result = runner.invoke(
+            app, ["api", "add-resource", "products", "--project-root", str(project_dir)]
+        )
+        assert result.exit_code == 0
+        assert (project_dir / "app/functions/products.py").exists()
+        assert (project_dir / "app/services/products_service.py").exists()
+        assert (project_dir / "app/schemas/products.py").exists()
+        assert (project_dir / "tests/test_products.py").exists()
+        function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+        assert "products_blueprint" in function_app_text
+
+    def test_dry_run(self, tmp_path: Path) -> None:
+        runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])
+        project_dir = tmp_path / "my-api"
+
+        result = runner.invoke(
+            app,
+            ["api", "add-resource", "products", "--project-root", str(project_dir), "--dry-run"],
+        )
+        assert result.exit_code == 0
+        assert "Dry run:" in result.stdout
+        assert not (project_dir / "app/functions/products.py").exists()
+
+    def test_rejects_existing_resource(self, tmp_path: Path) -> None:
+        runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])
+        project_dir = tmp_path / "my-api"
+        runner.invoke(app, ["api", "add-resource", "products", "--project-root", str(project_dir)])
+
+        result = runner.invoke(
+            app, ["api", "add-resource", "products", "--project-root", str(project_dir)]
+        )
+        assert result.exit_code == 1
+        assert "already exists" in result.stdout
 
 
 # ---------------------------------------------------------------------------
@@ -157,9 +236,7 @@ class TestWorker:
         assert f"{template_name}_blueprint" in function_app_text
 
     def test_timer_uses_standard_preset(self, tmp_path: Path) -> None:
-        result = runner.invoke(
-            app, ["worker", "timer", "my-job", "--destination", str(tmp_path)]
-        )
+        result = runner.invoke(app, ["worker", "timer", "my-job", "--destination", str(tmp_path)])
         assert result.exit_code == 0
 
         project_dir = tmp_path / "my-job"
@@ -196,9 +273,7 @@ class TestWorker:
 
 class TestAiAgent:
     def test_creates_langgraph_project(self, tmp_path: Path) -> None:
-        result = runner.invoke(
-            app, ["ai", "agent", "my-agent", "--destination", str(tmp_path)]
-        )
+        result = runner.invoke(app, ["ai", "agent", "my-agent", "--destination", str(tmp_path)])
         assert result.exit_code == 0
 
         project_dir = tmp_path / "my-agent"
@@ -235,9 +310,7 @@ class TestAiAgent:
 
 class TestAdvanced:
     def test_new_creates_project(self, tmp_path: Path) -> None:
-        result = runner.invoke(
-            app, ["advanced", "new", "my-api", "--destination", str(tmp_path)]
-        )
+        result = runner.invoke(app, ["advanced", "new", "my-api", "--destination", str(tmp_path)])
         assert result.exit_code == 0
         assert (tmp_path / "my-api" / "function_app.py").exists()
 
@@ -245,9 +318,13 @@ class TestAdvanced:
         result = runner.invoke(
             app,
             [
-                "advanced", "new", "full-api",
-                "--destination", str(tmp_path),
-                "--preset", "strict",
+                "advanced",
+                "new",
+                "full-api",
+                "--destination",
+                str(tmp_path),
+                "--preset",
+                "strict",
                 "--with-openapi",
                 "--with-validation",
                 "--with-doctor",
@@ -288,8 +365,12 @@ class TestAdvanced:
         result = runner.invoke(
             app,
             [
-                "advanced", "add", "servicebus", "process-events",
-                "--project-root", str(project_dir),
+                "advanced",
+                "add",
+                "servicebus",
+                "process-events",
+                "--project-root",
+                str(project_dir),
                 "--dry-run",
             ],
         )
@@ -318,6 +399,67 @@ class TestAdvanced:
         assert result.exit_code == 0
         assert "minimal:" in result.stdout
         assert "strict:" in result.stdout
+
+
+class TestAdvancedAddRoute:
+    def test_adds_route(self, tmp_path: Path) -> None:
+        runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])
+        project_dir = tmp_path / "my-api"
+
+        result = runner.invoke(
+            app, ["advanced", "add-route", "status", "--project-root", str(project_dir)]
+        )
+        assert result.exit_code == 0
+        assert (project_dir / "app/functions/status.py").exists()
+        function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+        assert "status_blueprint" in function_app_text
+
+    def test_dry_run(self, tmp_path: Path) -> None:
+        runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])
+        project_dir = tmp_path / "my-api"
+
+        result = runner.invoke(
+            app,
+            ["advanced", "add-route", "status", "--project-root", str(project_dir), "--dry-run"],
+        )
+        assert result.exit_code == 0
+        assert "Dry run:" in result.stdout
+        assert not (project_dir / "app/functions/status.py").exists()
+
+
+class TestAdvancedAddResource:
+    def test_adds_resource(self, tmp_path: Path) -> None:
+        runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])
+        project_dir = tmp_path / "my-api"
+
+        result = runner.invoke(
+            app, ["advanced", "add-resource", "products", "--project-root", str(project_dir)]
+        )
+        assert result.exit_code == 0
+        assert (project_dir / "app/functions/products.py").exists()
+        assert (project_dir / "app/services/products_service.py").exists()
+        assert (project_dir / "app/schemas/products.py").exists()
+        function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
+        assert "products_blueprint" in function_app_text
+
+    def test_dry_run(self, tmp_path: Path) -> None:
+        runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])
+        project_dir = tmp_path / "my-api"
+
+        result = runner.invoke(
+            app,
+            [
+                "advanced",
+                "add-resource",
+                "products",
+                "--project-root",
+                str(project_dir),
+                "--dry-run",
+            ],
+        )
+        assert result.exit_code == 0
+        assert "Dry run:" in result.stdout
+        assert not (project_dir / "app/functions/products.py").exists()
 
 
 # ---------------------------------------------------------------------------

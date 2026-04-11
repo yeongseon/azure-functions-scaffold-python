@@ -1,0 +1,19 @@
+from __future__ import annotations
+
+import azure.functions as func
+
+from app.functions.{{ resource_name }} import {{ resource_name }}
+
+
+def test_{{ resource_name }}_returns_placeholder_response() -> None:
+    request = func.HttpRequest(
+        method="GET",
+        url="http://localhost/api/{{ route_name }}",
+        params={},
+        body=b"",
+    )
+
+    response = {{ resource_name }}(request)
+
+    assert response.status_code == 200
+    assert response.get_body() == b"TODO: implement {{ route_name }}"

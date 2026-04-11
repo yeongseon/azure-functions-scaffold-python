@@ -9,6 +9,7 @@ Usage:
     E2E_BASE_URL=https://<app>.azurewebsites.net pytest tests/e2e -v
     (BASE_URL is set by the workflow after deployment)
 """
+
 from __future__ import annotations
 
 import os
@@ -43,10 +44,12 @@ def warmup() -> None:
 
 # ── Scaffold generation tests (no Azure needed) ────────────────────────────
 
+
 @pytest.mark.skipif(not SCAFFOLDED_DIR, reason=SKIP_SCAFFOLD_REASON)
 def test_scaffolded_project_has_required_files() -> None:
     """Verify the scaffold CLI generated the expected file structure."""
     import pathlib
+
     root = pathlib.Path(SCAFFOLDED_DIR)
     assert (root / "function_app.py").exists(), "function_app.py missing"
     assert (root / "host.json").exists(), "host.json missing"
@@ -58,6 +61,7 @@ def test_scaffolded_project_has_required_files() -> None:
 def test_scaffolded_function_app_imports_cleanly() -> None:
     """Verify generated function_app.py is importable (syntax valid)."""
     import pathlib
+
     app_file = pathlib.Path(SCAFFOLDED_DIR) / "function_app.py"
     result = subprocess.run(
         [sys.executable, "-c", f"import ast; ast.parse(open('{app_file}').read())"],
@@ -68,6 +72,7 @@ def test_scaffolded_function_app_imports_cleanly() -> None:
 
 
 # ── Deployed app HTTP tests ────────────────────────────────────────────────
+
 
 @pytest.mark.skipif(not BASE_URL, reason=SKIP_REASON)
 def test_hello_endpoint_returns_200() -> None:

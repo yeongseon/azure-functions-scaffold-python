@@ -1,0 +1,17 @@
+from __future__ import annotations
+
+import azure.functions as func
+
+{{ resource_name }}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
+
+
+@{{ resource_name }}_blueprint.route(
+    route="{{ route_name }}",
+    methods=["GET"],
+    auth_level=func.AuthLevel.ANONYMOUS,
+)
+def {{ resource_name }}(req: func.HttpRequest) -> func.HttpResponse:
+    return func.HttpResponse(
+        body="TODO: implement {{ route_name }}",
+        status_code=200,
+    )
