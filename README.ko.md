@@ -89,15 +89,15 @@ my-api/
 |  |  `- __init__.py        # Shared dependencies
 |  |- functions/
 |  |  |- health.py          # Health check (Blueprint)
-|  |  `- users.py           # Users CRUD (Blueprint)
+|  |  `- webhooks.py        # Webhook receiver (Blueprint)
 |  |- schemas/
-|  |  `- users.py           # Pydantic request/response models
+|  |  `- webhooks.py        # Webhook request/response models
 |  `- services/
 |     |- health_service.py   # Health check logic
-|     `- users_service.py    # Users business logic
+|     `- webhook_service.py  # Webhook processing logic
 `- tests/
    |- test_health.py        # Health endpoint tests
-   `- test_users.py         # Users CRUD tests
+   `- test_webhooks.py      # Webhook endpoint tests
 ```
 
 이 구조가 효과적인 이유:
@@ -122,7 +122,7 @@ my-api/
 
 템플릿 기본값:
 
-- `http`: 상태 확인 엔드포인트와 사용자 CRUD 서비스 모듈.
+- `http`: 상태 확인 엔드포인트와 웹훅 수신기(HMAC 서명 검증 포함).
 - `timer`: NCRONTAB 표현식 설정을 사용하는 예약 트리거.
 - `queue`: 로컬 Azurite 개발에 바로 사용할 수 있는 Storage Queue 트리거.
 - `blob`: 파일 수집 파이프라인을 위한 Blob 트리거 스캐폴드.

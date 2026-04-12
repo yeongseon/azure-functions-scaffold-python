@@ -115,15 +115,15 @@ my-api/
 |  |  `- __init__.py        # Shared dependencies
 |  |- functions/
 |  |  |- health.py          # Health check (Blueprint)
-|  |  `- users.py           # Users CRUD (Blueprint)
+|  |  `- webhooks.py        # Webhook receiver (Blueprint)
 |  |- schemas/
-|  |  `- users.py           # Pydantic request/response models
+|  |  `- webhooks.py        # Webhook request/response models
 |  `- services/
 |     |- health_service.py   # Health check logic
-|     `- users_service.py    # Users business logic
+|     `- webhook_service.py  # Webhook processing logic
 `- tests/
    |- test_health.py        # Health endpoint tests
-   `- test_users.py         # Users CRUD tests
+   `- test_webhooks.py      # Webhook endpoint tests
 ```
 
 Why this layout works:
@@ -149,7 +149,7 @@ Note: `afs` is short for `azure-functions-scaffold`. Both work.
 
 Template defaults:
 
-- `http`: health endpoint and users CRUD with service layer.
+- `http`: health endpoint and webhook receiver with HMAC signature verification.
 - `timer`: scheduled trigger using NCRONTAB expression settings.
 - `queue`: Storage Queue trigger ready for local Azurite development.
 - `blob`: Blob trigger scaffold for file-ingestion pipelines.

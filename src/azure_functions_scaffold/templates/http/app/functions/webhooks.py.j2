@@ -1,0 +1,130 @@
+from __future__ import annotations
+
+import json
+import logging
+
+import azure.functions as func
+{%- if include_openapi %}
+from azure_functions_openapi.decorator import openapi
+{%- endif %}
+{%- if include_validation %}
+from pydantic import ValidationError
+{%- endif %}
+
+{% if include_validation -%}
+from app.schemas.webhooks import WebhookAcceptedResponse, WebhookEvent
+{% endif -%}
+from app.services.webhook_service import get_webhook_secret, verify_signature, webhook_store
+
+webhooks_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
+
+
+# ---------------------------------------------------------------------------
+# POST /api/webhooks/inbound — receive inbound webhook events
+# ---------------------------------------------------------------------------
+
+@webhooks_blueprint.route(
+    route="webhooks/inbound",
+    methods=["POST"],
+    auth_level=func.AuthLevel.ANONYMOUS,
+)
+{% if include_openapi -%}
+@openapi(
+    summary="Receive inbound webhook",
+    description="Accepts a webhook event for asynchronous processing. Returns 202 when the delivery is accepted.",
+    tags=["webhooks"],
+{%- if include_validation %}
+    request_model=WebhookEvent,
+    response_model=WebhookAcceptedResponse,
+    response={
+        202: {"description": "Webhook accepted for processing"},
+        400: {"description": "Invalid request payload"},
+        401: {"description": "Invalid webhook signature"},
+        422: {"description": "Request validation error"},
+    },
+{%- else %}
+    response={
+        202: {"description": "Webhook accepted for processing"},
+        400: {"description": "Invalid request payload"},
+        401: {"description": "Invalid webhook signature"},
+    },
+{%- endif %}
+)
+{% endif -%}
+def receive_webhook(req: func.HttpRequest) -> func.HttpResponse:
+    # --- Signature verification (must run before body parsing) ---
+    secret = get_webhook_secret()
+    if secret:
+        signature = req.headers.get("X-Signature", "")
+        if not verify_signature(req.get_body(), signature, secret):
+            logging.warning("Webhook signature verification failed")
+            return func.HttpResponse(
+                body=json.dumps({"error": "Invalid signature"}),
+                mimetype="application/json",
+                status_code=401,
+            )
+
+{%- if include_validation %}
+    # --- Body validation (after auth) ---
+    try:
+        raw = req.get_json()
+    except ValueError:
+        return func.HttpResponse(
+            body=json.dumps({"error": "Invalid JSON body"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+
+    try:
+        event = WebhookEvent(**raw) if isinstance(raw, dict) else WebhookEvent.model_validate(raw)
+    except (ValidationError, TypeError) as exc:
+        return func.HttpResponse(
+            body=json.dumps({"error": "Validation error", "detail": str(exc)}),
+            mimetype="application/json",
+            status_code=422,
+        )
+
+    event_type = event.event_type
+    source = event.source
+    logging.info("Received webhook: event_type=%s source=%s", event_type, source)
+
+    entry = webhook_store.record(event_type, source)
+    return func.HttpResponse(
+        body=WebhookAcceptedResponse(**entry).model_dump_json(),
+        mimetype="application/json",
+        status_code=202,
+    )
+{%- else %}
+    try:
+        body = req.get_json()
+    except ValueError:
+        return func.HttpResponse(
+            body=json.dumps({"error": "Invalid JSON body"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+    if not isinstance(body, dict):
+        return func.HttpResponse(
+            body=json.dumps({"error": "Request body must be a JSON object"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+
+    event_type = body.get("event_type", "")
+    source = body.get("source", "")
+    if not event_type or not source:
+        return func.HttpResponse(
+            body=json.dumps({"error": "event_type and source are required"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+
+    logging.info("Received webhook: event_type=%s source=%s", event_type, source)
+
+    entry = webhook_store.record(event_type, source)
+    return func.HttpResponse(
+        body=json.dumps(entry),
+        mimetype="application/json",
+        status_code=202,
+    )
+{%- endif %}

@@ -8,7 +8,7 @@ from azure_functions_openapi.swagger_ui import render_swagger_ui
 
 from app.core.logging import configure_logging
 from app.functions.health import health_blueprint
-from app.functions.users import users_blueprint
+from app.functions.webhooks import webhooks_blueprint
 
 # azure-functions-scaffold: function imports
 
@@ -17,7 +17,7 @@ configure_logging()
 app = func.FunctionApp()
 # azure-functions-scaffold: function registrations
 app.register_functions(health_blueprint)
-app.register_functions(users_blueprint)
+app.register_functions(webhooks_blueprint)
 {%- if include_openapi %}
 
 

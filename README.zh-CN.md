@@ -89,15 +89,15 @@ my-api/
 |  |  `- __init__.py        # Shared dependencies
 |  |- functions/
 |  |  |- health.py          # Health check (Blueprint)
-|  |  `- users.py           # Users CRUD (Blueprint)
+|  |  `- webhooks.py        # Webhook receiver (Blueprint)
 |  |- schemas/
-|  |  `- users.py           # Pydantic request/response models
+|  |  `- webhooks.py        # Webhook request/response models
 |  `- services/
 |     |- health_service.py   # Health check logic
-|     `- users_service.py    # Users business logic
+|     `- webhook_service.py  # Webhook processing logic
 `- tests/
    |- test_health.py        # Health endpoint tests
-   `- test_users.py         # Users CRUD tests
+   `- test_webhooks.py      # Webhook endpoint tests
 ```
 
 此布局的优势:
@@ -122,7 +122,7 @@ my-api/
 
 模板默认值:
 
-- `http`: 健康检查端点和用户 CRUD 服务模块。
+- `http`: 健康检查端点和 Webhook 接收器（支持 HMAC 签名验证）。
 - `timer`: 使用 NCRONTAB 表达式设置的定时触发器。
 - `queue`: 为本地 Azurite 开发准备好的 Storage Queue 触发器。
 - `blob`: 用于文件摄取流水线的 Blob 触发器脚手架。

@@ -343,18 +343,18 @@ my-api/
 |  |- functions/
 |  |  |- __init__.py
 |  |  |- health.py
-|  |  `- users.py
+|  |  `- webhooks.py
 |  |- schemas/
 |  |  |- __init__.py
-|  |  `- users.py
+|  |  `- webhooks.py
 |  `- services/
 |     |- __init__.py
 |     |- health_service.py
-|     `- users_service.py
+|     `- webhook_service.py
 `- tests/
    |- __init__.py
    |- test_health.py
-   `- test_users.py
+   `- test_webhooks.py
 ```
 
 ### Worker scaffolds

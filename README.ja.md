@@ -89,15 +89,15 @@ my-api/
 |  |  `- __init__.py        # Shared dependencies
 |  |- functions/
 |  |  |- health.py          # Health check (Blueprint)
-|  |  `- users.py           # Users CRUD (Blueprint)
+|  |  `- webhooks.py        # Webhook receiver (Blueprint)
 |  |- schemas/
-|  |  `- users.py           # Pydantic request/response models
+|  |  `- webhooks.py        # Webhook request/response models
 |  `- services/
 |     |- health_service.py   # Health check logic
-|     `- users_service.py    # Users business logic
+|     `- webhook_service.py  # Webhook processing logic
 `- tests/
    |- test_health.py        # Health endpoint tests
-   `- test_users.py         # Users CRUD tests
+   `- test_webhooks.py      # Webhook endpoint tests
 ```
 
 このレイアウトが機能する理由:
@@ -122,7 +122,7 @@ my-api/
 
 テンプレートの既定値:
 
-- `http`: ヘルスチェックエンドポイントとユーザー CRUD サービスモジュール。
+- `http`: ヘルスチェックエンドポイントとWebhookレシーバー（HMAC署名検証付き）。
 - `timer`: NCRONTAB 式設定を使用するスケジュールトリガー。
 - `queue`: ローカル Azurite 開発向けに準備された Storage Queue トリガー。
 - `blob`: ファイル取り込みパイプライン向け Blob トリガースキャフォールド。

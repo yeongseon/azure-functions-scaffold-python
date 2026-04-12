@@ -34,16 +34,16 @@ Validation: enabled — request/response models validated via `azure-functions-v
 │   │   └── __init__.py
 │   ├── functions/
 │   │   ├── health.py
-│   │   └── users.py
+│   │   └── webhooks.py
 │   ├── schemas/
 │   │   ├── health.py
-│   │   └── users.py
+│   │   └── webhooks.py
 │   └── services/
 │       ├── health_service.py
-│       └── users_service.py
+│       └── webhook_service.py
 └── tests/
     ├── test_health.py
-    └── test_users.py
+    └── test_webhooks.py
 ```
 
 ## Configuration
@@ -57,7 +57,7 @@ Validation: enabled — request/response models validated via `azure-functions-v
 ## Validation
 
 Request and response payloads are validated with `azure-functions-validation`.
-Schemas are defined with `pydantic` models in `app/schemas/users.py`.
+Schemas are defined with `pydantic` models in `app/schemas/webhooks.py`.
 Invalid requests return structured 4xx errors before service logic executes.
 {% endif %}
 
@@ -74,11 +74,7 @@ It is intended for local checks and platform health probes.
 | Method | Route | Description |
 |--------|-------|-------------|
 | GET | `/api/health` | Health check |
-| GET | `/api/users` | List all users |
-| GET | `/api/users/{user_id}` | Get user by ID |
-| POST | `/api/users` | Create a new user |
-| PUT | `/api/users/{user_id}` | Update a user |
-| DELETE | `/api/users/{user_id}` | Delete a user |
+| POST | `/api/webhooks/inbound` | Receive inbound webhook event |
 {% if include_openapi %}
 | GET | `/api/docs` | Swagger UI |
 | GET | `/api/openapi.json` | OpenAPI JSON schema |
