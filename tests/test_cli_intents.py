@@ -36,7 +36,7 @@ class TestApiNew:
         assert "azure-functions-doctor>=0.16.0" in pyproject_text
         assert "mypy>=1.17.1" in pyproject_text  # strict preset
         assert "@openapi(" in webhooks_text
-        assert "@validate_http(" in webhooks_text
+        assert "ValidationError" in webhooks_text  # manual Pydantic validation
         assert (project_dir / "app/functions/health.py").exists()
         assert (project_dir / "app/functions/webhooks.py").exists()
         assert "health_blueprint" in function_app_text

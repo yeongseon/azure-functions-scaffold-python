@@ -8,7 +8,7 @@ import azure.functions as func
 from azure_functions_openapi.decorator import openapi
 {%- endif %}
 {%- if include_validation %}
-from azure_functions_validation import validate_http
+from pydantic import ValidationError
 {%- endif %}
 
 {% if include_validation -%}
@@ -40,6 +40,7 @@ webhooks_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
         202: {"description": "Webhook accepted for processing"},
         400: {"description": "Invalid request payload"},
         401: {"description": "Invalid webhook signature"},
+        422: {"description": "Request validation error"},
     },
 {%- else %}
     response={
@@ -50,12 +51,8 @@ webhooks_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 {%- endif %}
 )
 {% endif -%}
-{% if include_validation -%}
-@validate_http(body=WebhookEvent, response_model=WebhookAcceptedResponse)
-{% endif -%}
-{% if include_validation -%}
-def receive_webhook(req: func.HttpRequest, body: WebhookEvent) -> func.HttpResponse:
-    # --- Signature verification (optional) ---
+def receive_webhook(req: func.HttpRequest) -> func.HttpResponse:
+    # --- Signature verification (must run before body parsing) ---
     secret = get_webhook_secret()
     if secret:
         signature = req.headers.get("X-Signature", "")
@@ -67,8 +64,28 @@ def receive_webhook(req: func.HttpRequest, body: WebhookEvent) -> func.HttpRespo
                 status_code=401,
             )
 
-    event_type = body.event_type
-    source = body.source
+{%- if include_validation %}
+    # --- Body validation (after auth) ---
+    try:
+        raw = req.get_json()
+    except ValueError:
+        return func.HttpResponse(
+            body=json.dumps({"error": "Invalid JSON body"}),
+            mimetype="application/json",
+            status_code=400,
+        )
+
+    try:
+        event = WebhookEvent(**raw) if isinstance(raw, dict) else WebhookEvent.model_validate(raw)
+    except (ValidationError, TypeError) as exc:
+        return func.HttpResponse(
+            body=json.dumps({"error": "Validation error", "detail": str(exc)}),
+            mimetype="application/json",
+            status_code=422,
+        )
+
+    event_type = event.event_type
+    source = event.source
     logging.info("Received webhook: event_type=%s source=%s", event_type, source)
 
     entry = webhook_store.record(event_type, source)
@@ -77,20 +94,7 @@ def receive_webhook(req: func.HttpRequest, body: WebhookEvent) -> func.HttpRespo
         mimetype="application/json",
         status_code=202,
     )
-{%- else -%}
-def receive_webhook(req: func.HttpRequest) -> func.HttpResponse:
-    # --- Signature verification (optional) ---
-    secret = get_webhook_secret()
-    if secret:
-        signature = req.headers.get("X-Signature", "")
-        if not verify_signature(req.get_body(), signature, secret):
-            logging.warning("Webhook signature verification failed")
-            return func.HttpResponse(
-                body=json.dumps({"error": "Invalid signature"}),
-                mimetype="application/json",
-                status_code=401,
-            )
-
+{%- else %}
     try:
         body = req.get_json()
     except ValueError:
