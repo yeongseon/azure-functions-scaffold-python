@@ -26,6 +26,7 @@ requires-python = ">={{ python_version }},<{{ python_upper_bound }}"
 dependencies = [
   "azure-functions>=1.23.0",
   "azure-functions-logging>=0.5.0",
+  "orjson>=3.10.0",
 {% if include_doctor -%}
   "azure-functions-doctor>=0.16.0",
 {% endif -%}
