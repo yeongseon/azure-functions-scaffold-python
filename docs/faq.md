@@ -138,3 +138,16 @@ afs add queue process_orders --project-root ./my-api --dry-run
 - [Configuration](guide/configuration.md)
 - [HTTP API Example](examples/http_api.md)
 - [Troubleshooting](guide/troubleshooting.md)
+
+## Why is `orjson` included in generated projects?
+
+All scaffolded projects include [`orjson`](https://github.com/ijl/orjson) as a
+default dependency. The Azure Functions Python worker
+[automatically detects orjson](https://techcommunity.microsoft.com/blog/appsonazureblog/scaling-azure-functions-python-with-orjson/4445780)
+when it is installed and uses it for JSON serialization and deserialization —
+no code changes required.
+
+Benchmarks from Microsoft show up to **40% lower HTTP response times** and
+significantly higher throughput for Service Bus and Event Hub triggers. Since
+`orjson` provides pre-built wheels for all platforms Azure Functions supports,
+it adds negligible install overhead for a meaningful performance gain.
