@@ -31,9 +31,9 @@ class TestApiNew:
         webhooks_text = (project_dir / "app/functions/webhooks.py").read_text(encoding="utf-8")
         makefile_text = (project_dir / "Makefile").read_text(encoding="utf-8")
         # api intent: strict preset + openapi + validation + doctor
-        assert "azure-functions-openapi-python>=0.17.0" in pyproject_text
-        assert "azure-functions-validation-python>=0.7.0" in pyproject_text
-        assert "azure-functions-doctor-python>=0.16.0" in pyproject_text
+        assert "azure-functions-openapi>=0.17.0" in pyproject_text
+        assert "azure-functions-validation>=0.7.0" in pyproject_text
+        assert "azure-functions-doctor>=0.16.0" in pyproject_text
         assert "mypy>=1.17.1" in pyproject_text  # strict preset
         assert "@openapi(" in webhooks_text
         assert "ValidationError" in webhooks_text  # manual Pydantic validation
@@ -46,7 +46,7 @@ class TestApiNew:
         # no azd by default
         assert not (project_dir / "azure.yaml").exists()
         # no db by default
-        assert "azure-functions-db-python" not in pyproject_text
+        assert "azure-functions-db" not in pyproject_text
 
     def test_with_azd_flag(self, tmp_path: Path) -> None:
         result = runner.invoke(
@@ -111,9 +111,9 @@ class TestNew:
         pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
         function_app_text = (project_dir / "function_app.py").read_text(encoding="utf-8")
         # Same defaults as afs api new: strict + openapi + validation + doctor
-        assert "azure-functions-openapi-python>=0.17.0" in pyproject_text
-        assert "azure-functions-validation-python>=0.7.0" in pyproject_text
-        assert "azure-functions-doctor-python>=0.16.0" in pyproject_text
+        assert "azure-functions-openapi>=0.17.0" in pyproject_text
+        assert "azure-functions-validation>=0.7.0" in pyproject_text
+        assert "azure-functions-doctor>=0.16.0" in pyproject_text
         assert "mypy>=1.17.1" in pyproject_text  # strict preset
         assert (project_dir / "app/functions/health.py").exists()
         assert (project_dir / "app/functions/webhooks.py").exists()
@@ -121,9 +121,7 @@ class TestNew:
         assert "webhooks_blueprint" in function_app_text
 
     def test_dry_run(self, tmp_path: Path) -> None:
-        result = runner.invoke(
-            app, ["new", "dry-api", "--destination", str(tmp_path), "--dry-run"]
-        )
+        result = runner.invoke(app, ["new", "dry-api", "--destination", str(tmp_path), "--dry-run"])
         assert result.exit_code == 0
         assert "Dry run: create project at" in result.stdout
         assert not (tmp_path / "dry-api").exists()
@@ -141,9 +139,7 @@ class TestNew:
         assert (project_dir / "function_app.py").exists()
 
     def test_with_azd_flag(self, tmp_path: Path) -> None:
-        result = runner.invoke(
-            app, ["new", "azd-api", "--destination", str(tmp_path), "--azd"]
-        )
+        result = runner.invoke(app, ["new", "azd-api", "--destination", str(tmp_path), "--azd"])
         assert result.exit_code == 0
         assert (tmp_path / "azd-api" / "azure.yaml").exists()
 
@@ -187,6 +183,7 @@ class TestNew:
             if p.is_file()
         )
         assert api_files == new_files
+
 
 # ---------------------------------------------------------------------------
 # afs api add
@@ -376,7 +373,7 @@ class TestAiAgent:
         pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
         assert (project_dir / "app/graphs/echo_agent.py").exists()
         assert "LangGraphApp" in function_app_text
-        assert "azure-functions-langgraph-python>=0.5.1" in pyproject_text
+        assert "azure-functions-langgraph>=0.5.1" in pyproject_text
 
     def test_dry_run(self, tmp_path: Path) -> None:
         result = runner.invoke(
@@ -429,9 +426,9 @@ class TestAdvanced:
         assert result.exit_code == 0
         project_dir = tmp_path / "full-api"
         pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
-        assert "azure-functions-openapi-python>=0.17.0" in pyproject_text
-        assert "azure-functions-validation-python>=0.7.0" in pyproject_text
-        assert "azure-functions-doctor-python>=0.16.0" in pyproject_text
+        assert "azure-functions-openapi>=0.17.0" in pyproject_text
+        assert "azure-functions-validation>=0.7.0" in pyproject_text
+        assert "azure-functions-doctor>=0.16.0" in pyproject_text
         assert (project_dir / "azure.yaml").exists()
 
     def test_new_dry_run(self, tmp_path: Path) -> None:

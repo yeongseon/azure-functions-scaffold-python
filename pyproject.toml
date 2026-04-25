@@ -45,10 +45,10 @@ dev = [
     # Smoke-test deps: generated project runtime packages needed by
     # test_template_smoke.py to run the scaffolded project's own test suite.
     "azure-functions>=1.23.0",
-    "azure-functions-logging-python>=0.5.0",
-    "azure-functions-openapi-python>=0.17.0",
-    "azure-functions-validation-python>=0.7.0",
-    "azure-functions-doctor-python>=0.16.0",
+    "azure-functions-logging>=0.5.0",
+    "azure-functions-openapi>=0.17.0",
+    "azure-functions-validation>=0.7.0",
+    "azure-functions-doctor>=0.16.0",
     "pydantic>=2.0.0",
 ]
 docs = [
@@ -75,6 +75,7 @@ build-backend = "hatchling.build"
 sources = ["src"]
 
 [tool.hatch.build.targets.wheel]
+packages = ["src/azure_functions_scaffold"]
 
 [tool.hatch.build.targets.sdist]
 include = [

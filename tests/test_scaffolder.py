@@ -266,7 +266,7 @@ def test_scaffold_project_generates_expected_project_contract(
     assert "mypy>=1.17.1" in pyproject_text
     assert "pytest>=8.3.5" in pyproject_text
     assert "Preset: `strict`" in readme_text
-    assert "azure-functions-logging-python>=0.5.0" in pyproject_text
+    assert "azure-functions-logging>=0.5.0" in pyproject_text
 
 
 @pytest.mark.parametrize("template_name", ["queue", "blob", "servicebus", "eventhub", "cosmosdb"])
@@ -580,5 +580,5 @@ def test_scaffold_project_renders_langgraph_template(tmp_path: Path) -> None:
     assert "LangGraphApp" in function_app_text
     assert "lg_app.register" in function_app_text
     pyproject_text = (project_path / "pyproject.toml").read_text(encoding="utf-8")
-    assert "azure-functions-langgraph-python>=0.5.1" in pyproject_text
+    assert "azure-functions-langgraph>=0.5.1" in pyproject_text
     assert "langgraph>=0.2.0" in pyproject_text
