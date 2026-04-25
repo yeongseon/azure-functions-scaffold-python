@@ -75,6 +75,7 @@ build-backend = "hatchling.build"
 sources = ["src"]
 
 [tool.hatch.build.targets.wheel]
+packages = ["src/azure_functions_scaffold"]
 
 [tool.hatch.build.targets.sdist]
 include = [
