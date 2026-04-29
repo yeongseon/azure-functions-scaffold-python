@@ -66,7 +66,21 @@ def test_add_function_rejects_file_project_root(tmp_path: Path) -> None:
         )
 
 
-@pytest.mark.parametrize("function_name", ["", "***", "123-sync"])
+@pytest.mark.parametrize(
+    "function_name",
+    [
+        "",
+        "***",
+        "123-sync",
+        "class",
+        "async",
+        "import",
+        "return",
+        "match",
+        "case",
+        "type",
+    ],
+)
 def test_add_function_rejects_invalid_names(tmp_path: Path, function_name: str) -> None:
     project_root = scaffold_project("sample", tmp_path)
 
@@ -191,7 +205,6 @@ def test_add_function_succeeds_atomically_for_queue_trigger(tmp_path: Path) -> N
     function_app_text = function_app_path.read_text(encoding="utf-8")
     assert "from app.functions.foo import foo_blueprint" in function_app_text
     assert "app.register_functions(foo_blueprint)" in function_app_text
-
 
 def test_add_function_can_skip_test_generation_for_minimal_preset(tmp_path: Path) -> None:
     project_root = scaffold_project(
