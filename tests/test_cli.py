@@ -38,6 +38,17 @@ def test_presets_command_lists_available_presets() -> None:
     assert "strict: Azure Functions project with Ruff, mypy, and pytest defaults." in result.stdout
 
 
+def test_cli_with_no_args_prints_help() -> None:
+    result = runner.invoke(app, [])
+
+    assert result.exit_code == 0
+    assert "Generate opinionated Azure Functions" in result.stdout
+    assert "api" in result.stdout
+    assert "worker" in result.stdout
+    assert "ai" in result.stdout
+    assert "advanced" in result.stdout
+
+
 def test_version_option_prints_package_version() -> None:
     result = runner.invoke(app, ["--version"])
 
