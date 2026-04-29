@@ -7,6 +7,8 @@ import pytest
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.generator import (
+    FUNCTION_IMPORT_MARKER,
+    FUNCTION_REGISTRATION_MARKER,
     _derive_resource_names,
     _insert_near_marker,
     _render_function_module,
@@ -20,7 +22,7 @@ from azure_functions_scaffold.generator import (
     describe_add_route,
 )
 from azure_functions_scaffold.scaffolder import scaffold_project
-from azure_functions_scaffold.template_registry import build_project_options
+from azure_functions_scaffold.template_registry import build_project_options, list_templates
 
 
 def test_add_function_rejects_unknown_trigger(tmp_path: Path) -> None:
@@ -937,3 +939,61 @@ def test_describe_add_route_excludes_test_when_no_tests_dir(tmp_path: Path) -> N
     lines = describe_add_route(project_root=project_root, route_name="status")
 
     assert not any("test_status.py" in line for line in lines)
+
+
+@pytest.mark.parametrize(
+    "template_name",
+    [t.name for t in list_templates() if t.name != "langgraph"],
+)
+def test_template_function_app_contains_generator_markers(template_name: str) -> None:
+    """Guard against drift between generator marker constants and template comments.
+
+    A mismatch silently disables marker-based insertion and forces fallback onto
+    fragile text-anchor matching.
+    """
+    template_path = (
+        Path(__file__).resolve().parent.parent
+        / "src"
+        / "azure_functions_scaffold"
+        / "templates"
+        / template_name
+        / "function_app.py.j2"
+    )
+    if not template_path.exists():
+        pytest.skip(f"{template_name} has no function_app.py.j2")
+
+    content = template_path.read_text(encoding="utf-8")
+
+    assert FUNCTION_IMPORT_MARKER in content, (
+        f"{template_name}/function_app.py.j2 missing import marker {FUNCTION_IMPORT_MARKER!r}"
+    )
+    assert FUNCTION_REGISTRATION_MARKER in content, (
+        f"{template_name}/function_app.py.j2 missing registration marker "
+        f"{FUNCTION_REGISTRATION_MARKER!r}"
+    )
+
+
+def test_update_function_app_uses_marker_when_anchor_absent(tmp_path: Path) -> None:
+    function_app = tmp_path / "function_app.py"
+    function_app.write_text(
+        f"import azure.functions as func\n"
+        f"\n"
+        f"{FUNCTION_IMPORT_MARKER}\n"
+        f"\n"
+        f"# nothing else here that resembles configure_logging\n"
+        f"my_app = func.FunctionApp()  # not the exact anchor string\n"
+        f"\n"
+        f"{FUNCTION_REGISTRATION_MARKER}\n",
+        encoding="utf-8",
+    )
+
+    _update_function_app(
+        function_app,
+        import_stmt="from app.functions.demo import demo_blueprint",
+        registration_stmt="my_app.register_functions(demo_blueprint)",
+    )
+
+    updated = function_app.read_text(encoding="utf-8")
+    assert "from app.functions.demo import demo_blueprint" in updated
+    assert "my_app.register_functions(demo_blueprint)" in updated
+    assert (f"from app.functions.demo import demo_blueprint\n\n{FUNCTION_IMPORT_MARKER}") in updated
