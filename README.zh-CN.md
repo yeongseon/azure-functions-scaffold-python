@@ -16,6 +16,32 @@
 
 Python 版本支持: Azure Functions 上 3.10-3.13 为 GA，3.14 为 **Preview**。详情请参阅 [Python 版本支持](docs/guide/configuration.md#python-version-support)。
 
+## 为什么使用 `afs new` 而不是 `func init`？
+
+`afs new` **不是** [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) 的替代品，而是它们的补充。请根据您的具体情况选择。
+
+| 关注点 | `func init` + `func new` (官方) | `afs new` (本项目) |
+|---|---|---|
+| 维护者 | Microsoft | 社区 |
+| 范围 | 最小化 Functions 骨架 | 生产导向的、带最佳实践的启动模板 |
+| 项目布局 | 仅 `function_app.py` + `host.json` | 分层结构：`api/`, `domain/`, `infra/`, 测试, CI |
+| 默认身份验证 | `AuthLevel.ANONYMOUS` | `AuthLevel.ANONYMOUS` (预置 Webhook HMAC 签名验证) |
+| 日志 | `logging` 标准库 | `azure-functions-logging` 结构化 JSON 日志，预置 |
+| 可观测性 | 无 | 可选 `azure-functions-doctor` 健康检查 |
+| OpenAPI | 无 | 可选 `azure-functions-openapi` Swagger UI |
+| 校验 | 无 | 可选 `azure-functions-validation` (Pydantic) |
+| 测试脚手架 | 无 | `pytest` 设置 + 示例测试 |
+| CI | 无 | 生成 GitHub Actions 工作流 |
+| 模板 | 按触发器的空白函数 | 触发器 + 业务模式模板 (HTTP CRUD, Webhook, 队列工人等) |
+| 可扩展性 | 一次性 | `afs api add`, `afs advanced add` 等可扩展现有项目 |
+| 锁定 (Lock-in) | 无 | 生成代码方式；脚手架生成后对 `afs` 无运行时依赖 |
+
+**选择 `func init` 的场景：** 当您需要最小的起始点、正在遵循 Microsoft 官方教程，或需要匹配 Azure Functions 文档中的确切布局时。
+
+**选择 `afs new` 的场景：** 当您想要一个从第一次提交就具备结构化日志、合理的身份验证默认值、分层结构和 CI 的项目，并且之后可以通过 `afs api add` 等命令进行扩展时。
+
+您也可以从 `func init` 开始并手动迁移；`afs new` 不会锁定您。生成的项目是纯粹的 Azure Functions Python 代码 —— 对此 CLI 没有运行时依赖。
+
 ## 为什么使用它
 
 启动新的 Azure Functions 项目意味着设置样板文件：`host.json`、`function_app.py`、目录结构、工具配置和测试。`azure-functions-scaffold` 通过一个命令生成生产级项目布局，让你从一开始就专注于业务逻辑。

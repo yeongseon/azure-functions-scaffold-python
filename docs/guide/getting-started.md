@@ -1,5 +1,7 @@
 # Getting Started
 
+> New here? See [Why `afs new` instead of `func init`?](../../README.md#why-afs-new-instead-of-func-init) in the README for context on how this scaffolder differs from Azure Functions Core Tools.
+
 Follow this guide to install the CLI and generate your first production-ready Azure Functions Python v2 project.
 
 ### Prerequisites

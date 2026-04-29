@@ -16,6 +16,32 @@
 
 Python 버전 지원: Azure Functions에서 3.10-3.13은 GA이며, 3.14는 **Preview**입니다. 자세한 내용은 [Python 버전 지원](docs/guide/configuration.md#python-version-support)을 참고하세요.
 
+## 왜 `func init` 대신 `afs new`를 사용해야 할까?
+
+`afs new`는 [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local)의 대체제가 아니며, 이를 보완하는 도구입니다. 상황에 맞는 도구를 선택하세요.
+
+| 항목 | `func init` + `func new` (공식) | `afs new` (본 프로젝트) |
+|---|---|---|
+| 유지관리 | Microsoft | 커뮤니티 |
+| 범위 | 최소한의 Functions 스켈레톤 | 의견이 반영된 프로덕션 지향 스타터 |
+| 프로젝트 레이아웃 | 기본적인 `function_app.py` + `host.json` | 계층화된 구조: `api/`, `domain/`, `infra/`, 테스트, CI |
+| 기본 인증 | `AuthLevel.ANONYMOUS` | `AuthLevel.ANONYMOUS` (웹훅 HMAC 검증 코드 포함) |
+| 로깅 | `logging` 표준 라이브러리 | `azure-functions-logging` 구조화된 JSON 로깅 포함 |
+| 관측성 | 없음 | 선택적 `azure-functions-doctor` 상태 확인 |
+| OpenAPI | 없음 | 선택적 `azure-functions-openapi` Swagger UI |
+| 유효성 검사 | 없음 | 선택적 `azure-functions-validation` (Pydantic) |
+| 테스트 스캐폴딩 | 없음 | `pytest` 설정 + 샘플 테스트 |
+| CI | 없음 | GitHub Actions 워크플로우 생성 |
+| 템플릿 | 트리거별 빈 함수 | 트리거 + 비즈니스 패턴 템플릿 (HTTP CRUD, 웹훅, 큐 워커 등) |
+| 재진입성 | 1회성 생성 | `afs api add`, `afs advanced add` 등으로 기존 프로젝트 확장 가능 |
+| 종속성 고착 (Lock-in) | 없음 | 코드 생성 방식; 스캐폴딩 후 `afs`에 대한 런타임 종속성 없음 |
+
+**`func init` 선택 시기:** 가장 작은 시작점이 필요하거나, Microsoft 공식 튜토리얼을 따르거나, Azure Functions 문서에 사용된 정확한 레이아웃이 필요한 경우.
+
+**`afs new` 선택 시기:** 구조화된 로깅, 합리적인 인증 기본값, 계층화된 구조, CI 설정 등이 첫 커밋부터 포함된 프로젝트를 원하며, 이후 `afs api add` 등을 통해 확장하고 싶은 경우.
+
+`func init`으로 시작한 후 수동으로 마이그레이션할 수도 있습니다. `afs new`는 사용자를 가두지 않습니다. 생성된 프로젝트는 일반적인 Azure Functions Python 코드이며 이 CLI에 대한 런타임 종속성이 없습니다.
+
 ## 왜 사용해야 할까
 
 새로운 Azure Functions 프로젝트를 시작하려면 보일러플레이트 설정이 필요합니다: `host.json`, `function_app.py`, 디렉터리 구조, 도구 설정, 테스트. `azure-functions-scaffold`는 한 번의 명령으로 프로덕션 수준의 프로젝트 레이아웃을 생성하여, 처음부터 비즈니스 로직에 집중할 수 있게 합니다.

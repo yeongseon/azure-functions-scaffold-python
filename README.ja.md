@@ -16,6 +16,32 @@
 
 Python バージョンサポート: Azure Functions では 3.10-3.13 は GA、3.14 は **Preview** です。詳しくは [Python バージョンサポート](docs/guide/configuration.md#python-version-support) を参照してください。
 
+## なぜ `func init` ではなく `afs new` を使うのか？
+
+`afs new` は [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local) の代替ではなく、それらを補完するものです。状況に合わせて最適な方を選択してください。
+
+| 項目 | `func init` + `func new` (公式) | `afs new` (本プロジェクト) |
+|---|---|---|
+| メンテナンス | Microsoft | コミュニティ |
+| スコープ | 最小限の Functions スケルトン | 意見を反映した、プロダクション志向のスターター |
+| プロジェクト構成 | 基本的な `function_app.py` + `host.json` | 階層型: `api/`, `domain/`, `infra/`, テスト, CI |
+| 認証の既定値 | `AuthLevel.ANONYMOUS` | `AuthLevel.ANONYMOUS` (Webhook 用の HMAC 検証コードを含む) |
+| ロギング | `logging` 標準ライブラリ | `azure-functions-logging` 構造化 JSON ロギング設定済み |
+| 可観測性 | なし | オプションの `azure-functions-doctor` ヘルスチェック |
+| OpenAPI | なし | オプションの `azure-functions-openapi` Swagger UI |
+| バリデーション | なし | オプションの `azure-functions-validation` (Pydantic) |
+| テスト構成 | なし | `pytest` 設定 + サンプルテスト |
+| CI | なし | GitHub Actions ワークフロー生成 |
+| テンプレート | トリガーごとの空関数 | トリガー + ビジネスパターンテンプレート (HTTP CRUD, Webhook, ワーク等) |
+| 再入可能性 | 一回限り | `afs api add`, `afs advanced add` 等で既存プロジェクトを拡張可能 |
+| ロックイン | なし | コード生成方式; スキャフォールディング後に `afs` への実行時依存なし |
+
+**`func init` を選ぶべきケース:** 最小限の構成から始めたい場合、Microsoft の公式チュートリアルに従う場合、または Azure Functions のドキュメントと同じレイアウトが必要な場合。
+
+**`afs new` を選ぶべきケース:** 構造化ロギング、適切な認証の既定値、階層化された構成、CI 設定などが最初から含まれたプロジェクトを望み、後から `afs api add` 等で拡張したい場合。
+
+`func init` で始めてから手動で移行することも可能です。`afs new` は利用者を拘束しません。生成されるプロジェクトは標準的な Azure Functions Python コードであり、この CLI への実行時の依存関係はありません。
+
 ## なぜこのツールを使うのか
 
 新しい Azure Functions プロジェクトを始めるには、ボイラープレートの設定が必要です: `host.json`、`function_app.py`、ディレクトリ構造、ツール設定、テスト。`azure-functions-scaffold` は一つのコマンドでプロダクションレベルのプロジェクトレイアウトを生成し、最初からビジネスロジックに集中できるようにします。

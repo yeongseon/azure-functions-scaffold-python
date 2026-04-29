@@ -16,6 +16,32 @@ Scaffolding CLI for production-ready Azure Functions Python v2 projects.
 
 Python version support: 3.10-3.13 are GA on Azure Functions; 3.14 is accepted as **Preview**. See [Python version support](docs/guide/configuration.md#python-version-support).
 
+## Why `afs new` instead of `func init`?
+
+`afs new` is **not** a replacement for [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local). It complements them. Use whichever fits your situation.
+
+| Concern | `func init` + `func new` (official) | `afs new` (this project) |
+|---|---|---|
+| Maintained by | Microsoft | Community |
+| Scope | Minimal Functions skeleton | Opinionated, production-leaning starter |
+| Project layout | Bare `function_app.py` + `host.json` | Layered: `api/`, `domain/`, `infra/`, tests, CI |
+| Auth defaults | `AuthLevel.ANONYMOUS` | `AuthLevel.ANONYMOUS` (pre-wired for HMAC verification in webhooks) |
+| Logging | `logging` stdlib | `azure-functions-logging` structured JSON, pre-wired |
+| Observability | None pre-wired | Optional `azure-functions-doctor` health checks |
+| OpenAPI | None | Optional `azure-functions-openapi` Swagger UI |
+| Validation | None | Optional `azure-functions-validation` (Pydantic) |
+| Test scaffolding | None | `pytest` setup + sample tests |
+| CI | None | GitHub Actions workflow generated |
+| Templates | Per-trigger blank function | Trigger + business-pattern templates (HTTP CRUD, webhook, queue worker, etc.) |
+| Re-entry | One-shot | `afs api add`, `afs advanced add`, `afs api add-route` extend the same project |
+| Lock-in | None | Generates code; no runtime dependency on `afs` after scaffolding |
+
+**Pick `func init`** when you want the smallest possible starting point, are following Microsoft's official tutorials, or need to match the exact layout used in Azure Functions documentation.
+
+**Pick `afs new`** when you want a project that already has structured logging, sane auth defaults, an opinionated layered structure, and CI in place from the first commit - and you can extend it later with `afs api add` / `afs advanced add`.
+
+You can also start with `func init` and migrate manually; `afs new` does not lock you in. The generated project is plain Azure Functions Python code - no runtime dependency on this CLI.
+
 ## Why Use It
 
 Starting a new Azure Functions project means setting up boilerplate: `host.json`, `function_app.py`, directory structure, tooling config, and tests. `azure-functions-scaffold` generates a production-ready project layout in one command, so you can focus on business logic from the start.
