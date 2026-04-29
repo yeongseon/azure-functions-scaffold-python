@@ -257,7 +257,7 @@ def test_rendered_http_webhook_returns_503_when_secret_missing(tmp_path: Path) -
 
     sys.path.insert(0, str(project_root))
     try:
-        from app.functions.webhooks import receive_webhook  # type: ignore[import-not-found]
+        from app.functions.webhooks import receive_webhook
         import azure.functions as func
 
         request = func.HttpRequest(
@@ -306,7 +306,7 @@ def test_rendered_http_webhook_returns_401_for_unsigned_payload_when_secret_set(
 
     sys.path.insert(0, str(project_root))
     try:
-        from app.functions.webhooks import receive_webhook  # type: ignore[import-not-found]
+        from app.functions.webhooks import receive_webhook
         import azure.functions as func
 
         payload = json.dumps({"event_type": "ping", "source": "test"}).encode()
