@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import json
 import logging
 from pathlib import Path
@@ -16,7 +17,44 @@ LEGACY_FUNCTION_IMPORT_MARKER = "# azure-functions-scaffold-python: function imp
 LEGACY_FUNCTION_REGISTRATION_MARKER = "# azure-functions-scaffold-python: function registrations"
 SUPPORTED_TRIGGERS = tuple(template.name for template in list_templates())
 PARTIALS_ROOT = Path(__file__).parent / "templates" / "partials"
+HOST_JSON_TRIGGERS = frozenset({"queue", "blob", "servicebus", "eventhub", "cosmosdb"})
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class _PendingWrite:
+    path: Path
+    new_content: str
+    original_content: str | None
+    created_parent: Path | None = None
+
+
+def _commit_pending_writes(writes: list[_PendingWrite]) -> None:
+    written: list[_PendingWrite] = []
+    try:
+        for write in writes:
+            write.path.parent.mkdir(parents=True, exist_ok=True)
+            write.path.write_text(write.new_content, encoding="utf-8")
+            written.append(write)
+    except Exception as exc:
+        for write in reversed(written):
+            try:
+                if write.original_content is None:
+                    if write.path.exists():
+                        write.path.unlink()
+                    if (
+                        write.created_parent is not None
+                        and write.created_parent.exists()
+                        and not any(write.created_parent.iterdir())
+                    ):
+                        write.created_parent.rmdir()
+                else:
+                    write.path.write_text(write.original_content, encoding="utf-8")
+            except OSError:
+                logger.exception("Rollback failed for %s", write.path)
+        raise ScaffoldError(
+            f"Atomic write failed; rolled back {len(written)} file(s): {exc}"
+        ) from exc
 
 
 def _validate_function_app_updatable(
@@ -59,6 +97,92 @@ def _validate_function_app_updatable(
         )
 
 
+def _compute_updated_function_app(
+    content: str,
+    *,
+    import_stmt: str,
+    registration_stmt: str,
+) -> str:
+    if import_stmt in content or registration_stmt in content:
+        raise ScaffoldError("Function is already registered in function_app.py.")
+
+    updated = _insert_near_marker(
+        content,
+        marker=FUNCTION_IMPORT_MARKER,
+        line=import_stmt,
+        fallback_anchor="configure_logging()",
+    )
+    return _insert_near_marker(
+        updated,
+        marker=FUNCTION_REGISTRATION_MARKER,
+        line=registration_stmt,
+        fallback_anchor="app = func.FunctionApp()",
+        after_anchor=True,
+    )
+
+
+def _compute_updated_host_json(content: str, trigger: str) -> str | None:
+    if trigger not in HOST_JSON_TRIGGERS:
+        return None
+
+    try:
+        host_config = json.loads(content)
+    except json.JSONDecodeError as exc:
+        raise ScaffoldError(f"Invalid JSON in host.json: {exc}") from exc
+    if not isinstance(host_config, dict):
+        raise ScaffoldError("Expected host.json to contain a JSON object.")
+    if "extensionBundle" in host_config:
+        return None
+
+    host_config["extensionBundle"] = {
+        "id": "Microsoft.Azure.Functions.ExtensionBundle",
+        "version": "[4.*, 5.0.0)",
+    }
+    return f"{json.dumps(host_config, indent=2)}\n"
+
+
+def _compute_updated_local_settings(content: str, trigger: str) -> str | None:
+    connection_keys: dict[str, tuple[str, str]] = {
+        "servicebus": (
+            "ServiceBusConnection",
+            "Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=replace-me",
+        ),
+        "eventhub": (
+            "EventHubConnection",
+            "Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=replace-me",
+        ),
+        "cosmosdb": (
+            "CosmosDBConnection",
+            "AccountEndpoint=https://localhost:8081/;AccountKey=replace-me",
+        ),
+    }
+    if trigger not in connection_keys:
+        return None
+
+    try:
+        local_settings = json.loads(content)
+    except json.JSONDecodeError as exc:
+        raise ScaffoldError(f"Invalid JSON in local.settings.json.example: {exc}") from exc
+    if not isinstance(local_settings, dict):
+        raise ScaffoldError("Expected local.settings.json.example to contain a JSON object.")
+
+    existing_values = local_settings.get("Values")
+    if existing_values is None:
+        values: dict[str, object] = {}
+        local_settings["Values"] = values
+    elif isinstance(existing_values, dict):
+        values = existing_values
+    else:
+        raise ScaffoldError("Expected local.settings.json.example Values to be a JSON object.")
+
+    key, default = connection_keys[trigger]
+    if key in values:
+        return None
+
+    values[key] = default
+    return f"{json.dumps(local_settings, indent=2)}\n"
+
+
 def add_function(
     *,
     project_root: Path,
@@ -75,35 +199,76 @@ def add_function(
     if function_path.exists():
         raise ScaffoldError(f"Function module already exists: {function_path}")
 
+    import_stmt = f"from app.functions.{normalized_name} import {normalized_name}_blueprint"
+    registration_stmt = f"app.register_functions({normalized_name}_blueprint)"
+    function_app_path = project_root / "function_app.py"
     _validate_function_app_updatable(
-        project_root / "function_app.py",
-        import_stmt=f"from app.functions.{normalized_name} import {normalized_name}_blueprint",
-        registration_stmt=f"app.register_functions({normalized_name}_blueprint)",
+        function_app_path,
+        import_stmt=import_stmt,
+        registration_stmt=registration_stmt,
+    )
+    function_app_content = function_app_path.read_text(encoding="utf-8")
+    updated_function_app = _compute_updated_function_app(
+        function_app_content,
+        import_stmt=import_stmt,
+        registration_stmt=registration_stmt,
     )
 
-    function_path.parent.mkdir(parents=True, exist_ok=True)
-    function_path.write_text(
-        _render_function_module(normalized_trigger, normalized_name),
-        encoding="utf-8",
-    )
-    logger.debug("Created function module: %s", function_path)
+    writes = [
+        _PendingWrite(
+            path=function_path,
+            new_content=_render_function_module(normalized_trigger, normalized_name),
+            original_content=None,
+        ),
+        _PendingWrite(
+            path=function_app_path,
+            new_content=updated_function_app,
+            original_content=function_app_content,
+        ),
+    ]
 
     if (project_root / "tests").is_dir():
         test_path = project_root / "tests" / f"test_{normalized_name}.py"
         if not test_path.exists():
-            test_path.write_text(
-                _render_function_test(normalized_trigger, normalized_name),
-                encoding="utf-8",
+            writes.insert(
+                1,
+                _PendingWrite(
+                    path=test_path,
+                    new_content=_render_function_test(normalized_trigger, normalized_name),
+                    original_content=None,
+                ),
             )
-            logger.debug("Created test: %s", test_path)
 
-    _update_function_app(
-        project_root / "function_app.py",
-        import_stmt=f"from app.functions.{normalized_name} import {normalized_name}_blueprint",
-        registration_stmt=f"app.register_functions({normalized_name}_blueprint)",
-    )
-    _ensure_host_extensions(project_root / "host.json", normalized_trigger)
-    _ensure_local_settings_values(project_root, normalized_trigger)
+    host_json_path = project_root / "host.json"
+    if host_json_path.exists() and normalized_trigger in HOST_JSON_TRIGGERS:
+        host_content = host_json_path.read_text(encoding="utf-8")
+        updated_host = _compute_updated_host_json(host_content, normalized_trigger)
+        if updated_host is not None:
+            writes.append(
+                _PendingWrite(
+                    path=host_json_path,
+                    new_content=updated_host,
+                    original_content=host_content,
+                )
+            )
+
+    local_settings_path = project_root / "local.settings.json.example"
+    if local_settings_path.exists():
+        local_settings_content = local_settings_path.read_text(encoding="utf-8")
+        updated_local_settings = _compute_updated_local_settings(
+            local_settings_content,
+            normalized_trigger,
+        )
+        if updated_local_settings is not None:
+            writes.append(
+                _PendingWrite(
+                    path=local_settings_path,
+                    new_content=updated_local_settings,
+                    original_content=local_settings_content,
+                )
+            )
+
+    _commit_pending_writes(writes)
 
     return function_path
 
@@ -121,6 +286,23 @@ def describe_add_function(
     function_path = project_root / "app" / "functions" / f"{normalized_name}.py"
     if function_path.exists():
         raise ScaffoldError(f"Function module already exists: {function_path}")
+
+    _validate_function_app_updatable(
+        project_root / "function_app.py",
+        import_stmt=f"from app.functions.{normalized_name} import {normalized_name}_blueprint",
+        registration_stmt=f"app.register_functions({normalized_name}_blueprint)",
+    )
+
+    host_json_path = project_root / "host.json"
+    if host_json_path.exists() and normalized_trigger in HOST_JSON_TRIGGERS:
+        _compute_updated_host_json(host_json_path.read_text(encoding="utf-8"), normalized_trigger)
+
+    local_settings_path = project_root / "local.settings.json.example"
+    if local_settings_path.exists():
+        _compute_updated_local_settings(
+            local_settings_path.read_text(encoding="utf-8"),
+            normalized_trigger,
+        )
 
     lines = [
         f"Dry run: add {normalized_trigger} function '{normalized_name}'",
@@ -198,22 +380,10 @@ def _update_function_app(
 ) -> None:
     logger.debug("Updating function_app.py: %s", import_stmt)
     content = function_app_path.read_text(encoding="utf-8")
-
-    if import_stmt in content or registration_stmt in content:
-        raise ScaffoldError("Function is already registered in function_app.py.")
-
-    updated = _insert_near_marker(
+    updated = _compute_updated_function_app(
         content,
-        marker=FUNCTION_IMPORT_MARKER,
-        line=import_stmt,
-        fallback_anchor="configure_logging()",
-    )
-    updated = _insert_near_marker(
-        updated,
-        marker=FUNCTION_REGISTRATION_MARKER,
-        line=registration_stmt,
-        fallback_anchor="app = func.FunctionApp()",
-        after_anchor=True,
+        import_stmt=import_stmt,
+        registration_stmt=registration_stmt,
     )
     function_app_path.write_text(updated, encoding="utf-8")
 
@@ -643,56 +813,28 @@ def test_{function_name}_rejects_missing_prompt() -> None:
 
 
 def _ensure_host_extensions(host_json_path: Path, trigger: str) -> None:
-    if (
-        trigger not in {"queue", "blob", "servicebus", "eventhub", "cosmosdb"}
-        or not host_json_path.exists()
-    ):
+    if trigger not in HOST_JSON_TRIGGERS or not host_json_path.exists():
         return
 
-    host_config = json.loads(host_json_path.read_text(encoding="utf-8"))
-    if "extensionBundle" in host_config:
+    content = host_json_path.read_text(encoding="utf-8")
+    updated = _compute_updated_host_json(content, trigger)
+    if updated is None:
         return
-
-    host_config["extensionBundle"] = {
-        "id": "Microsoft.Azure.Functions.ExtensionBundle",
-        "version": "[4.*, 5.0.0)",
-    }
     logger.debug("Adding extensionBundle to host.json")
-    host_json_path.write_text(f"{json.dumps(host_config, indent=2)}\n", encoding="utf-8")
+    host_json_path.write_text(updated, encoding="utf-8")
 
 
 def _ensure_local_settings_values(project_root: Path, trigger: str) -> None:
-    connection_keys: dict[str, tuple[str, str]] = {
-        "servicebus": (
-            "ServiceBusConnection",
-            "Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=replace-me",
-        ),
-        "eventhub": (
-            "EventHubConnection",
-            "Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=replace-me",
-        ),
-        "cosmosdb": (
-            "CosmosDBConnection",
-            "AccountEndpoint=https://localhost:8081/;AccountKey=replace-me",
-        ),
-    }
-
-    if trigger not in connection_keys:
-        return
-
     local_settings_path = project_root / "local.settings.json.example"
     if not local_settings_path.exists():
         return
 
-    local_settings = json.loads(local_settings_path.read_text(encoding="utf-8"))
-    values = local_settings.setdefault("Values", {})
-    key, default = connection_keys[trigger]
-    values.setdefault(key, default)
-    logger.debug("Adding %s to local.settings.json.example", key)
-    local_settings_path.write_text(
-        f"{json.dumps(local_settings, indent=2)}\n",
-        encoding="utf-8",
-    )
+    content = local_settings_path.read_text(encoding="utf-8")
+    updated = _compute_updated_local_settings(content, trigger)
+    if updated is None:
+        return
+    logger.debug("Updating local.settings.json.example for %s", trigger)
+    local_settings_path.write_text(updated, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -802,43 +944,62 @@ def add_resource(
         if path.exists():
             raise ScaffoldError(f"File already exists: {path}")
 
-    # Pre-validate function_app.py can be updated before writing files.
+    import_stmt = f"from app.functions.{normalized} import {normalized}_blueprint"
+    registration_stmt = f"app.register_functions({normalized}_blueprint)"
+    function_app_path = project_root / "function_app.py"
     _validate_function_app_updatable(
-        project_root / "function_app.py",
-        import_stmt=f"from app.functions.{normalized} import {normalized}_blueprint",
-        registration_stmt=f"app.register_functions({normalized}_blueprint)",
+        function_app_path,
+        import_stmt=import_stmt,
+        registration_stmt=registration_stmt,
+    )
+    function_app_content = function_app_path.read_text(encoding="utf-8")
+    updated_function_app = _compute_updated_function_app(
+        function_app_content,
+        import_stmt=import_stmt,
+        registration_stmt=registration_stmt,
     )
 
-    # Render and write files.
-    created: list[Path] = []
+    writes = [
+        _PendingWrite(
+            path=blueprint_path,
+            new_content=_render_partial("resource_blueprint.py.j2", names),
+            original_content=None,
+        ),
+        _PendingWrite(
+            path=service_path,
+            new_content=_render_partial("resource_service.py.j2", names),
+            original_content=None,
+        ),
+        _PendingWrite(
+            path=schema_path,
+            new_content=_render_partial("resource_schema.py.j2", names),
+            original_content=None,
+        ),
+    ]
 
-    blueprint_path.parent.mkdir(parents=True, exist_ok=True)
-    blueprint_path.write_text(_render_partial("resource_blueprint.py.j2", names), encoding="utf-8")
-    created.append(blueprint_path)
-    logger.debug("Created %s", blueprint_path)
-
-    service_path.parent.mkdir(parents=True, exist_ok=True)
-    service_path.write_text(_render_partial("resource_service.py.j2", names), encoding="utf-8")
-    created.append(service_path)
-    logger.debug("Created %s", service_path)
-
-    schema_path.parent.mkdir(parents=True, exist_ok=True)
-    schema_path.write_text(_render_partial("resource_schema.py.j2", names), encoding="utf-8")
-    created.append(schema_path)
-    logger.debug("Created %s", schema_path)
+    created = [blueprint_path, service_path, schema_path]
 
     if (project_root / "tests").is_dir():
         test_path = project_root / "tests" / f"test_{normalized}.py"
         if not test_path.exists():
-            test_path.write_text(_render_partial("resource_test.py.j2", names), encoding="utf-8")
+            writes.append(
+                _PendingWrite(
+                    path=test_path,
+                    new_content=_render_partial("resource_test.py.j2", names),
+                    original_content=None,
+                )
+            )
             created.append(test_path)
-            logger.debug("Created %s", test_path)
 
-    _update_function_app(
-        project_root / "function_app.py",
-        import_stmt=f"from app.functions.{normalized} import {normalized}_blueprint",
-        registration_stmt=f"app.register_functions({normalized}_blueprint)",
+    writes.append(
+        _PendingWrite(
+            path=function_app_path,
+            new_content=updated_function_app,
+            original_content=function_app_content,
+        )
     )
+
+    _commit_pending_writes(writes)
 
     return created
 
@@ -859,6 +1020,12 @@ def describe_add_resource(
     for path in (blueprint_path, service_path, schema_path):
         if path.exists():
             raise ScaffoldError(f"File already exists: {path}")
+
+    _validate_function_app_updatable(
+        project_root / "function_app.py",
+        import_stmt=f"from app.functions.{normalized} import {normalized}_blueprint",
+        registration_stmt=f"app.register_functions({normalized}_blueprint)",
+    )
 
     lines = [
         f"Dry run: add resource '{normalized}'",
@@ -910,10 +1077,19 @@ def add_route(
     if blueprint_path.exists():
         raise ScaffoldError(f"Function module already exists: {blueprint_path}")
 
+    import_stmt = f"from app.functions.{normalized} import {normalized}_blueprint"
+    registration_stmt = f"app.register_functions({normalized}_blueprint)"
+    function_app_path = project_root / "function_app.py"
     _validate_function_app_updatable(
-        project_root / "function_app.py",
-        import_stmt=f"from app.functions.{normalized} import {normalized}_blueprint",
-        registration_stmt=f"app.register_functions({normalized}_blueprint)",
+        function_app_path,
+        import_stmt=import_stmt,
+        registration_stmt=registration_stmt,
+    )
+    function_app_content = function_app_path.read_text(encoding="utf-8")
+    updated_function_app = _compute_updated_function_app(
+        function_app_content,
+        import_stmt=import_stmt,
+        registration_stmt=registration_stmt,
     )
 
     names = {
@@ -921,21 +1097,34 @@ def add_route(
         "route_name": normalized.replace("_", "-"),
     }
 
-    blueprint_path.parent.mkdir(parents=True, exist_ok=True)
-    blueprint_path.write_text(_render_partial("route_blueprint.py.j2", names), encoding="utf-8")
-    logger.debug("Created %s", blueprint_path)
+    writes = [
+        _PendingWrite(
+            path=blueprint_path,
+            new_content=_render_partial("route_blueprint.py.j2", names),
+            original_content=None,
+        )
+    ]
 
     if (project_root / "tests").is_dir():
         test_path = project_root / "tests" / f"test_{normalized}.py"
         if not test_path.exists():
-            test_path.write_text(_render_partial("route_test.py.j2", names), encoding="utf-8")
-            logger.debug("Created %s", test_path)
+            writes.append(
+                _PendingWrite(
+                    path=test_path,
+                    new_content=_render_partial("route_test.py.j2", names),
+                    original_content=None,
+                )
+            )
 
-    _update_function_app(
-        project_root / "function_app.py",
-        import_stmt=f"from app.functions.{normalized} import {normalized}_blueprint",
-        registration_stmt=f"app.register_functions({normalized}_blueprint)",
+    writes.append(
+        _PendingWrite(
+            path=function_app_path,
+            new_content=updated_function_app,
+            original_content=function_app_content,
+        )
     )
+
+    _commit_pending_writes(writes)
 
     return blueprint_path
 
@@ -952,6 +1141,12 @@ def describe_add_route(
     blueprint_path = project_root / "app" / "functions" / f"{normalized}.py"
     if blueprint_path.exists():
         raise ScaffoldError(f"Function module already exists: {blueprint_path}")
+
+    _validate_function_app_updatable(
+        project_root / "function_app.py",
+        import_stmt=f"from app.functions.{normalized} import {normalized}_blueprint",
+        registration_stmt=f"app.register_functions({normalized}_blueprint)",
+    )
 
     lines = [
         f"Dry run: add route '{normalized}'",

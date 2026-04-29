@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import ast
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -122,6 +124,71 @@ def test_add_function_works_with_legacy_marker(tmp_path: Path) -> None:
         "# azure-functions-scaffold-python: function imports"
     )
     assert "app.register_functions(sync_data_blueprint)" in updated
+def test_add_function_rolls_back_on_host_json_failure(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    function_app_path = project_root / "function_app.py"
+    original_function_app = function_app_path.read_text(encoding="utf-8")
+    (project_root / "host.json").write_text("{not valid json", encoding="utf-8")
+
+    with pytest.raises(ScaffoldError, match="host.json"):
+        add_function(project_root=project_root, trigger="queue", function_name="foo")
+
+    assert not (project_root / "app/functions/foo.py").exists()
+    assert not (project_root / "tests/test_foo.py").exists()
+    assert function_app_path.read_text(encoding="utf-8") == original_function_app
+
+
+def test_add_function_rolls_back_on_function_app_write_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    function_app_path = project_root / "function_app.py"
+    original_write_text = Path.write_text
+
+    def failing_write_text(self: Path, data: str, *args: Any, **kwargs: Any) -> int:
+        if self == function_app_path:
+            raise PermissionError("blocked")
+        return original_write_text(self, data, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "write_text", failing_write_text)
+
+    with pytest.raises(ScaffoldError, match="Atomic write failed"):
+        add_function(project_root=project_root, trigger="http", function_name="bar")
+
+    assert not (project_root / "app/functions/bar.py").exists()
+    assert not (project_root / "tests/test_bar.py").exists()
+
+
+def test_describe_add_function_detects_malformed_host_json(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    (project_root / "host.json").write_text("{not valid json", encoding="utf-8")
+
+    with pytest.raises(ScaffoldError, match="host.json"):
+        describe_add_function(project_root=project_root, trigger="queue", function_name="foo")
+
+
+def test_add_function_succeeds_atomically_for_queue_trigger(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+
+    function_path = add_function(project_root=project_root, trigger="queue", function_name="foo")
+
+    test_path = project_root / "tests/test_foo.py"
+    function_app_path = project_root / "function_app.py"
+    host_json_path = project_root / "host.json"
+
+    assert function_path == project_root / "app/functions/foo.py"
+    assert function_path.exists()
+    assert test_path.exists()
+
+    ast.parse(function_path.read_text(encoding="utf-8"))
+    ast.parse(test_path.read_text(encoding="utf-8"))
+    ast.parse(function_app_path.read_text(encoding="utf-8"))
+    json.loads(host_json_path.read_text(encoding="utf-8"))
+
+    function_app_text = function_app_path.read_text(encoding="utf-8")
+    assert "from app.functions.foo import foo_blueprint" in function_app_text
+    assert "app.register_functions(foo_blueprint)" in function_app_text
 
 
 def test_add_function_can_skip_test_generation_for_minimal_preset(tmp_path: Path) -> None:
@@ -698,6 +765,32 @@ def test_add_resource_does_not_create_files_when_function_app_uneditable(tmp_pat
     assert not (project_root / "app/services/orphans_service.py").exists()
     assert not (project_root / "app/schemas/orphans.py").exists()
     assert not (project_root / "tests/test_orphans.py").exists()
+
+
+def test_add_resource_rolls_back_on_partial_failure(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    function_app_path = project_root / "function_app.py"
+    original_function_app = function_app_path.read_text(encoding="utf-8")
+    original_write_text = Path.write_text
+
+    def failing_write_text(self: Path, data: str, *args: Any, **kwargs: Any) -> int:
+        if self == function_app_path:
+            raise PermissionError("blocked")
+        return original_write_text(self, data, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "write_text", failing_write_text)
+
+    with pytest.raises(ScaffoldError, match="Atomic write failed"):
+        add_resource(project_root=project_root, resource_name="products")
+
+    assert not (project_root / "app/functions/products.py").exists()
+    assert not (project_root / "app/services/products_service.py").exists()
+    assert not (project_root / "app/schemas/products.py").exists()
+    assert not (project_root / "tests/test_products.py").exists()
+    assert function_app_path.read_text(encoding="utf-8") == original_function_app
 
 
 def test_add_resource_skips_test_when_no_tests_dir(tmp_path: Path) -> None:
