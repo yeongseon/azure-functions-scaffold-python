@@ -369,6 +369,19 @@ def test_scaffold_project_generates_expected_project_contract(
     assert "azure-functions-logging>=0.5.0" in pyproject_text
 
 
+def test_durable_template_uses_correct_durable_module_path(tmp_path: Path) -> None:
+    project_path = scaffold_project(
+        "durable-sample",
+        tmp_path,
+        template_name="durable",
+    )
+
+    durable_text = (project_path / "app/functions/durable.py").read_text(encoding="utf-8")
+    assert "import azure.durable_functions as df" in durable_text
+    assert "azure.functions.durable_functions" not in durable_text
+    assert "Generator[Any, Any, list[str]]" in durable_text
+
+
 @pytest.mark.parametrize("template_name", ["queue", "blob", "servicebus", "eventhub", "cosmosdb"])
 def test_binding_templates_include_extension_bundle(tmp_path: Path, template_name: str) -> None:
     project_path = scaffold_project(
