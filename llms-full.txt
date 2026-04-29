@@ -74,7 +74,7 @@ Arguments:
 
 Options:
 - `-d, --destination PATH` (default: `.`)
-- `--python-version VERSION` (default: `3.10`; choices: `3.10`, `3.11`, `3.12`, `3.13`, `3.14`)
+- `--python-version VERSION` (default: `3.10`; choices: `3.10`, `3.11`, `3.12`, `3.13`, `3.14 (Preview)`)
 - `--github-actions/--no-github-actions` (default: `--no-github-actions`)
 - `--git/--no-git` (default: `--no-git`)
 - `--azd/--no-azd` (default: `--no-azd`)
@@ -137,7 +137,7 @@ afs worker <trigger> <project_name> [OPTIONS]
 
 Shared options for all worker commands:
 - `-d, --destination PATH` (default: `.`)
-- `--python-version VERSION` (default: `3.10`; choices: `3.10`, `3.11`, `3.12`, `3.13`, `3.14`)
+- `--python-version VERSION` (default: `3.10`; choices: `3.10`, `3.11`, `3.12`, `3.13`, `3.14 (Preview)`)
 - `--github-actions/--no-github-actions` (default: `--no-github-actions`)
 - `--git/--no-git` (default: `--no-git`)
 - `--azd/--no-azd` (default: `--no-azd`)
@@ -170,7 +170,7 @@ Arguments:
 
 Options:
 - `-d, --destination PATH` (default: `.`)
-- `--python-version VERSION` (default: `3.10`; choices: `3.10`, `3.11`, `3.12`, `3.13`, `3.14`)
+- `--python-version VERSION` (default: `3.10`; choices: `3.10`, `3.11`, `3.12`, `3.13`, `3.14 (Preview)`)
 - `--github-actions/--no-github-actions` (default: `--no-github-actions`)
 - `--git/--no-git` (default: `--no-git`)
 - `--azd/--no-azd` (default: `--no-azd`)
@@ -196,7 +196,7 @@ Options (full set):
 - `-d, --destination PATH` (default: `.`)
 - `-t, --template TEXT` (default: `http`; choices: `http`, `timer`, `queue`, `blob`, `servicebus`, `eventhub`, `cosmosdb`, `durable`, `ai`, `langgraph`)
 - `--preset TEXT` (default: `standard`; choices: `minimal`, `standard`, `strict`)
-- `--python-version VERSION` (default: `3.10`; choices: `3.10`, `3.11`, `3.12`, `3.13`, `3.14`)
+- `--python-version VERSION` (default: `3.10`; choices: `3.10`, `3.11`, `3.12`, `3.13`, `3.14 (Preview)`)
 - `--github-actions/--no-github-actions` (default: `--no-github-actions`)
 - `--git/--no-git` (default: `--no-git`)
 - `--with-openapi/--no-openapi` (default: `--no-openapi`)
@@ -275,6 +275,8 @@ Options:
 ## Common Workflows
 
 ### Workflow 1: API project with strict defaults
+
+Python 3.14 is Preview on Azure Functions; default to 3.12 unless Preview support is verified.
 
 ```bash
 afs new my-api
@@ -396,7 +398,7 @@ Copy to `local.settings.json` and adjust connection values for local development
 | `Project name must start with alphanumeric character` | Invalid project name format | Use letters, numbers, hyphens, underscores only |
 | `Unknown template '{name}'` | Invalid template choice | Use `afs templates` to inspect valid template names |
 | `Unknown preset '{name}'` | Invalid preset choice | Use `afs presets` to inspect valid preset names |
-| `Unsupported Python version '{version}'` | Invalid Python version | Use: `3.10`, `3.11`, `3.12`, `3.13`, `3.14` |
+| `Unsupported Python version '{version}'` | Invalid Python version | Use: `3.10`, `3.11`, `3.12`, `3.13`, `3.14 (Preview)` |
 | `Target directory already exists` | Destination path exists | Use `--overwrite` or a different destination |
 | `Project root does not look like a scaffolded Azure Functions project.` | Invalid project path for add commands | Ensure `function_app.py` and `app/functions` exist |
 | `Unsupported trigger '{name}'` | Invalid trigger in `advanced add` | Use supported triggers from CLI help |

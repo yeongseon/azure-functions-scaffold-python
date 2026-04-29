@@ -10,7 +10,11 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import ProjectOptions, TemplateContext, TemplateSpec
-from azure_functions_scaffold.template_registry import build_project_options, get_template
+from azure_functions_scaffold.template_registry import (
+    build_project_options,
+    get_template,
+    is_preview_python,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +73,7 @@ def scaffold_project(
             project_name=context.project_name,
             project_slug=context.project_slug,
             python_version=context.python_version,
+            is_preview_python=is_preview_python(context.python_version),
             python_upper_bound=context.python_upper_bound,
             preset_name=context.preset_name,
             include_github_actions=context.include_github_actions,

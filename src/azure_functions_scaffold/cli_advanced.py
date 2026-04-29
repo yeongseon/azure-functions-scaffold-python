@@ -8,6 +8,7 @@ from typing import Annotated
 import typer
 
 from azure_functions_scaffold.cli_common import (
+    PYTHON_VERSION_HELP,
     AzdOption,
     DestinationOption,
     DryRunOption,
@@ -108,7 +109,7 @@ def advanced_new(
         str,
         typer.Option(
             "--python-version",
-            help="Python version for the generated project.",
+            help=PYTHON_VERSION_HELP,
         ),
     ] = "3.10",
     include_github_actions: Annotated[

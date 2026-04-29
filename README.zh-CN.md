@@ -14,6 +14,8 @@
 
 用于生产级 Azure Functions Python v2 项目的脚手架 CLI.
 
+Python 版本支持: Azure Functions 上 3.10-3.13 为 GA，3.14 为 **Preview**。详情请参阅 [Python 版本支持](docs/guide/configuration.md#python-version-support)。
+
 ## 为什么使用它
 
 启动新的 Azure Functions 项目意味着设置样板文件：`host.json`、`function_app.py`、目录结构、工具配置和测试。`azure-functions-scaffold` 通过一个命令生成生产级项目布局，让你从一开始就专注于业务逻辑。
@@ -188,6 +190,7 @@ func azure functionapp publish <APP_NAME>
 ## 文档
 
 - 完整文档: [yeongseon.github.io/azure-functions-scaffold-python](https://yeongseon.github.io/azure-functions-scaffold-python/)
+- Python 版本支持: [`docs/guide/configuration.md#python-version-support`](docs/guide/configuration.md#python-version-support)
 - 快速开始: [`docs/guide/getting-started.md`](docs/guide/getting-started.md)
 - CLI 参考: [`docs/reference/cli.md`](docs/reference/cli.md)
 - 项目结构: [`docs/guide/project-structure.md`](docs/guide/project-structure.md)

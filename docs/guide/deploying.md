@@ -8,7 +8,7 @@ Once your project is ready for production, follow these steps to deploy it to Az
 
 Before deploying, ensure you have:
 
-*   **App Settings**: Created an Azure Function App with the correct Python version (3.10-3.14).
+*   **App Settings**: Created an Azure Function App with the correct Python version (3.10-3.13 GA, 3.14 Preview). Verify Preview support for your region and hosting plan before using 3.14.
 *   **Host.json**: Verified that `host.json` contains any necessary production configurations.
 *   **Tests**: Run your Pytest suite locally and passed all checks.
 *   **Local Run**: Successfully started the runtime locally using `func start`.

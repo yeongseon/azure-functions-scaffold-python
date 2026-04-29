@@ -11,9 +11,25 @@ import typer
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import ProjectOptions
 from azure_functions_scaffold.scaffolder import describe_scaffold_project, scaffold_project
-from azure_functions_scaffold.template_registry import INTENT_SPECS, build_project_options
+from azure_functions_scaffold.template_registry import (
+    INTENT_SPECS,
+    PREVIEW_PYTHON_VERSIONS,
+    build_project_options,
+    is_preview_python,
+)
 
 logger = logging.getLogger(__name__)
+
+PREVIEW_PYTHON_VERSIONS_LABEL = "/".join(sorted(PREVIEW_PYTHON_VERSIONS))
+PYTHON_VERSION_HELP = (
+    f"Python version target. {PREVIEW_PYTHON_VERSIONS_LABEL} is PREVIEW on Azure Functions "
+    "(limited regional/plan support)."
+)
+PREVIEW_PYTHON_WARNING = (
+    "GA support is limited; Flex Consumption remote build may be unavailable in your region. "
+    "See https://learn.microsoft.com/azure/azure-functions/supported-languages for the "
+    "current support matrix."
+)
 
 # ---------------------------------------------------------------------------
 # Reusable Typer option types
@@ -33,7 +49,7 @@ PythonVersionOption = Annotated[
     str,
     typer.Option(
         "--python-version",
-        help="Python version for the generated project.",
+        help=PYTHON_VERSION_HELP,
     ),
 ]
 
@@ -148,6 +164,8 @@ def run_scaffold(
         dry_run,
     )
 
+    _emit_preview_python_warning(options.python_version)
+
     try:
         if dry_run:
             for line in describe_scaffold_project(
@@ -171,6 +189,17 @@ def run_scaffold(
         raise typer.Exit(code=1) from exc
 
     _print_success_message(project_path, template_name, options)
+
+
+def _emit_preview_python_warning(version: str) -> None:
+    if not is_preview_python(version):
+        return
+
+    typer.secho(
+        f"Warning: Python {version} is Preview on Azure Functions. {PREVIEW_PYTHON_WARNING}",
+        fg=typer.colors.YELLOW,
+        err=True,
+    )
 
 
 def _print_success_message(

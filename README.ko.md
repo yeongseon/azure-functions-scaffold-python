@@ -14,6 +14,8 @@
 
 프로덕션 수준의 Azure Functions Python v2 프로젝트를 위한 스캐폴딩 CLI.
 
+Python 버전 지원: Azure Functions에서 3.10-3.13은 GA이며, 3.14는 **Preview**입니다. 자세한 내용은 [Python 버전 지원](docs/guide/configuration.md#python-version-support)을 참고하세요.
+
 ## 왜 사용해야 할까
 
 새로운 Azure Functions 프로젝트를 시작하려면 보일러플레이트 설정이 필요합니다: `host.json`, `function_app.py`, 디렉터리 구조, 도구 설정, 테스트. `azure-functions-scaffold`는 한 번의 명령으로 프로덕션 수준의 프로젝트 레이아웃을 생성하여, 처음부터 비즈니스 로직에 집중할 수 있게 합니다.
@@ -188,6 +190,7 @@ func azure functionapp publish <APP_NAME>
 ## 문서
 
 - 전체 문서: [yeongseon.github.io/azure-functions-scaffold-python](https://yeongseon.github.io/azure-functions-scaffold-python/)
+- Python 버전 지원: [`docs/guide/configuration.md#python-version-support`](docs/guide/configuration.md#python-version-support)
 - 시작하기: [`docs/guide/getting-started.md`](docs/guide/getting-started.md)
 - CLI 참조: [`docs/reference/cli.md`](docs/reference/cli.md)
 - 프로젝트 구조: [`docs/guide/project-structure.md`](docs/guide/project-structure.md)

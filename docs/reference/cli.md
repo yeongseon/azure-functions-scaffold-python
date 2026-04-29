@@ -23,7 +23,7 @@ Generates a new Azure Functions Python v2 project from scratch.
 | `--destination`, `-d` | `.` | Path | Target parent directory for the project. |
 | `--template`, `-t` | `http` | `http`, `timer`, `queue`, `blob`, `servicebus` | Initial trigger template to include. |
 | `--preset` | `standard` | `minimal`, `standard`, `strict` | Tooling configuration (linting, types, tests). |
-| `--python-version` | `3.10` | `3.10`, `3.11`, `3.12`, `3.13`, `3.14` | Target Python version for the project. |
+| `--python-version` | `3.10` | `3.10`, `3.11`, `3.12`, `3.13`, `3.14 (Preview)` | Target Python version for the project. 3.14 is Preview on Azure Functions with limited regional/plan support. |
 | `--github-actions` / `--no-github-actions` | `--no-github-actions` | Boolean | Include GitHub Actions CI/CD workflows. |
 | `--git` / `--no-git` | `--no-git` | Boolean | Initialize a git repository. |
 | `--with-openapi` / `--no-openapi` | `--no-openapi` | Boolean | Include OpenAPI/Swagger documentation support. |

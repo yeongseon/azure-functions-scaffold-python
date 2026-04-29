@@ -6,7 +6,7 @@ Follow this guide to install the CLI and generate your first production-ready Az
 
 Ensure you have the following tools installed:
 
-*   **Python 3.10+**: Supported versions are 3.10 through 3.14.
+*   **Python 3.10+**: Supported versions are 3.10 through 3.13, plus 3.14 (Preview).
 *   **pip**: Python package manager.
 *   **Azure Functions Core Tools**: Required for local testing (`v4.x` recommended).
 

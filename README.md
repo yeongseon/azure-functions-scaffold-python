@@ -14,6 +14,8 @@ Read this in: [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中
 
 Scaffolding CLI for production-ready Azure Functions Python v2 projects.
 
+Python version support: 3.10-3.13 are GA on Azure Functions; 3.14 is accepted as **Preview**. See [Python version support](docs/guide/configuration.md#python-version-support).
+
 ## Why Use It
 
 Starting a new Azure Functions project means setting up boilerplate: `host.json`, `function_app.py`, directory structure, tooling config, and tests. `azure-functions-scaffold` generates a production-ready project layout in one command, so you can focus on business logic from the start.
@@ -235,6 +237,7 @@ Before publishing:
 ## Documentation
 
 - Full docs: [yeongseon.github.io/azure-functions-scaffold-python](https://yeongseon.github.io/azure-functions-scaffold-python/)
+- Python version support: [`docs/guide/configuration.md#python-version-support`](docs/guide/configuration.md#python-version-support)
 - Getting Started: [`docs/guide/getting-started.md`](docs/guide/getting-started.md)
 - CLI Reference: [`docs/reference/cli.md`](docs/reference/cli.md)
 - Project Structure: [`docs/guide/project-structure.md`](docs/guide/project-structure.md)

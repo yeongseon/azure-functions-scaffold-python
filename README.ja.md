@@ -14,6 +14,8 @@
 
 プロダクションレベルの Azure Functions Python v2 プロジェクトのためのスキャフォールディング CLI.
 
+Python バージョンサポート: Azure Functions では 3.10-3.13 は GA、3.14 は **Preview** です。詳しくは [Python バージョンサポート](docs/guide/configuration.md#python-version-support) を参照してください。
+
 ## なぜこのツールを使うのか
 
 新しい Azure Functions プロジェクトを始めるには、ボイラープレートの設定が必要です: `host.json`、`function_app.py`、ディレクトリ構造、ツール設定、テスト。`azure-functions-scaffold` は一つのコマンドでプロダクションレベルのプロジェクトレイアウトを生成し、最初からビジネスロジックに集中できるようにします。
@@ -188,6 +190,7 @@ func azure functionapp publish <APP_NAME>
 ## ドキュメント
 
 - 全文書: [yeongseon.github.io/azure-functions-scaffold-python](https://yeongseon.github.io/azure-functions-scaffold-python/)
+- Python バージョンサポート: [`docs/guide/configuration.md#python-version-support`](docs/guide/configuration.md#python-version-support)
 - はじめに: [`docs/guide/getting-started.md`](docs/guide/getting-started.md)
 - CLI リファレンス: [`docs/reference/cli.md`](docs/reference/cli.md)
 - プロジェクト構成: [`docs/guide/project-structure.md`](docs/guide/project-structure.md)

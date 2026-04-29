@@ -33,7 +33,7 @@ Tests run automatically on every pull request and push to `main`. The CI matrix 
 | 3.11 | Tested |
 | 3.12 | Tested |
 | 3.13 | Tested |
-| 3.14 | Tested |
+| 3.14 | Preview - allowed to fail |
 
 All tests must pass across the entire matrix before a pull request can be merged.
 
