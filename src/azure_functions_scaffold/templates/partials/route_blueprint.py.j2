@@ -9,7 +9,7 @@ import logging
 @{{ resource_name }}_blueprint.route(
     route="{{ route_name }}",
     methods=["GET"],
-    auth_level=func.AuthLevel.ANONYMOUS,
+    auth_level=func.AuthLevel.FUNCTION,
 )
 def {{ resource_name }}(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("{{ route_name }} endpoint called")

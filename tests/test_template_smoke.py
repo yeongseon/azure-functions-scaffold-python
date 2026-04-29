@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import importlib
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -185,6 +186,7 @@ def test_rendered_strict_http_project_tests_pass(tmp_path: Path) -> None:
         text=True,
         env={
             **os.environ,
+            "WEBHOOK_SECRET": "test-secret-key",
             "PYTHONPATH": os.pathsep.join(
                 filter(None, [str(project_root), os.environ.get("PYTHONPATH", "")])
             ),
@@ -223,6 +225,7 @@ def test_rendered_standard_http_project_tests_pass(tmp_path: Path) -> None:
         text=True,
         env={
             **os.environ,
+            "WEBHOOK_SECRET": "test-secret-key",
             "PYTHONPATH": os.pathsep.join(
                 filter(None, [str(project_root), os.environ.get("PYTHONPATH", "")])
             ),
@@ -233,3 +236,102 @@ def test_rendered_standard_http_project_tests_pass(tmp_path: Path) -> None:
         f"stdout:\n{result.stdout}\n"
         f"stderr:\n{result.stderr}"
     )
+
+
+def test_rendered_http_webhook_returns_503_when_secret_missing(tmp_path: Path) -> None:
+    options = build_project_options(
+        preset_name="standard",
+        python_version="3.10",
+        include_github_actions=False,
+        initialize_git=False,
+        include_openapi=False,
+        include_validation=False,
+        include_doctor=False,
+    )
+    project_root = scaffold_project(
+        project_name="webhook-secret-missing",
+        destination=tmp_path,
+        template_name="http",
+        options=options,
+    )
+
+    sys.path.insert(0, str(project_root))
+    try:
+        from app.functions.webhooks import receive_webhook  # type: ignore[import-not-found]
+        import azure.functions as func
+
+        request = func.HttpRequest(
+            method="POST",
+            url="http://localhost/api/webhooks/inbound",
+            params={},
+            body=json.dumps({"event_type": "ping", "source": "test"}).encode(),
+            route_params={},
+            headers={"Content-Type": "application/json"},
+        )
+
+        original_secret = os.environ.pop("WEBHOOK_SECRET", None)
+        try:
+            response = receive_webhook(request)
+        finally:
+            if original_secret is not None:
+                os.environ["WEBHOOK_SECRET"] = original_secret
+    finally:
+        sys.path.pop(0)
+        for module_name in list(sys.modules):
+            if module_name == "app" or module_name.startswith("app."):
+                del sys.modules[module_name]
+
+    assert response.status_code == 503
+    assert json.loads(response.get_body()) == {"error": "Webhook signing secret not configured"}
+
+
+def test_rendered_http_webhook_returns_401_for_unsigned_payload_when_secret_set(
+    tmp_path: Path,
+) -> None:
+    options = build_project_options(
+        preset_name="standard",
+        python_version="3.10",
+        include_github_actions=False,
+        initialize_git=False,
+        include_openapi=False,
+        include_validation=False,
+        include_doctor=False,
+    )
+    project_root = scaffold_project(
+        project_name="webhook-secret-set",
+        destination=tmp_path,
+        template_name="http",
+        options=options,
+    )
+
+    sys.path.insert(0, str(project_root))
+    try:
+        from app.functions.webhooks import receive_webhook  # type: ignore[import-not-found]
+        import azure.functions as func
+
+        payload = json.dumps({"event_type": "ping", "source": "test"}).encode()
+        request = func.HttpRequest(
+            method="POST",
+            url="http://localhost/api/webhooks/inbound",
+            params={},
+            body=payload,
+            route_params={},
+            headers={"Content-Type": "application/json", "X-Signature": ""},
+        )
+
+        original_secret = os.environ.get("WEBHOOK_SECRET")
+        os.environ["WEBHOOK_SECRET"] = "test-secret-key"
+        try:
+            response = receive_webhook(request)
+        finally:
+            if original_secret is None:
+                del os.environ["WEBHOOK_SECRET"]
+            else:
+                os.environ["WEBHOOK_SECRET"] = original_secret
+    finally:
+        sys.path.pop(0)
+        for module_name in list(sys.modules):
+            if module_name == "app" or module_name.startswith("app."):
+                del sys.modules[module_name]
+
+    assert response.status_code == 401

@@ -13,6 +13,9 @@ Python: `{{ python_version }}`
 
 Template: `langgraph` — deploys a LangGraph agent on Azure Functions.
 
+The generated LangGraph app currently keeps `func.AuthLevel.ANONYMOUS` by default.
+Review that setting before exposing the endpoints outside trusted environments.
+
 ## Development
 
 ```bash
