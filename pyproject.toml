@@ -1,5 +1,5 @@
 [project]
-name = "azure-functions-scaffold-python"
+name = "azure-functions-scaffold"
 description = "Scaffolding CLI for Azure Functions Python v2 projects"
 keywords = ["azure-functions", "azure", "python", "v2", "scaffold", "cli", "code-generator", "serverless"]
 authors = [{ name = "Yeongseon Choe", email = "yeongseon.choe@gmail.com" }]
@@ -64,7 +64,7 @@ Repository = "https://github.com/yeongseon/azure-functions-scaffold-python"
 Issues = "https://github.com/yeongseon/azure-functions-scaffold-python/issues"
 
 [project.scripts]
-azure-functions-scaffold-python = "azure_functions_scaffold.cli:app"
+azure-functions-scaffold = "azure_functions_scaffold.cli:app"
 afs = "azure_functions_scaffold.cli:app"
 
 [build-system]

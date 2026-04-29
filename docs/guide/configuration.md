@@ -1,6 +1,6 @@
 # Configuration
 
-This guide explains how `azure-functions-scaffold-python` maps CLI options to generated
+This guide explains how `azure-functions-scaffold` maps CLI options to generated
 project behavior. Use it when you need predictable output across environments,
 teams, and CI pipelines.
 
@@ -25,7 +25,7 @@ You will primarily configure projects through:
 - `afs new <name>` for project creation.
 - `afs add <trigger> <name>` for adding new function modules.
 
-`afs` is a short alias for `azure-functions-scaffold-python` and behaves exactly the
+`afs` is a short alias for `azure-functions-scaffold` and behaves exactly the
 same.
 
 ## `new` Command Options
@@ -57,7 +57,7 @@ The following are included in every generated project regardless of flags.
 
 | Feature | Dependency | Location |
 | :--- | :--- | :--- |
-| Structured logging | `azure-functions-logging-python` | `app/core/logging.py` |
+| Structured logging | `azure-functions-logging` | `app/core/logging.py` |
 
 Structured JSON logging is pre-configured via `configure_logging()` in `app/core/logging.py`
 and called at startup in `function_app.py`. No additional flag is required.
@@ -79,8 +79,8 @@ logger = get_logger("my-api")
 | Flag | Default | Effect |
 | :--- | :--- | :--- |
 | `--with-openapi` / `--no-openapi` | `--no-openapi` | Adds OpenAPI routes (`/api/docs`, `/api/openapi.json`, `/api/openapi.yaml`) for HTTP projects. |
-| `--with-validation` / `--no-validation` | `--no-validation` | Adds `azure-functions-validation-python` and Pydantic request/response model validation for HTTP projects. |
-| `--with-doctor` / `--no-doctor` | `--no-doctor` | Adds `azure-functions-doctor-python` dependency and a `make doctor` target. |
+| `--with-validation` / `--no-validation` | `--no-validation` | Adds `azure-functions-validation` and Pydantic request/response model validation for HTTP projects. |
+| `--with-doctor` / `--no-doctor` | `--no-doctor` | Adds `azure-functions-doctor` dependency and a `make doctor` target. |
 
 !!! warning "HTTP-only behavior"
     `--with-openapi` and `--with-validation` are intended for the HTTP template.

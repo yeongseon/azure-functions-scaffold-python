@@ -1,6 +1,6 @@
 # Template Specification
 
-Standard for developing and maintaining templates for `azure-functions-scaffold-python`.
+Standard for developing and maintaining templates for `azure-functions-scaffold`.
 
 ## Template Locations
 

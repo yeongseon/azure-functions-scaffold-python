@@ -16,10 +16,10 @@ Install the CLI globally or in a virtual environment. Use `pipx` if you want to 
 
 ```bash
 # Global install
-pip install azure-functions-scaffold-python
+pip install azure-functions-scaffold
 
 # Recommended (Isolated install)
-pipx install azure-functions-scaffold-python
+pipx install azure-functions-scaffold
 ```
 
 Verify the installation by running the command or its alias:

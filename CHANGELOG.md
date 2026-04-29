@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed (BREAKING - packaging)
+
+- Renamed PyPI package from `azure-functions-scaffold-python` to `azure-functions-scaffold` to align with the existing PyPI registration (the suffixed name was never published). Install command: `pip install azure-functions-scaffold`. The CLI binary `afs` and the long-form `azure-functions-scaffold` are unchanged behaviorally; the long-form name no longer carries the `-python` suffix.
+- Generated project templates now depend on unsuffixed sibling packages: `azure-functions-logging`, `azure-functions-openapi`, `azure-functions-validation`, `azure-functions-doctor`, `azure-functions-db`. Existing `-python`-suffixed deps were unresolvable on PyPI.
+- Function-app marker comments are now `# azure-functions-scaffold: function imports` / `# azure-functions-scaffold: function registrations` (was `azure-functions-scaffold-python: ...`). Existing scaffolded projects will continue to work because the generator still recognizes both legacy and new markers - see migration notes.
+
+### Migration
+
+- Users with previously-scaffolded projects do not need to take action; the marker constants only matter when running `afs api add` / `afs advanced add` / `afs api add-route` / `afs api add-resource` against an existing project. If those commands fail with "marker not found" against an old scaffold, replace the comment in `function_app.py` from `# azure-functions-scaffold-python:` to `# azure-functions-scaffold:`.
+- Users following the previous suffixed install instructions will hit a 404. The README and docs are updated; PyPI package name is now `azure-functions-scaffold`.
+
 ## [0.5.0] - 2025-04-09
 
 ### Features

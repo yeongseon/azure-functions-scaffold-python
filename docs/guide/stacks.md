@@ -11,9 +11,9 @@ and the scaffold command to generate a matching project.
 
 | Package | Role |
 |---------|------|
-| `azure-functions-openapi-python` | Swagger UI + OpenAPI 3.1 spec |
-| `azure-functions-validation-python` | Pydantic request/response validation |
-| `azure-functions-logging-python` | Structured JSON logging |
+| `azure-functions-openapi` | Swagger UI + OpenAPI 3.1 spec |
+| `azure-functions-validation` | Pydantic request/response validation |
+| `azure-functions-logging` | Structured JSON logging |
 
 ```bash
 afs new my-api --profile api
@@ -22,9 +22,9 @@ afs new my-api --profile api
 ```text
 # requirements.txt
 azure-functions
-azure-functions-openapi-python
-azure-functions-validation-python
-azure-functions-logging-python
+azure-functions-openapi
+azure-functions-validation
+azure-functions-logging
 ```
 
 **What you get:** validated HTTP endpoints with auto-generated API docs,
@@ -38,10 +38,10 @@ structured logs, and request correlation IDs.
 
 | Package | Role |
 |---------|------|
-| `azure-functions-openapi-python` | Swagger UI + OpenAPI 3.1 spec |
-| `azure-functions-validation-python` | Pydantic request/response validation |
-| `azure-functions-db-python` | Declarative database input/output bindings |
-| `azure-functions-logging-python` | Structured JSON logging |
+| `azure-functions-openapi` | Swagger UI + OpenAPI 3.1 spec |
+| `azure-functions-validation` | Pydantic request/response validation |
+| `azure-functions-db` | Declarative database input/output bindings |
+| `azure-functions-logging` | Structured JSON logging |
 
 ```bash
 afs new my-api --profile db-api
@@ -50,10 +50,10 @@ afs new my-api --profile db-api
 ```text
 # requirements.txt
 azure-functions
-azure-functions-openapi-python
-azure-functions-validation-python
-azure-functions-db-python[postgres]
-azure-functions-logging-python
+azure-functions-openapi
+azure-functions-validation
+azure-functions-db[postgres]
+azure-functions-logging
 ```
 
 **What you get:** everything in the API Stack plus declarative database
@@ -67,9 +67,9 @@ read/write bindings via `@db.input()` and `@db.output()`.
 
 | Package | Role |
 |---------|------|
-| `azure-functions-langgraph-python` | LangGraph HTTP deployment adapter |
-| `azure-functions-openapi-python` | Swagger UI for agent endpoints |
-| `azure-functions-logging-python` | Structured JSON logging |
+| `azure-functions-langgraph` | LangGraph HTTP deployment adapter |
+| `azure-functions-openapi` | Swagger UI for agent endpoints |
+| `azure-functions-logging` | Structured JSON logging |
 
 ```bash
 afs new my-agent --template langgraph
@@ -79,9 +79,9 @@ afs new my-agent --template langgraph
 # requirements.txt
 azure-functions
 langgraph
-azure-functions-langgraph-python
-azure-functions-openapi-python
-azure-functions-logging-python
+azure-functions-langgraph
+azure-functions-openapi
+azure-functions-logging
 ```
 
 **What you get:** invoke, stream, and health endpoints for LangGraph graphs,
@@ -96,11 +96,11 @@ database access, health diagnostics, and observability.
 
 | Package | Role |
 |---------|------|
-| `azure-functions-openapi-python` | Swagger UI + OpenAPI 3.1 spec |
-| `azure-functions-validation-python` | Pydantic request/response validation |
-| `azure-functions-db-python` | Declarative database bindings |
-| `azure-functions-logging-python` | Structured JSON logging |
-| `azure-functions-doctor-python` | Pre-deploy diagnostic checks |
+| `azure-functions-openapi` | Swagger UI + OpenAPI 3.1 spec |
+| `azure-functions-validation` | Pydantic request/response validation |
+| `azure-functions-db` | Declarative database bindings |
+| `azure-functions-logging` | Structured JSON logging |
+| `azure-functions-doctor` | Pre-deploy diagnostic checks |
 
 ```bash
 afs new my-api --profile db-api --with-doctor
@@ -109,11 +109,11 @@ afs new my-api --profile db-api --with-doctor
 ```text
 # requirements.txt
 azure-functions
-azure-functions-openapi-python
-azure-functions-validation-python
-azure-functions-db-python[postgres]
-azure-functions-logging-python
-azure-functions-doctor-python
+azure-functions-openapi
+azure-functions-validation
+azure-functions-db[postgres]
+azure-functions-logging
+azure-functions-doctor
 ```
 
 **What you get:** a fully instrumented API with validation, database access,

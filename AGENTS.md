@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## Purpose
-`azure-functions-scaffold-python` is a CLI and library for scaffolding production-ready Azure Functions Python v2 projects.
+`azure-functions-scaffold` is a CLI and library for scaffolding production-ready Azure Functions Python v2 projects.
 
 ## Read First
 - `README.md`

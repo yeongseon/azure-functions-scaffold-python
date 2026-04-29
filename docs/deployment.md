@@ -10,7 +10,7 @@ Now you want to deploy it to Azure so it runs in the cloud. This guide assumes y
 
 ## What you are deploying
 
-`azure-functions-scaffold-python` generates ready-to-deploy Azure Functions projects from templates.
+`azure-functions-scaffold` generates ready-to-deploy Azure Functions projects from templates.
 This guide deploys two templates:
 
 - **`http` template** — An HTTP API with a `/api/hello` endpoint
@@ -45,7 +45,7 @@ After following this guide, your scaffolded project will be running on Azure and
 | Azure CLI | `az --version` | [Install Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) |
 | Azure Functions Core Tools v4 | `func --version` | [Install Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools) |
 | Python 3.10–3.13 | `python --version` | [python.org](https://www.python.org/downloads/) |
-| `afs` CLI installed | `afs --version` | `pip install azure-functions-scaffold-python` |
+| `afs` CLI installed | `afs --version` | `pip install azure-functions-scaffold` |
 | Local project working | `func start` → responds to `curl` | See [README Quick Start](https://github.com/yeongseon/azure-functions-scaffold-python/blob/main/README.md) |
 
 > ⚠️ **Verify locally first.** If your project doesn't work locally, it won't work on Azure either.
@@ -110,7 +110,7 @@ Azure Functions expects a `requirements.txt` file in the project root:
 ```bash
 cat > requirements.txt << 'EOF'
 azure-functions>=1.23.0
-azure-functions-logging-python>=0.2.0
+azure-functions-logging>=0.2.0
 EOF
 ```
 
@@ -301,7 +301,7 @@ cd my-timer-job
 ```bash
 cat > requirements.txt << 'EOF'
 azure-functions>=1.23.0
-azure-functions-logging-python>=0.2.0
+azure-functions-logging>=0.2.0
 EOF
 ```
 
@@ -533,8 +533,8 @@ az group list --query "[?starts_with(name, 'rg-scaffold')]" -o table
 
 - [Choose an Azure Functions Hosting Plan](choose-a-plan.md) — Plan selection guide with decision tree
 - [Deploying guide](./guide/deploying.md) — Additional deployment topics
-- [`azure-functions-openapi-python`](https://github.com/yeongseon/azure-functions-openapi-python)
-- [`azure-functions-validation-python`](https://github.com/yeongseon/azure-functions-validation-python)
-- [`azure-functions-doctor-python`](https://github.com/yeongseon/azure-functions-doctor-python)
-- [`azure-functions-logging-python`](https://github.com/yeongseon/azure-functions-logging-python)
-- [`azure-functions-langgraph-python`](https://github.com/yeongseon/azure-functions-langgraph-python)
+- [`azure-functions-openapi`](https://github.com/yeongseon/azure-functions-openapi-python)
+- [`azure-functions-validation`](https://github.com/yeongseon/azure-functions-validation-python)
+- [`azure-functions-doctor`](https://github.com/yeongseon/azure-functions-doctor-python)
+- [`azure-functions-logging`](https://github.com/yeongseon/azure-functions-logging-python)
+- [`azure-functions-langgraph`](https://github.com/yeongseon/azure-functions-langgraph-python)

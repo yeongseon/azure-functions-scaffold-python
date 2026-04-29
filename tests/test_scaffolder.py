@@ -580,5 +580,6 @@ def test_scaffold_project_renders_langgraph_template(tmp_path: Path) -> None:
     assert "LangGraphApp" in function_app_text
     assert "lg_app.register" in function_app_text
     pyproject_text = (project_path / "pyproject.toml").read_text(encoding="utf-8")
-    assert "azure-functions-langgraph>=0.5.1" in pyproject_text
+    assert '# "azure-functions-langgraph>=0.5.1",' in pyproject_text
+    assert "Uncomment after azure-functions-langgraph is published on PyPI." in pyproject_text
     assert "langgraph>=0.2.0" in pyproject_text

@@ -1,10 +1,10 @@
-# azure-functions-scaffold-python
+# azure-functions-scaffold
 
 > Scaffolding CLI for production-ready Azure Functions Python v2 projects.
 
 ## Package Info
 
-- PyPI: `pip install azure-functions-scaffold-python`
+- PyPI: `pip install azure-functions-scaffold`
 - Version: 0.5.0
 - Python: >=3.10, <3.15
 - License: MIT
@@ -20,7 +20,7 @@ tests so teams can focus on business logic from the start.
 ## CLI Commands
 
 ```bash
-azure-functions-scaffold-python [GROUP] [COMMAND] [OPTIONS]
+azure-functions-scaffold [GROUP] [COMMAND] [OPTIONS]
 afs [GROUP] [COMMAND] [OPTIONS]                    # Short alias
 ```
 
@@ -59,8 +59,8 @@ afs [GROUP] [COMMAND] [OPTIONS]                    # Short alias
 - `--preset` — Preset to apply (`minimal`, `standard`, `strict`)
 - `--with-openapi/--no-openapi` — Include OpenAPI support (HTTP template)
 - `--with-validation/--no-validation` — Include request validation support (HTTP template)
-- `--with-doctor/--no-doctor` — Include `azure-functions-doctor-python`
-- `--with-db/--no-db` — Include `azure-functions-db-python` bindings *(planned — not yet available in CLI)*
+- `--with-doctor/--no-doctor` — Include `azure-functions-doctor`
+- `--with-db/--no-db` — Include `azure-functions-db` bindings *(planned — not yet available in CLI)*
 
 ### Global options
 
@@ -91,7 +91,7 @@ Presets combine tooling levels and best practices:
 
 ```bash
 # Step 1: Install
-pip install azure-functions-scaffold-python
+pip install azure-functions-scaffold
 
 # Step 2: Create project
 afs new my-api
@@ -117,7 +117,7 @@ Use `afs advanced new <name>` for explicit feature control:
 
 - `--with-openapi` — Swagger UI + OpenAPI spec endpoints
 - `--with-validation` — Pydantic request/response validation
-- `--with-doctor` — azure-functions-doctor-python health checks
+- `--with-doctor` — azure-functions-doctor health checks
 - `--with-db` — Database bindings *(planned — not yet available in CLI)*
 
 ## Generated Project Layout
@@ -170,7 +170,7 @@ my-api/
 ## Ecosystem
 
 Part of the Azure Functions Python DX Toolkit:
-- azure-functions-validation-python — Request/response validation
-- azure-functions-openapi-python — OpenAPI spec and Swagger UI
-- azure-functions-doctor-python — Pre-deploy diagnostics CLI
-- azure-functions-langgraph-python — Deploy LangGraph agents as Functions
+- azure-functions-validation — Request/response validation
+- azure-functions-openapi — OpenAPI spec and Swagger UI
+- azure-functions-doctor — Pre-deploy diagnostics CLI
+- azure-functions-langgraph — Deploy LangGraph agents as Functions

@@ -1,6 +1,6 @@
 # CLI Reference
 
-Technical specification for the `azure-functions-scaffold-python` (alias: `afs`) command-line interface.
+Technical specification for the `azure-functions-scaffold` (alias: `afs`) command-line interface.
 
 ## Commands
 
@@ -8,7 +8,7 @@ Technical specification for the `azure-functions-scaffold-python` (alias: `afs`)
 
 Generates a new Azure Functions Python v2 project from scratch.
 
-- **Synopsis**: `azure-functions-scaffold-python new [PROJECT_NAME] [OPTIONS]`
+- **Synopsis**: `azure-functions-scaffold new [PROJECT_NAME] [OPTIONS]`
 
 #### Arguments
 
@@ -37,7 +37,7 @@ Generates a new Azure Functions Python v2 project from scratch.
 
 Adds a new function to an existing project.
 
-- **Synopsis**: `azure-functions-scaffold-python add TRIGGER FUNCTION_NAME [OPTIONS]`
+- **Synopsis**: `azure-functions-scaffold add TRIGGER FUNCTION_NAME [OPTIONS]`
 
 #### Arguments
 
@@ -57,19 +57,19 @@ Adds a new function to an existing project.
 
 Lists all available function templates.
 
-- **Synopsis**: `azure-functions-scaffold-python templates`
+- **Synopsis**: `azure-functions-scaffold templates`
 
 ### `presets`
 
 Lists all available project presets and their included tools.
 
-- **Synopsis**: `azure-functions-scaffold-python presets`
+- **Synopsis**: `azure-functions-scaffold presets`
 
 ### `--version`
 
 Shows the current version of the CLI tool.
 
-- **Synopsis**: `azure-functions-scaffold-python --version`
+- **Synopsis**: `azure-functions-scaffold --version`
 
 ## Exit Codes
 

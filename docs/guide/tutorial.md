@@ -8,7 +8,7 @@ The default template generates a RESTful API endpoint with a clean separation be
 
 ### Generate the Project
 
-Run the following command to create a new project using the `azure-functions-scaffold-python` CLI (aliased as `afs`):
+Run the following command to create a new project using the `azure-functions-scaffold` CLI (aliased as `afs`):
 
 ```bash
 afs new my-api
@@ -65,12 +65,12 @@ import azure.functions as func
 from app.core.logging import configure_logging
 from app.functions.http import http_blueprint
 
-# azure-functions-scaffold-python: function imports
+# azure-functions-scaffold: function imports
 
 configure_logging()
 
 app = func.FunctionApp()
-# azure-functions-scaffold-python: function registrations
+# azure-functions-scaffold: function registrations
 app.register_functions(http_blueprint)
 ```
 

@@ -1,7 +1,7 @@
 # Azure Functions Scaffold
 
-[![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold-python.svg)](https://pypi.org/project/azure-functions-scaffold-python/)
-[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold-python/)
+[![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold.svg)](https://pypi.org/project/azure-functions-scaffold/)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
 [![CI](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/ci-test.yml)
 [![Release](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/release.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/release.yml)
 [![Security Scans](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml)
@@ -16,7 +16,7 @@
 
 ## 为什么使用它
 
-启动新的 Azure Functions 项目意味着设置样板文件：`host.json`、`function_app.py`、目录结构、工具配置和测试。`azure-functions-scaffold-python` 通过一个命令生成生产级项目布局，让你从一开始就专注于业务逻辑。
+启动新的 Azure Functions 项目意味着设置样板文件：`host.json`、`function_app.py`、目录结构、工具配置和测试。`azure-functions-scaffold` 通过一个命令生成生产级项目布局，让你从一开始就专注于业务逻辑。
 
 ## 范围
 
@@ -34,12 +34,12 @@
 - 可选集成: `--with-openapi`、`--with-validation`、`--with-doctor`
 - 预设工具级别: `--preset minimal|standard|strict`
 - 面向高级用户的细粒度参数控制: `afs advanced new`
-- 短别名: `afs` 可替代 `azure-functions-scaffold-python`
+- 短别名: `afs` 可替代 `azure-functions-scaffold`
 
 ## 安装
 
 ```bash
-pip install azure-functions-scaffold-python
+pip install azure-functions-scaffold
 ```
 
 ## 快速开始
@@ -118,7 +118,7 @@ my-api/
 | blob | `afs worker blob my-blob` | 文件处理 (Azurite) |
 | servicebus | `afs worker servicebus my-bus` | 企业消息传递 |
 
-注意: `afs` 是 `azure-functions-scaffold-python` 的简称。两者都可用。
+注意: `afs` 是 `azure-functions-scaffold` 的简称。两者都可用。
 
 模板默认值:
 
@@ -211,14 +211,14 @@ make build
 
 | 包 | 角色 |
 |---------|------|
-| **azure-functions-scaffold-python** | 项目脚手架 CLI |
-| [azure-functions-validation-python](https://github.com/yeongseon/azure-functions-validation-python) | 请求/响应校验与序列化 |
-| [azure-functions-openapi-python](https://github.com/yeongseon/azure-functions-openapi-python) | OpenAPI 规范生成与 Swagger UI |
-| [azure-functions-langgraph-python](https://github.com/yeongseon/azure-functions-langgraph-python) | Azure Functions 的 LangGraph 部署适配器 |
-| [azure-functions-logging-python](https://github.com/yeongseon/azure-functions-logging-python) | 结构化日志与可观测性 |
-| [azure-functions-doctor-python](https://github.com/yeongseon/azure-functions-doctor-python) | 部署前诊断 CLI |
-| [azure-functions-durable-graph-python](https://github.com/yeongseon/azure-functions-durable-graph-python) | 基于 Durable Functions 的图运行时 *(计划中)* |
-| [azure-functions-cookbook-python](https://github.com/yeongseon/azure-functions-cookbook-python) | 食谱与示例 |
+| **azure-functions-scaffold** | 项目脚手架 CLI |
+| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation-python) | 请求/响应校验与序列化 |
+| [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi-python) | OpenAPI 规范生成与 Swagger UI |
+| [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph-python) | Azure Functions 的 LangGraph 部署适配器 |
+| [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging-python) | 结构化日志与可观测性 |
+| [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor-python) | 部署前诊断 CLI |
+| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph-python) | 基于 Durable Functions 的图运行时 *(计划中)* |
+| [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook-python) | 食谱与示例 |
 
 ## 免责声明
 

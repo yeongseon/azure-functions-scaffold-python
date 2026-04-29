@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the `azure-functions-scaffold-python` project are documented on this page. This project adheres to Semantic Versioning and maintains a structured history of updates, features, and bug fixes.
+All notable changes to the `azure-functions-scaffold` project are documented on this page. This project adheres to Semantic Versioning and maintains a structured history of updates, features, and bug fixes.
 
 ## Versioning Scheme
 
@@ -29,17 +29,17 @@ This release captures the tooling unification and documentation overhaul applied
 This release introduces health check integration and enhanced structured logging capabilities across all project templates.
 
 #### Added
-- Introduced `--with-doctor` and `--no-doctor` flags for the `new` command to include `azure-functions-doctor-python` health checks in scaffolded projects.
+- Introduced `--with-doctor` and `--no-doctor` flags for the `new` command to include `azure-functions-doctor` health checks in scaffolded projects.
 - Added an interactive prompt to choose whether to include the doctor health check tool during project setup.
 - Implemented a conditional `make doctor` target in the generated `Makefile` when the doctor flag is enabled.
-- Set `azure-functions-logging-python>=0.2.0` as a default dependency for all generated project templates.
+- Set `azure-functions-logging>=0.2.0` as a default dependency for all generated project templates.
 - Added structured JSON logging support via `setup_logging(format="json")` and `get_logger()` in the generated `logging.py` file.
 - Updated non-HTTP function templates to use `logging.info()` instead of `print()` for better production readiness.
 - Added a dry-run report status for the doctor tool, showing "Doctor: enabled" when requested.
 - Expanded test coverage to include the doctor flag, dry-run output verification, and logging dependency management.
 
 #### Changed
-- Refactored the generated `logging.py` to replace the basic `basicConfig` stub with full `azure-functions-logging-python` integration.
+- Refactored the generated `logging.py` to replace the basic `basicConfig` stub with full `azure-functions-logging` integration.
 - Updated Queue, Blob, and Service Bus function templates to use lazy `%s` format strings for more efficient logging.
 
 ### v0.2.0 (2026-03-12)
@@ -56,7 +56,7 @@ This update focuses on the HTTP template, adding optional support for OpenAPI do
 
 ### v0.1.0 (2026-03-08)
 
-The initial release of the `azure-functions-scaffold-python` CLI, providing a robust foundation for building Azure Functions Python v2 projects.
+The initial release of the `azure-functions-scaffold` CLI, providing a robust foundation for building Azure Functions Python v2 projects.
 
 #### Added
 - Launched the interactive `new` command for bootstrapping Azure Functions Python v2 projects with ease.

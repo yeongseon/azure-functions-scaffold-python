@@ -124,7 +124,7 @@ afs advanced new --template ai --preset standard my-ai-api
 
 ### LangGraph Template
 
-Deploys a LangGraph agent as an Azure Functions app using `azure-functions-langgraph-python`.
+Deploys a LangGraph agent as an Azure Functions app using `azure-functions-langgraph`.
 
 ```bash
 afs ai agent my-agent

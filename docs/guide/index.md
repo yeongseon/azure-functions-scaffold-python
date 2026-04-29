@@ -1,6 +1,6 @@
 # Introduction
 
-`azure-functions-scaffold-python` is a CLI for creating and evolving Azure Functions
+`azure-functions-scaffold` is a CLI for creating and evolving Azure Functions
 Python v2 projects with consistent architecture and practical defaults.
 
 It generates the wiring you would otherwise repeat manually:
@@ -24,7 +24,7 @@ It generates the wiring you would otherwise repeat manually:
 4. Use preset-driven quality checks in CI.
 
 ```bash
-pip install azure-functions-scaffold-python
+pip install azure-functions-scaffold
 afs new my-api --preset standard
 cd my-api
 pip install -e .[dev]
@@ -54,7 +54,7 @@ func start
 - `--with-doctor` for diagnostics integration (`make doctor`)
 
 !!! note "Command alias"
-    `afs` and `azure-functions-scaffold-python` are equivalent. Use whichever fits your
+    `afs` and `azure-functions-scaffold` are equivalent. Use whichever fits your
     shell scripts and team conventions.
 
 ## Recommended Reading Order

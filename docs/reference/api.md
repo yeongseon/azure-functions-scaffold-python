@@ -1,12 +1,12 @@
 # API Reference
 
-This page documents the Python API surface for `azure-functions-scaffold-python`.
+This page documents the Python API surface for `azure-functions-scaffold`.
 Use it when embedding scaffold behavior in tests, custom automation, or other
 developer tooling.
 
 !!! note "CLI-first project"
     The primary public interface is the command line (`afs` /
-    `azure-functions-scaffold-python`). Python imports are useful for advanced flows,
+    `azure-functions-scaffold`). Python imports are useful for advanced flows,
     but CLI compatibility is the main stability target.
 
 ## Module Overview

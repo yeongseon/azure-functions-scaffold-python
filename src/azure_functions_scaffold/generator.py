@@ -10,8 +10,10 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.template_registry import list_templates
 
-FUNCTION_IMPORT_MARKER = "# azure-functions-scaffold-python: function imports"
-FUNCTION_REGISTRATION_MARKER = "# azure-functions-scaffold-python: function registrations"
+FUNCTION_IMPORT_MARKER = "# azure-functions-scaffold: function imports"
+FUNCTION_REGISTRATION_MARKER = "# azure-functions-scaffold: function registrations"
+LEGACY_FUNCTION_IMPORT_MARKER = "# azure-functions-scaffold-python: function imports"
+LEGACY_FUNCTION_REGISTRATION_MARKER = "# azure-functions-scaffold-python: function registrations"
 SUPPORTED_TRIGGERS = tuple(template.name for template in list_templates())
 PARTIALS_ROOT = Path(__file__).parent / "templates" / "partials"
 logger = logging.getLogger(__name__)
@@ -35,10 +37,13 @@ def _validate_function_app_updatable(
         raise ScaffoldError("Function is already registered in function_app.py.")
 
     has_import_target = (
-        FUNCTION_IMPORT_MARKER in content or "configure_logging()" in content
+        FUNCTION_IMPORT_MARKER in content
+        or LEGACY_FUNCTION_IMPORT_MARKER in content
+        or "configure_logging()" in content
     )
     has_registration_target = (
         FUNCTION_REGISTRATION_MARKER in content
+        or LEGACY_FUNCTION_REGISTRATION_MARKER in content
         or "app = func.FunctionApp()" in content
     )
 
@@ -52,6 +57,7 @@ def _validate_function_app_updatable(
             "Cannot update function_app.py: neither the registration marker nor "
             "'app = func.FunctionApp()' was found."
         )
+
 
 def add_function(
     *,
@@ -220,13 +226,19 @@ def _insert_near_marker(
     fallback_anchor: str,
     after_anchor: bool = False,
 ) -> str:
-    if marker in content:
+    legacy_marker = _legacy_marker_for(marker)
+    target_marker = marker
+
+    if target_marker not in content and legacy_marker is not None and legacy_marker in content:
+        target_marker = legacy_marker
+
+    if target_marker in content:
         # Insert new import before the blank line that separates imports from
         # the marker comment, keeping all imports in one contiguous block.
-        blank_then_marker = f"\n\n{marker}"
+        blank_then_marker = f"\n\n{target_marker}"
         if blank_then_marker in content:
-            return content.replace(blank_then_marker, f"\n{line}\n\n{marker}", 1)
-        return content.replace(marker, f"{line}\n{marker}", 1)
+            return content.replace(blank_then_marker, f"\n{line}\n\n{target_marker}", 1)
+        return content.replace(target_marker, f"{line}\n{target_marker}", 1)
 
     if fallback_anchor not in content:
         raise ScaffoldError(
@@ -237,6 +249,14 @@ def _insert_near_marker(
         return content.replace(fallback_anchor, f"{fallback_anchor}\n{line}", 1)
 
     return content.replace(fallback_anchor, f"{line}\n\n{fallback_anchor}", 1)
+
+
+def _legacy_marker_for(marker: str) -> str | None:
+    if marker == FUNCTION_IMPORT_MARKER:
+        return LEGACY_FUNCTION_IMPORT_MARKER
+    if marker == FUNCTION_REGISTRATION_MARKER:
+        return LEGACY_FUNCTION_REGISTRATION_MARKER
+    return None
 
 
 def _render_function_module(trigger: str, function_name: str) -> str:
@@ -693,11 +713,26 @@ def _derive_resource_names(resource_name: str) -> dict[str, str]:
     """
     # Simple English singular: strip trailing 's' when safe.
     # Guard against false positives where stripping 's' produces nonsense.
-    _NO_STRIP = frozenset({
-        "status", "bus", "news", "address", "class", "process",
-        "access", "success", "progress", "focus", "canvas",
-        "analysis", "basis", "crisis", "diagnosis", "thesis",
-    })
+    _NO_STRIP = frozenset(
+        {
+            "status",
+            "bus",
+            "news",
+            "address",
+            "class",
+            "process",
+            "access",
+            "success",
+            "progress",
+            "focus",
+            "canvas",
+            "analysis",
+            "basis",
+            "crisis",
+            "diagnosis",
+            "thesis",
+        }
+    )
     singular = resource_name
     # Check the last segment (after final underscore) for the no-strip list.
     last_segment = resource_name.rsplit("_", maxsplit=1)[-1]

@@ -99,6 +99,31 @@ def test_add_function_does_not_create_files_when_function_app_uneditable(tmp_pat
     assert not (project_root / "app/functions/orphan.py").exists()
     assert not (project_root / "tests/test_orphan.py").exists()
 
+
+def test_add_function_works_with_legacy_marker(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    function_app_path = project_root / "function_app.py"
+    content = function_app_path.read_text(encoding="utf-8")
+    content = content.replace(
+        "# azure-functions-scaffold: function imports",
+        "# azure-functions-scaffold-python: function imports",
+    )
+    content = content.replace(
+        "# azure-functions-scaffold: function registrations",
+        "# azure-functions-scaffold-python: function registrations",
+    )
+    function_app_path.write_text(content, encoding="utf-8")
+
+    add_function(project_root=project_root, trigger="http", function_name="sync-data")
+
+    updated = function_app_path.read_text(encoding="utf-8")
+    assert "from app.functions.sync_data import sync_data_blueprint" in updated
+    assert updated.index("from app.functions.sync_data import sync_data_blueprint") < updated.index(
+        "# azure-functions-scaffold-python: function imports"
+    )
+    assert "app.register_functions(sync_data_blueprint)" in updated
+
+
 def test_add_function_can_skip_test_generation_for_minimal_preset(tmp_path: Path) -> None:
     project_root = scaffold_project(
         "sample",
@@ -540,6 +565,7 @@ class TestDeriveResourceNames:
         assert result["resource_singular"] == "order_status"
         assert result["resource_class"] == "OrderStatus"
 
+
 # ---------------------------------------------------------------------------
 # add_resource
 # ---------------------------------------------------------------------------
@@ -582,6 +608,7 @@ def test_add_resource_blueprint_guards_non_dict_json(tmp_path: Path) -> None:
     blueprint_text = (project_root / "app/functions/products.py").read_text(encoding="utf-8")
     assert "isinstance(body, dict)" in blueprint_text
     assert "Request body must be a JSON object" in blueprint_text
+
 
 def test_add_resource_service_content_is_valid_python(tmp_path: Path) -> None:
     project_root = scaffold_project("sample", tmp_path)
@@ -671,6 +698,7 @@ def test_add_resource_does_not_create_files_when_function_app_uneditable(tmp_pat
     assert not (project_root / "app/services/orphans_service.py").exists()
     assert not (project_root / "app/schemas/orphans.py").exists()
     assert not (project_root / "tests/test_orphans.py").exists()
+
 
 def test_add_resource_skips_test_when_no_tests_dir(tmp_path: Path) -> None:
     project_root = scaffold_project(
@@ -817,6 +845,7 @@ def test_add_route_rejects_non_scaffold_project(tmp_path: Path) -> None:
     ):
         add_route(project_root=project_root, route_name="status")
 
+
 def test_add_route_does_not_create_files_when_function_app_uneditable(tmp_path: Path) -> None:
     """Verify no files are left behind when function_app.py cannot be updated."""
     project_root = scaffold_project("sample", tmp_path)
@@ -828,6 +857,7 @@ def test_add_route_does_not_create_files_when_function_app_uneditable(tmp_path: 
 
     assert not (project_root / "app/functions/orphan.py").exists()
     assert not (project_root / "tests/test_orphan.py").exists()
+
 
 def test_add_route_with_hyphenated_name(tmp_path: Path) -> None:
     project_root = scaffold_project("sample", tmp_path)

@@ -245,7 +245,7 @@ pytest
 !!! note "LangGraph documentation"
     For deeper LangGraph configuration — tools, multi-step graphs, LLM
     integration — see the
-    [azure-functions-langgraph-python](https://github.com/yeongseon/azure-functions-langgraph-python)
+    [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph-python)
     documentation.
 
 ## 9) Customization Patterns
@@ -277,7 +277,7 @@ pytest
 !!! warning "Module not found errors"
     Confirm all dependencies are installed. The AI template requires the
     `openai` package. The LangGraph template requires `langgraph` and
-    `azure-functions-langgraph-python`.
+    `azure-functions-langgraph`.
 
 !!! warning "Empty response from chat endpoint"
     Check that `AZURE_OPENAI_DEPLOYMENT` matches an existing deployment in

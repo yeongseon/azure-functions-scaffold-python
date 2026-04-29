@@ -1,7 +1,7 @@
 # Azure Functions Scaffold
 
-[![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold-python.svg)](https://pypi.org/project/azure-functions-scaffold-python/)
-[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold-python/)
+[![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold.svg)](https://pypi.org/project/azure-functions-scaffold/)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
 [![CI](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/ci-test.yml)
 [![Release](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/release.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/release.yml)
 [![Security Scans](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml)
@@ -16,7 +16,7 @@
 
 ## 왜 사용해야 할까
 
-새로운 Azure Functions 프로젝트를 시작하려면 보일러플레이트 설정이 필요합니다: `host.json`, `function_app.py`, 디렉터리 구조, 도구 설정, 테스트. `azure-functions-scaffold-python`는 한 번의 명령으로 프로덕션 수준의 프로젝트 레이아웃을 생성하여, 처음부터 비즈니스 로직에 집중할 수 있게 합니다.
+새로운 Azure Functions 프로젝트를 시작하려면 보일러플레이트 설정이 필요합니다: `host.json`, `function_app.py`, 디렉터리 구조, 도구 설정, 테스트. `azure-functions-scaffold`는 한 번의 명령으로 프로덕션 수준의 프로젝트 레이아웃을 생성하여, 처음부터 비즈니스 로직에 집중할 수 있게 합니다.
 
 ## 범위
 
@@ -34,12 +34,12 @@
 - 선택적 통합: `--with-openapi`, `--with-validation`, `--with-doctor`
 - 사전 설정 도구 수준: `--preset minimal|standard|strict`
 - 파워 유저를 위한 고급 플래그 제어: `afs advanced new`
-- 단축 별칭: `afs`를 `azure-functions-scaffold-python` 대신 사용 가능
+- 단축 별칭: `afs`를 `azure-functions-scaffold` 대신 사용 가능
 
 ## 설치
 
 ```bash
-pip install azure-functions-scaffold-python
+pip install azure-functions-scaffold
 ```
 
 ## 빠른 시작
@@ -118,7 +118,7 @@ my-api/
 | blob | `afs worker blob my-blob` | 파일 처리 (Azurite) |
 | servicebus | `afs worker servicebus my-bus` | 엔터프라이즈 메시징 |
 
-참고: `afs`는 `azure-functions-scaffold-python`의 줄임말입니다. 둘 다 동작합니다.
+참고: `afs`는 `azure-functions-scaffold`의 줄임말입니다. 둘 다 동작합니다.
 
 템플릿 기본값:
 
@@ -211,14 +211,14 @@ make build
 
 | 패키지 | 역할 |
 |---------|------|
-| **azure-functions-scaffold-python** | 프로젝트 스캐폴딩 CLI |
-| [azure-functions-validation-python](https://github.com/yeongseon/azure-functions-validation-python) | 요청/응답 검증 및 직렬화 |
-| [azure-functions-openapi-python](https://github.com/yeongseon/azure-functions-openapi-python) | OpenAPI 사양 생성 및 Swagger UI |
-| [azure-functions-langgraph-python](https://github.com/yeongseon/azure-functions-langgraph-python) | Azure Functions용 LangGraph 배포 어댑터 |
-| [azure-functions-logging-python](https://github.com/yeongseon/azure-functions-logging-python) | 구조화된 로깅 및 관측성 |
-| [azure-functions-doctor-python](https://github.com/yeongseon/azure-functions-doctor-python) | 배포 전 진단 CLI |
-| [azure-functions-durable-graph-python](https://github.com/yeongseon/azure-functions-durable-graph-python) | Durable Functions 기반 그래프 런타임 *(계획)* |
-| [azure-functions-cookbook-python](https://github.com/yeongseon/azure-functions-cookbook-python) | 레시피 및 예제 |
+| **azure-functions-scaffold** | 프로젝트 스캐폴딩 CLI |
+| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation-python) | 요청/응답 검증 및 직렬화 |
+| [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi-python) | OpenAPI 사양 생성 및 Swagger UI |
+| [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph-python) | Azure Functions용 LangGraph 배포 어댑터 |
+| [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging-python) | 구조화된 로깅 및 관측성 |
+| [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor-python) | 배포 전 진단 CLI |
+| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph-python) | Durable Functions 기반 그래프 런타임 *(계획)* |
+| [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook-python) | 레시피 및 예제 |
 
 ## 면책 조항
 

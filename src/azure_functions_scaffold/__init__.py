@@ -1,4 +1,4 @@
-"""azure-functions-scaffold-python package."""
+"""azure-functions-scaffold package."""
 
 __all__ = ["__version__"]
 

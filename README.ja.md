@@ -1,7 +1,7 @@
 # Azure Functions Scaffold
 
-[![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold-python.svg)](https://pypi.org/project/azure-functions-scaffold-python/)
-[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold-python/)
+[![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold.svg)](https://pypi.org/project/azure-functions-scaffold/)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
 [![CI](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/ci-test.yml)
 [![Release](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/release.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/release.yml)
 [![Security Scans](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml)
@@ -16,7 +16,7 @@
 
 ## なぜこのツールを使うのか
 
-新しい Azure Functions プロジェクトを始めるには、ボイラープレートの設定が必要です: `host.json`、`function_app.py`、ディレクトリ構造、ツール設定、テスト。`azure-functions-scaffold-python` は一つのコマンドでプロダクションレベルのプロジェクトレイアウトを生成し、最初からビジネスロジックに集中できるようにします。
+新しい Azure Functions プロジェクトを始めるには、ボイラープレートの設定が必要です: `host.json`、`function_app.py`、ディレクトリ構造、ツール設定、テスト。`azure-functions-scaffold` は一つのコマンドでプロダクションレベルのプロジェクトレイアウトを生成し、最初からビジネスロジックに集中できるようにします。
 
 ## スコープ
 
@@ -34,12 +34,12 @@
 - オプション統合: `--with-openapi`、`--with-validation`、`--with-doctor`
 - プリセットツーリングレベル: `--preset minimal|standard|strict`
 - パワーユーザー向けの詳細フラグ制御: `afs advanced new`
-- ショートエイリアス: `afs` を `azure-functions-scaffold-python` の代わりに使用可能
+- ショートエイリアス: `afs` を `azure-functions-scaffold` の代わりに使用可能
 
 ## インストール
 
 ```bash
-pip install azure-functions-scaffold-python
+pip install azure-functions-scaffold
 ```
 
 ## クイックスタート
@@ -118,7 +118,7 @@ my-api/
 | blob | `afs worker blob my-blob` | ファイル処理 (Azurite) |
 | servicebus | `afs worker servicebus my-bus` | エンタープライズメッセージング |
 
-注: `afs` は `azure-functions-scaffold-python` の短縮形です。どちらも利用できます。
+注: `afs` は `azure-functions-scaffold` の短縮形です。どちらも利用できます。
 
 テンプレートの既定値:
 
@@ -211,14 +211,14 @@ make build
 
 | パッケージ | 役割 |
 |---------|------|
-| **azure-functions-scaffold-python** | プロジェクトスキャフォールディング CLI |
-| [azure-functions-validation-python](https://github.com/yeongseon/azure-functions-validation-python) | リクエスト/レスポンスバリデーションとシリアライゼーション |
-| [azure-functions-openapi-python](https://github.com/yeongseon/azure-functions-openapi-python) | OpenAPI 仕様生成と Swagger UI |
-| [azure-functions-langgraph-python](https://github.com/yeongseon/azure-functions-langgraph-python) | Azure Functions 向け LangGraph デプロイアダプター |
-| [azure-functions-logging-python](https://github.com/yeongseon/azure-functions-logging-python) | 構造化ロギングとオブザーバビリティ |
-| [azure-functions-doctor-python](https://github.com/yeongseon/azure-functions-doctor-python) | デプロイ前診断 CLI |
-| [azure-functions-durable-graph-python](https://github.com/yeongseon/azure-functions-durable-graph-python) | Durable Functions ベースのグラフランタイム *(計画中)* |
-| [azure-functions-cookbook-python](https://github.com/yeongseon/azure-functions-cookbook-python) | レシピとサンプル |
+| **azure-functions-scaffold** | プロジェクトスキャフォールディング CLI |
+| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation-python) | リクエスト/レスポンスバリデーションとシリアライゼーション |
+| [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi-python) | OpenAPI 仕様生成と Swagger UI |
+| [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph-python) | Azure Functions 向け LangGraph デプロイアダプター |
+| [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging-python) | 構造化ロギングとオブザーバビリティ |
+| [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor-python) | デプロイ前診断 CLI |
+| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph-python) | Durable Functions ベースのグラフランタイム *(計画中)* |
+| [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook-python) | レシピとサンプル |
 
 ## 免責事項
 

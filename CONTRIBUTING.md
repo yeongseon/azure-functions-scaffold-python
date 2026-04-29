@@ -1,6 +1,6 @@
 # Contributing Guide
 
-We welcome contributions to the `azure-functions-scaffold-python` project.
+We welcome contributions to the `azure-functions-scaffold` project.
 
 ## Branch Strategy
 

@@ -98,7 +98,7 @@ def advanced_new(
         bool,
         typer.Option(
             "--with-doctor/--no-doctor",
-            help="Include azure-functions-doctor-python health checks.",
+            help="Include azure-functions-doctor health checks.",
         ),
     ] = False,
     with_azd: AzdOption = False,

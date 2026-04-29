@@ -2,7 +2,7 @@
 
 ## Overview
 
-`azure-functions-scaffold-python` is a scaffolding CLI for creating production-leaning Azure Functions
+`azure-functions-scaffold` is a scaffolding CLI for creating production-leaning Azure Functions
 Python v2 projects.
 
 It generates a clean project structure with testing, linting, and packaging defaults that are
@@ -64,7 +64,7 @@ Without a scaffold, each team reinvents these decisions and quality drifts acros
 
 ### Philosophy
 
-A scaffolding CLI is only as good as the projects it generates. `azure-functions-scaffold-python`
+A scaffolding CLI is only as good as the projects it generates. `azure-functions-scaffold`
 treats every generated project as a runnable example — if a developer cannot go from
 `pip install` to `func start` with a working endpoint in under two minutes, the scaffold
 has failed its purpose.
@@ -74,8 +74,8 @@ has failed its purpose.
 The shortest path from zero to a running Azure Function:
 
 ```bash
-pip install azure-functions-scaffold-python
-azure-functions-scaffold-python new my-api
+pip install azure-functions-scaffold
+azure-functions-scaffold new my-api
 cd my-api
 pip install -e .
 func start
@@ -96,7 +96,7 @@ out of the box with zero manual configuration.
    scaffold by running the output, not by reading documentation.
 2. **AI agent discoverability.** Tools like GitHub Copilot, Cursor, and Claude Code recommend
    libraries based on README, PRD, and example content. Clear CLI usage patterns and
-   generated output help AI agents suggest `azure-functions-scaffold-python` for project setup prompts.
+generated output help AI agents suggest `azure-functions-scaffold` for project setup prompts.
 3. **Cookbook role.** For niche ecosystems, generated project templates serve as the primary
    reference architecture. Each template teaches real project structure, not toy examples.
 4. **Proven approach.** FastAPI, LangChain, SQLAlchemy, and Pandas all achieved early adoption

@@ -2,7 +2,7 @@
 
 Scaffold production-ready Azure Functions Python v2 projects in one command.
 
-`azure-functions-scaffold-python` gives you a clean, modular starting point with
+`azure-functions-scaffold` gives you a clean, modular starting point with
 opinionated defaults, optional feature integrations, and predictable structure.
 Use the short alias `afs` or the full command name interchangeably.
 
@@ -54,7 +54,7 @@ That creates a working HTTP project scaffold with a practical default preset.
 
 - `--with-openapi`: OpenAPI routes and Swagger UI for HTTP projects
 - `--with-validation`: request/response model validation for HTTP projects
-- `--with-doctor`: adds `azure-functions-doctor-python` integration and command target
+- `--with-doctor`: adds `azure-functions-doctor` integration and command target
 
 ## What You Get in a New Project
 
@@ -86,7 +86,7 @@ Design goals of this layout:
 ## Quick Start Flow
 
 ```bash
-pip install azure-functions-scaffold-python
+pip install azure-functions-scaffold
 afs new my-api --preset standard
 cd my-api
 python -m venv .venv

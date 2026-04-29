@@ -1,6 +1,6 @@
 # DESIGN.md
 
-Design Principles for `azure-functions-scaffold-python`
+Design Principles for `azure-functions-scaffold`
 
 ## Purpose
 

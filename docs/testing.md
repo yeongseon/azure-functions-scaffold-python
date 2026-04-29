@@ -1,6 +1,6 @@
 # Testing
 
-This guide describes the test suite for `azure-functions-scaffold-python`, including how to run tests, the structure of the test suite, and guidelines for contributing new tests.
+This guide describes the test suite for `azure-functions-scaffold`, including how to run tests, the structure of the test suite, and guidelines for contributing new tests.
 
 ## Running Tests
 

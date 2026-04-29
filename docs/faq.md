@@ -1,6 +1,6 @@
 # FAQ
 
-Answers to common questions about `azure-functions-scaffold-python` and generated
+Answers to common questions about `azure-functions-scaffold` and generated
 projects.
 
 ## What templates are available?
@@ -76,7 +76,7 @@ Practical options:
 Examples:
 
 - OpenAPI requires route handlers in `function_app.py` and OpenAPI decorators.
-- Validation requires `azure-functions-validation-python`, request/response models, and
+- Validation requires `azure-functions-validation`, request/response models, and
   validated endpoint signatures.
 - Doctor requires dependency plus command invocation (for example `make doctor`).
 
@@ -112,7 +112,7 @@ Yes when pytest tooling is enabled.
 When adding functions with `afs add`, test files are created if a `tests/`
 directory exists in the project.
 
-## Does `afs` differ from `azure-functions-scaffold-python`?
+## Does `afs` differ from `azure-functions-scaffold`?
 
 No. `afs` is a short alias and a drop-in replacement.
 
@@ -120,7 +120,7 @@ These are equivalent:
 
 ```bash
 afs new my-api
-azure-functions-scaffold-python new my-api
+azure-functions-scaffold new my-api
 ```
 
 ## Can I preview changes before writing files?

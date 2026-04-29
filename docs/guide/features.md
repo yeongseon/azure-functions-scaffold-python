@@ -26,7 +26,7 @@ Combine flags to add specialized capabilities to your project.
 
 #### Structured Logging (Built-in)
 
-Every scaffold template includes `azure-functions-logging-python` as a default dependency.
+Every scaffold template includes `azure-functions-logging` as a default dependency.
 Structured JSON logging is configured in `app/core/logging.py` and activated at startup
 in `function_app.py` — no flag required.
 
@@ -50,11 +50,11 @@ from app.core.logging import logger
 logger.info("request received", route="/api/hello")
 ```
 
-See [azure-functions-logging-python](https://github.com/yeongseon/azure-functions-logging-python) for the full API.
+See [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging-python) for the full API.
 
 #### --with-openapi
 
-Adds `azure-functions-openapi-python` to the dependencies and configures HTTP triggers with the necessary decorators for Swagger/OpenAPI documentation.
+Adds `azure-functions-openapi` to the dependencies and configures HTTP triggers with the necessary decorators for Swagger/OpenAPI documentation.
 
 ```bash
 afs new swagger-api --with-openapi

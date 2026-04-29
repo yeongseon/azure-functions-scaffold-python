@@ -47,7 +47,7 @@ make doctor
 ```
 
 !!! note "What doctor adds"
-    `--with-doctor` adds `azure-functions-doctor-python` dependency and Makefile target.
+    `--with-doctor` adds `azure-functions-doctor` dependency and Makefile target.
     It does not auto-create an HTTP endpoint.
 
 ## 3) Verify Generated Feature Set
