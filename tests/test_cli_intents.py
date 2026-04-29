@@ -495,6 +495,148 @@ class TestAdvanced:
         assert "strict:" in result.stdout
 
 
+class TestAdvancedNewFlagValidation:
+    def test_with_openapi_rejected_for_timer_template(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app,
+            [
+                "advanced",
+                "new",
+                "myproj",
+                "--destination",
+                str(tmp_path),
+                "--template",
+                "timer",
+                "--with-openapi",
+            ],
+        )
+
+        assert result.exit_code != 0
+        out = (result.stdout or "") + (result.stderr or "")
+        assert "timer" in out
+        assert "--with-openapi" in out
+        assert not (tmp_path / "myproj").exists()
+
+    def test_with_validation_rejected_for_queue_template(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app,
+            [
+                "advanced",
+                "new",
+                "myproj",
+                "--destination",
+                str(tmp_path),
+                "--template",
+                "queue",
+                "--with-validation",
+            ],
+        )
+
+        assert result.exit_code != 0
+        out = (result.stdout or "") + (result.stderr or "")
+        assert "--with-validation" in out
+
+    def test_with_doctor_rejected_for_langgraph_template(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app,
+            [
+                "advanced",
+                "new",
+                "myproj",
+                "--destination",
+                str(tmp_path),
+                "--template",
+                "langgraph",
+                "--with-doctor",
+            ],
+        )
+
+        assert result.exit_code != 0
+        out = (result.stdout or "") + (result.stderr or "")
+        assert "--with-doctor" in out
+
+    def test_http_template_accepts_all_features(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app,
+            [
+                "advanced",
+                "new",
+                "myproj",
+                "--destination",
+                str(tmp_path),
+                "--template",
+                "http",
+                "--with-openapi",
+                "--with-validation",
+                "--with-doctor",
+                "--azd",
+            ],
+        )
+
+        assert result.exit_code == 0, (
+            f"Expected success, got: {result.stdout}\n{result.stderr or ''}"
+        )
+
+    def test_azd_allowed_for_non_http_templates(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app,
+            [
+                "advanced",
+                "new",
+                "myproj",
+                "--destination",
+                str(tmp_path),
+                "--template",
+                "timer",
+                "--azd",
+            ],
+        )
+
+        assert result.exit_code == 0, (
+            f"Expected success, got: {result.stdout}\n{result.stderr or ''}"
+        )
+
+    def test_doctor_allowed_for_timer_template(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app,
+            [
+                "advanced",
+                "new",
+                "myproj",
+                "--destination",
+                str(tmp_path),
+                "--template",
+                "timer",
+                "--with-doctor",
+            ],
+        )
+
+        assert result.exit_code == 0, (
+            f"Expected success, got: {result.stdout}\n{result.stderr or ''}"
+        )
+
+    def test_multiple_invalid_flags_listed_together(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app,
+            [
+                "advanced",
+                "new",
+                "myproj",
+                "--destination",
+                str(tmp_path),
+                "--template",
+                "blob",
+                "--with-openapi",
+                "--with-validation",
+            ],
+        )
+
+        assert result.exit_code != 0
+        out = (result.stdout or "") + (result.stderr or "")
+        assert "--with-openapi" in out
+        assert "--with-validation" in out
+
+
 class TestAdvancedAddRoute:
     def test_adds_route(self, tmp_path: Path) -> None:
         runner.invoke(app, ["api", "new", "my-api", "--destination", str(tmp_path)])

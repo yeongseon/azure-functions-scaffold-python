@@ -35,6 +35,51 @@ advanced_app = typer.Typer(
     help="Power-user project scaffolding with full option control.",
 )
 
+_TEMPLATE_ALLOWED_FEATURES: dict[str, frozenset[str]] = {
+    "http": frozenset({"openapi", "validation", "doctor", "azd"}),
+    "timer": frozenset({"doctor", "azd"}),
+    "queue": frozenset({"doctor", "azd"}),
+    "blob": frozenset({"doctor", "azd"}),
+    "servicebus": frozenset({"doctor", "azd"}),
+    "eventhub": frozenset({"doctor", "azd"}),
+    "cosmosdb": frozenset({"doctor", "azd"}),
+    "durable": frozenset({"doctor", "azd"}),
+    "ai": frozenset({"doctor", "azd"}),
+    "langgraph": frozenset({"azd"}),
+}
+
+
+def _validate_feature_flags_for_template(
+    template: str,
+    *,
+    with_openapi: bool,
+    with_validation: bool,
+    with_doctor: bool,
+    with_azd: bool,
+) -> None:
+    requested = {
+        "openapi": with_openapi,
+        "validation": with_validation,
+        "doctor": with_doctor,
+        "azd": with_azd,
+    }
+    enabled = {name for name, is_enabled in requested.items() if is_enabled}
+    allowed = _TEMPLATE_ALLOWED_FEATURES.get(template)
+    if allowed is None:
+        return
+    invalid = sorted(enabled - allowed)
+    if not invalid:
+        return
+    flag_names = {
+        "openapi": "--with-openapi",
+        "validation": "--with-validation",
+        "doctor": "--with-doctor",
+        "azd": "--azd",
+    }
+    rejected = ", ".join(flag_names[name] for name in invalid)
+    raise ScaffoldError(f"Template '{template}' does not support {rejected}.")
+
+
 TemplateOption = Annotated[
     str,
     typer.Option(
@@ -107,6 +152,13 @@ def advanced_new(
 ) -> None:
     """Create a new project with full option control (power-user mode)."""
     try:
+        _validate_feature_flags_for_template(
+            template,
+            with_openapi=with_openapi,
+            with_validation=with_validation,
+            with_doctor=with_doctor,
+            with_azd=with_azd,
+        )
         options = build_project_options(
             preset_name=preset,
             python_version=python_version,
