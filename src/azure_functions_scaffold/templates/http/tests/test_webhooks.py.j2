@@ -46,14 +46,20 @@ VALID_PAYLOAD = json.dumps({
 class TestReceiveWebhook:
     def test_accepts_valid_webhook(self) -> None:
         webhook_store.clear()
+        secret = "test-secret-key"
+        signature = _sign(VALID_PAYLOAD, secret)
 
-        request = _make_request(
-            "POST",
-            "http://localhost/api/webhooks/inbound",
-            body=VALID_PAYLOAD,
-            headers={"Content-Type": "application/json"},
-        )
-        response = receive_webhook(request)
+        with patch.dict(os.environ, {"WEBHOOK_SECRET": secret}):
+            request = _make_request(
+                "POST",
+                "http://localhost/api/webhooks/inbound",
+                body=VALID_PAYLOAD,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Signature": signature,
+                },
+            )
+            response = receive_webhook(request)
 
         assert response.status_code == 202
         body = json.loads(response.get_body())
@@ -63,27 +69,40 @@ class TestReceiveWebhook:
 
     def test_returns_400_for_invalid_json(self) -> None:
         webhook_store.clear()
+        secret = "test-secret-key"
+        signature = _sign(b"not-json", secret)
 
-        request = _make_request(
-            "POST",
-            "http://localhost/api/webhooks/inbound",
-            body=b"not-json",
-            headers={"Content-Type": "application/json"},
-        )
-        response = receive_webhook(request)
+        with patch.dict(os.environ, {"WEBHOOK_SECRET": secret}):
+            request = _make_request(
+                "POST",
+                "http://localhost/api/webhooks/inbound",
+                body=b"not-json",
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Signature": signature,
+                },
+            )
+            response = receive_webhook(request)
 
         assert response.status_code == 400
 {% if not include_validation %}
     def test_returns_400_for_non_object_json(self) -> None:
         webhook_store.clear()
+        payload = json.dumps(["not", "an", "object"]).encode()
+        secret = "test-secret-key"
+        signature = _sign(payload, secret)
 
-        request = _make_request(
-            "POST",
-            "http://localhost/api/webhooks/inbound",
-            body=json.dumps(["not", "an", "object"]).encode(),
-            headers={"Content-Type": "application/json"},
-        )
-        response = receive_webhook(request)
+        with patch.dict(os.environ, {"WEBHOOK_SECRET": secret}):
+            request = _make_request(
+                "POST",
+                "http://localhost/api/webhooks/inbound",
+                body=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Signature": signature,
+                },
+            )
+            response = receive_webhook(request)
 
         assert response.status_code == 400
         body = json.loads(response.get_body())
@@ -91,14 +110,21 @@ class TestReceiveWebhook:
 
     def test_returns_400_for_missing_required_fields(self) -> None:
         webhook_store.clear()
+        payload = json.dumps({"data": {}}).encode()
+        secret = "test-secret-key"
+        signature = _sign(payload, secret)
 
-        request = _make_request(
-            "POST",
-            "http://localhost/api/webhooks/inbound",
-            body=json.dumps({"data": {}}).encode(),
-            headers={"Content-Type": "application/json"},
-        )
-        response = receive_webhook(request)
+        with patch.dict(os.environ, {"WEBHOOK_SECRET": secret}):
+            request = _make_request(
+                "POST",
+                "http://localhost/api/webhooks/inbound",
+                body=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Signature": signature,
+                },
+            )
+            response = receive_webhook(request)
 
         assert response.status_code == 400
         body = json.loads(response.get_body())
@@ -107,14 +133,21 @@ class TestReceiveWebhook:
 {% if include_validation %}
     def test_returns_422_for_invalid_schema(self) -> None:
         webhook_store.clear()
+        payload = json.dumps({"data": {}}).encode()
+        secret = "test-secret-key"
+        signature = _sign(payload, secret)
 
-        request = _make_request(
-            "POST",
-            "http://localhost/api/webhooks/inbound",
-            body=json.dumps({"data": {}}).encode(),
-            headers={"Content-Type": "application/json"},
-        )
-        response = receive_webhook(request)
+        with patch.dict(os.environ, {"WEBHOOK_SECRET": secret}):
+            request = _make_request(
+                "POST",
+                "http://localhost/api/webhooks/inbound",
+                body=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Signature": signature,
+                },
+            )
+            response = receive_webhook(request)
 
         assert response.status_code == 422
         body = json.loads(response.get_body())
@@ -122,14 +155,21 @@ class TestReceiveWebhook:
 
     def test_returns_422_for_non_object_json(self) -> None:
         webhook_store.clear()
+        payload = json.dumps(["not", "an", "object"]).encode()
+        secret = "test-secret-key"
+        signature = _sign(payload, secret)
 
-        request = _make_request(
-            "POST",
-            "http://localhost/api/webhooks/inbound",
-            body=json.dumps(["not", "an", "object"]).encode(),
-            headers={"Content-Type": "application/json"},
-        )
-        response = receive_webhook(request)
+        with patch.dict(os.environ, {"WEBHOOK_SECRET": secret}):
+            request = _make_request(
+                "POST",
+                "http://localhost/api/webhooks/inbound",
+                body=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Signature": signature,
+                },
+            )
+            response = receive_webhook(request)
 
         assert response.status_code == 422
 {% endif %}
@@ -171,12 +211,10 @@ class TestWebhookSignatureVerification:
 
         assert response.status_code == 202
 
-    def test_skips_verification_when_no_secret(self) -> None:
+    def test_returns_503_when_secret_is_not_configured(self) -> None:
         webhook_store.clear()
 
         with patch.dict(os.environ, {}, clear=True):
-            # Ensure WEBHOOK_SECRET is not set
-            os.environ.pop("WEBHOOK_SECRET", None)
             request = _make_request(
                 "POST",
                 "http://localhost/api/webhooks/inbound",
@@ -185,7 +223,9 @@ class TestWebhookSignatureVerification:
             )
             response = receive_webhook(request)
 
-        assert response.status_code == 202
+        assert response.status_code == 503
+        body = json.loads(response.get_body())
+        assert body["error"] == "Webhook signing secret not configured"
 {% if include_validation %}
 
     def test_returns_401_before_422_when_secret_set(self) -> None:

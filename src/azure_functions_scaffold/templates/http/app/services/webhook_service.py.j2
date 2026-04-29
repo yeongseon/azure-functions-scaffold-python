@@ -78,9 +78,12 @@ class WebhookStore:
         self._deliveries.clear()
 
 
-def get_webhook_secret() -> str | None:
-    """Return the webhook secret from environment, or ``None`` if unset."""
-    return os.environ.get("WEBHOOK_SECRET") or None
+def get_webhook_secret() -> str:
+    """Return the webhook secret from environment."""
+    secret = os.environ.get("WEBHOOK_SECRET", "")
+    if not secret:
+        raise RuntimeError("WEBHOOK_SECRET is not configured")
+    return secret
 
 
 webhook_store = WebhookStore()

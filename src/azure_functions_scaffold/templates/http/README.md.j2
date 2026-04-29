@@ -58,6 +58,12 @@ Validation: enabled — request/response models validated via `azure-functions-v
 - `local.settings.json.example` documents required local app settings.
 - `app/core/config.py` reads application settings from environment variables.
 
+## Webhook security
+
+`WEBHOOK_SECRET` is required for `POST /api/webhooks/inbound`.
+Set it in `local.settings.json` for local development by copying the placeholder from `local.settings.json.example` and replacing it with a strong random string.
+Until `WEBHOOK_SECRET` is configured, the webhook endpoint returns `503 Service Unavailable`.
+
 {% if include_validation %}
 ## Validation
 

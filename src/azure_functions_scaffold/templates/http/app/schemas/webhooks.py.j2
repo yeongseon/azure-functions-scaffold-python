@@ -15,7 +15,9 @@ class WebhookEvent(BaseModel):
 class WebhookAcceptedResponse(BaseModel):
     delivery_id: str = Field(..., description="Unique delivery identifier.")
     status: str = Field(default="accepted", description="Processing status.")
-    received_at: str = Field(..., description="ISO-8601 timestamp of when the webhook was received.")
+    received_at: str = Field(
+        ..., description="ISO-8601 timestamp of when the webhook was received."
+    )
 {%- else %}
 from dataclasses import dataclass, field
 from typing import Any

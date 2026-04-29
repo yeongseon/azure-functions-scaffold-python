@@ -13,7 +13,7 @@ durable_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 @durable_blueprint.route(
     route="orchestrators/{functionName}",
     methods=["POST"],
-    auth_level=func.AuthLevel.ANONYMOUS,
+    auth_level=func.AuthLevel.FUNCTION,
 )
 @durable_blueprint.durable_client_input(client_name="client")
 async def http_start(

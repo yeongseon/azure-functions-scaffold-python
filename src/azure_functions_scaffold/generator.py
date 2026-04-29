@@ -458,7 +458,7 @@ import azure.functions as func
 @{function_name}_blueprint.route(
     route="{route_name}",
     methods=["GET"],
-    auth_level=func.AuthLevel.ANONYMOUS,
+    auth_level=func.AuthLevel.FUNCTION,
 )
 def {function_name}(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse(
@@ -609,7 +609,7 @@ import azure.functions.durable_functions as df
 @{function_name}_blueprint.route(
     route="orchestrators/{{functionName}}",
     methods=["POST"],
-    auth_level=func.AuthLevel.ANONYMOUS,
+    auth_level=func.AuthLevel.FUNCTION,
 )
 @{function_name}_blueprint.durable_client_input(client_name="client")
 async def {function_name}_http_start(
@@ -649,7 +649,7 @@ import azure.functions as func
 @{function_name}_blueprint.route(
     route="chat",
     methods=["POST"],
-    auth_level=func.AuthLevel.ANONYMOUS,
+    auth_level=func.AuthLevel.FUNCTION,
 )
 async def {function_name}(req: func.HttpRequest) -> func.HttpResponse:
     try:
