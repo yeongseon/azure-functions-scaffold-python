@@ -9,10 +9,12 @@ import pytest
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.generator import (
+    ADDABLE_TRIGGERS,
     FUNCTION_IMPORT_MARKER,
     FUNCTION_REGISTRATION_MARKER,
     _derive_resource_names,
     _insert_near_marker,
+    _normalize_trigger,
     _render_function_module,
     _render_function_test,
     _update_function_app,
@@ -205,6 +207,7 @@ def test_add_function_succeeds_atomically_for_queue_trigger(tmp_path: Path) -> N
     function_app_text = function_app_path.read_text(encoding="utf-8")
     assert "from app.functions.foo import foo_blueprint" in function_app_text
     assert "app.register_functions(foo_blueprint)" in function_app_text
+
 
 def test_add_function_can_skip_test_generation_for_minimal_preset(tmp_path: Path) -> None:
     project_root = scaffold_project(
@@ -547,6 +550,20 @@ def test_render_function_test_raises_for_unknown_trigger() -> None:
     """Test that _render_function_test raises error for unknown trigger."""
     with pytest.raises(ScaffoldError, match="No function test template for trigger"):
         _render_function_test(trigger="unknown", function_name="test_func")
+
+
+def test_normalize_trigger_rejects_langgraph(tmp_path: Path) -> None:
+    """Test that add_function rejects langgraph before filesystem writes."""
+    with pytest.raises(ScaffoldError, match="langgraph|Unsupported trigger"):
+        add_function(project_root=tmp_path, trigger="langgraph", function_name="foo")
+
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize("trigger", ADDABLE_TRIGGERS)
+def test_normalize_trigger_accepts_all_addable(trigger: str) -> None:
+    """Test that _normalize_trigger accepts every addable trigger unchanged."""
+    assert _normalize_trigger(trigger) == trigger
 
 
 def test_add_function_with_http_trigger_skips_host_extensions(tmp_path: Path) -> None:

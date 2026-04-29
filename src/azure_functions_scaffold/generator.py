@@ -17,6 +17,17 @@ FUNCTION_REGISTRATION_MARKER = "# azure-functions-scaffold: function registratio
 LEGACY_FUNCTION_IMPORT_MARKER = "# azure-functions-scaffold-python: function imports"
 LEGACY_FUNCTION_REGISTRATION_MARKER = "# azure-functions-scaffold-python: function registrations"
 SUPPORTED_TRIGGERS = tuple(template.name for template in list_templates())
+ADDABLE_TRIGGERS: tuple[str, ...] = (
+    "http",
+    "timer",
+    "queue",
+    "blob",
+    "servicebus",
+    "eventhub",
+    "cosmosdb",
+    "durable",
+    "ai",
+)
 PARTIALS_ROOT = Path(__file__).parent / "templates" / "partials"
 HOST_JSON_TRIGGERS = frozenset({"queue", "blob", "servicebus", "eventhub", "cosmosdb"})
 logger = logging.getLogger(__name__)
@@ -336,8 +347,8 @@ def describe_add_function(
 
 def _normalize_trigger(trigger: str) -> str:
     normalized = trigger.strip().lower()
-    if normalized not in SUPPORTED_TRIGGERS:
-        supported = ", ".join(SUPPORTED_TRIGGERS)
+    if normalized not in ADDABLE_TRIGGERS:
+        supported = ", ".join(ADDABLE_TRIGGERS)
         raise ScaffoldError(f"Unsupported trigger '{trigger}'. Supported triggers: {supported}")
     return normalized
 
