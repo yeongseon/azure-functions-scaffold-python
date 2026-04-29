@@ -88,6 +88,21 @@ Each pull request is tested against a matrix of environments to ensure broad com
 - **OS:** `ubuntu-latest`
 - **Python versions:** 3.10, 3.11, 3.12, 3.13, 3.14 (Preview - allowed to fail)
 
+## Generated-project smoke tests
+
+The `templates-smoke.yml` workflow scaffolds every template on every push that touches `src/azure_functions_scaffold/templates/**` or related code, then runs `compileall`, `ruff`, `mypy`, and `pytest` against each generated project. This catches template-level breakage that unit tests cannot - for example, a marker-string drift between `generator.py` constants and template comments.
+
+Local equivalent:
+
+```bash
+tmpdir=$(mktemp -d)
+cd "$tmpdir"
+afs new smoke --python-version 3.12
+cd smoke
+python -m compileall -q .
+ruff check . && mypy . && pytest -q
+```
+
 ## Troubleshooting
 
 - **Temporary files:** If a test fails, `tmp_path` is automatically cleaned up. To inspect generated files, you can print the path during a local run.
