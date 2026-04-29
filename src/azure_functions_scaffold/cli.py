@@ -39,6 +39,7 @@ app.add_typer(advanced_app, name="advanced")
 
 @app.callback()
 def callback(
+    ctx: typer.Context,
     version: Annotated[
         bool,
         typer.Option(
@@ -51,6 +52,9 @@ def callback(
     """Azure Functions scaffold CLI."""
     if version:
         typer.echo(__version__)
+        raise typer.Exit()
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
         raise typer.Exit()
 
 
