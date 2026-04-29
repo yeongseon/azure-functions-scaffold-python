@@ -17,6 +17,7 @@ from azure_functions_scaffold.cli_common import (
     GitOption,
     OverwriteOption,
     PythonVersionOption,
+    YesOption,
     run_intent,
 )
 from azure_functions_scaffold.cli_worker import worker_app
@@ -79,6 +80,7 @@ def new(
     include_azd: AzdOption = False,
     dry_run: DryRunOption = False,
     overwrite: OverwriteOption = False,
+    yes: YesOption = False,
 ) -> None:
     """Create a new API project (shortcut for 'afs api new')."""
     run_intent(
@@ -91,6 +93,7 @@ def new(
         include_azd=include_azd,
         dry_run=dry_run,
         overwrite=overwrite,
+        yes=yes,
     )
 
 

@@ -9,6 +9,7 @@ import pytest
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import TemplateContext
+import azure_functions_scaffold.scaffolder as scaffolder_module
 from azure_functions_scaffold.scaffolder import (
     _initialize_git_repository,
     _iter_template_files,
@@ -171,10 +172,106 @@ def test_scaffold_project_can_overwrite_existing_target(tmp_path: Path) -> None:
     stale_file = target_dir / "stale.txt"
     stale_file.write_text("stale", encoding="utf-8")
 
+    project_path = scaffold_project("sample", tmp_path, overwrite=True, yes=True)
+
+    assert project_path == target_dir
+    assert not stale_file.exists()
+    assert (project_path / "function_app.py").exists()
+
+
+def test_overwrite_in_tty_with_yes_proceeds(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    target_dir = tmp_path / "sample"
+    target_dir.mkdir()
+    stale_file = target_dir / "stale.txt"
+    stale_file.write_text("stale", encoding="utf-8")
+
+    monkeypatch.setattr(scaffolder_module.sys.stdin, "isatty", lambda: True)
+
+    project_path = scaffold_project("sample", tmp_path, overwrite=True, yes=True)
+
+    assert project_path == target_dir
+    assert not stale_file.exists()
+    assert (project_path / "function_app.py").exists()
+
+
+def test_overwrite_in_tty_without_yes_prompts_and_proceeds_on_y(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    target_dir = tmp_path / "sample"
+    target_dir.mkdir()
+    stale_file = target_dir / "stale.txt"
+    stale_file.write_text("stale", encoding="utf-8")
+
+    monkeypatch.setattr(scaffolder_module.sys.stdin, "isatty", lambda: True)
+    monkeypatch.setattr(scaffolder_module.typer, "confirm", lambda *args, **kwargs: True)
+
     project_path = scaffold_project("sample", tmp_path, overwrite=True)
 
     assert project_path == target_dir
     assert not stale_file.exists()
+    assert (project_path / "function_app.py").exists()
+
+
+def test_overwrite_in_tty_without_yes_aborts_on_n(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    target_dir = tmp_path / "sample"
+    target_dir.mkdir()
+    stale_file = target_dir / "stale.txt"
+    stale_file.write_text("stale", encoding="utf-8")
+
+    monkeypatch.setattr(scaffolder_module.sys.stdin, "isatty", lambda: True)
+    monkeypatch.setattr(scaffolder_module.typer, "confirm", lambda *args, **kwargs: False)
+
+    with pytest.raises(ScaffoldError, match="cancelled by user"):
+        scaffold_project("sample", tmp_path, overwrite=True)
+
+    assert stale_file.exists()
+
+
+def test_overwrite_in_non_tty_without_yes_raises(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    target_dir = tmp_path / "sample"
+    target_dir.mkdir()
+    (target_dir / "stale.txt").write_text("stale", encoding="utf-8")
+
+    monkeypatch.setattr(scaffolder_module.sys.stdin, "isatty", lambda: False)
+
+    with pytest.raises(ScaffoldError, match="TTY|--yes"):
+        scaffold_project("sample", tmp_path, overwrite=True)
+
+
+def test_overwrite_with_git_dir_requires_yes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    target_dir = tmp_path / "sample"
+    (target_dir / ".git").mkdir(parents=True)
+    (target_dir / "tracked.txt").write_text("stale", encoding="utf-8")
+
+    monkeypatch.setattr(scaffolder_module.sys.stdin, "isatty", lambda: True)
+
+    with pytest.raises(ScaffoldError, match=r"\.git.*--yes"):
+        scaffold_project("sample", tmp_path, overwrite=True)
+
+
+def test_overwrite_with_git_dir_and_yes_proceeds(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    target_dir = tmp_path / "sample"
+    (target_dir / ".git").mkdir(parents=True)
+    stale_file = target_dir / "tracked.txt"
+    stale_file.write_text("stale", encoding="utf-8")
+
+    monkeypatch.setattr(scaffolder_module.sys.stdin, "isatty", lambda: True)
+
+    project_path = scaffold_project("sample", tmp_path, overwrite=True, yes=True)
+
+    assert project_path == target_dir
+    assert not stale_file.exists()
+    assert not (project_path / ".git").exists()
     assert (project_path / "function_app.py").exists()
 
 

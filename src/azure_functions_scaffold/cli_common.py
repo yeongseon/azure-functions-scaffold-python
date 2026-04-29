@@ -77,6 +77,18 @@ OverwriteOption = Annotated[
     ),
 ]
 
+YesOption = Annotated[
+    bool,
+    typer.Option(
+        "--yes",
+        "-y",
+        help=(
+            "Skip confirmation prompts (required when --overwrite runs in a "
+            "non-TTY session or against a directory containing .git)."
+        ),
+    ),
+]
+
 
 # ---------------------------------------------------------------------------
 # Intent-based scaffold execution
@@ -94,6 +106,7 @@ def run_intent(
     include_azd: bool = False,
     dry_run: bool = False,
     overwrite: bool = False,
+    yes: bool = False,
 ) -> None:
     """Look up *intent_key* in ``INTENT_SPECS`` and scaffold accordingly."""
     try:
@@ -128,6 +141,7 @@ def run_intent(
         destination=destination,
         dry_run=dry_run,
         overwrite=overwrite,
+        yes=yes,
     )
 
 
@@ -139,6 +153,7 @@ def run_scaffold(
     destination: Path = Path("."),
     dry_run: bool = False,
     overwrite: bool = False,
+    yes: bool = False,
 ) -> None:
     """Execute scaffold_project (or describe if dry_run) with unified error handling."""
     logger.debug(
@@ -156,6 +171,7 @@ def run_scaffold(
                 template_name=template_name,
                 options=options,
                 overwrite=overwrite,
+                yes=yes,
             ):
                 typer.echo(line)
             return
@@ -165,6 +181,7 @@ def run_scaffold(
             template_name=template_name,
             options=options,
             overwrite=overwrite,
+            yes=yes,
         )
     except ScaffoldError as exc:
         typer.secho(str(exc), fg=typer.colors.RED)

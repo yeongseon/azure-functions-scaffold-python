@@ -14,6 +14,7 @@ from azure_functions_scaffold.cli_common import (
     GitOption,
     OverwriteOption,
     PythonVersionOption,
+    YesOption,
     run_intent,
 )
 from azure_functions_scaffold.errors import ScaffoldError
@@ -42,6 +43,7 @@ def api_new(
     include_azd: AzdOption = False,
     dry_run: DryRunOption = False,
     overwrite: OverwriteOption = False,
+    yes: YesOption = False,
 ) -> None:
     """Create a REST API project with OpenAPI, validation, and doctor."""
     run_intent(
@@ -54,6 +56,7 @@ def api_new(
         include_azd=include_azd,
         dry_run=dry_run,
         overwrite=overwrite,
+        yes=yes,
     )
 
 

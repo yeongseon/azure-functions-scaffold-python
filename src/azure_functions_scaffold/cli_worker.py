@@ -14,6 +14,7 @@ from azure_functions_scaffold.cli_common import (
     GitOption,
     OverwriteOption,
     PythonVersionOption,
+    YesOption,
     run_intent,
 )
 
@@ -33,6 +34,7 @@ def worker_timer(
     include_azd: AzdOption = False,
     dry_run: DryRunOption = False,
     overwrite: OverwriteOption = False,
+    yes: YesOption = False,
 ) -> None:
     """Create a timer-trigger worker project."""
     run_intent(
@@ -45,6 +47,7 @@ def worker_timer(
         include_azd=include_azd,
         dry_run=dry_run,
         overwrite=overwrite,
+        yes=yes,
     )
 
 
@@ -58,6 +61,7 @@ def worker_queue(
     include_azd: AzdOption = False,
     dry_run: DryRunOption = False,
     overwrite: OverwriteOption = False,
+    yes: YesOption = False,
 ) -> None:
     """Create a queue-trigger worker project."""
     run_intent(
@@ -70,6 +74,7 @@ def worker_queue(
         include_azd=include_azd,
         dry_run=dry_run,
         overwrite=overwrite,
+        yes=yes,
     )
 
 
@@ -83,6 +88,7 @@ def worker_blob(
     include_azd: AzdOption = False,
     dry_run: DryRunOption = False,
     overwrite: OverwriteOption = False,
+    yes: YesOption = False,
 ) -> None:
     """Create a blob-trigger worker project."""
     run_intent(
@@ -95,6 +101,7 @@ def worker_blob(
         include_azd=include_azd,
         dry_run=dry_run,
         overwrite=overwrite,
+        yes=yes,
     )
 
 
@@ -108,6 +115,7 @@ def worker_servicebus(
     include_azd: AzdOption = False,
     dry_run: DryRunOption = False,
     overwrite: OverwriteOption = False,
+    yes: YesOption = False,
 ) -> None:
     """Create a Service Bus-trigger worker project."""
     run_intent(
@@ -120,6 +128,7 @@ def worker_servicebus(
         include_azd=include_azd,
         dry_run=dry_run,
         overwrite=overwrite,
+        yes=yes,
     )
 
 
@@ -133,6 +142,7 @@ def worker_eventhub(
     include_azd: AzdOption = False,
     dry_run: DryRunOption = False,
     overwrite: OverwriteOption = False,
+    yes: YesOption = False,
 ) -> None:
     """Create an EventHub-trigger worker project."""
     run_intent(
@@ -145,4 +155,5 @@ def worker_eventhub(
         include_azd=include_azd,
         dry_run=dry_run,
         overwrite=overwrite,
+        yes=yes,
     )

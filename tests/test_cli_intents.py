@@ -69,7 +69,8 @@ class TestApiNew:
         (project_dir / "stale.txt").write_text("stale", encoding="utf-8")
 
         result = runner.invoke(
-            app, ["api", "new", "my-api", "--destination", str(tmp_path), "--overwrite"]
+            app,
+            ["api", "new", "my-api", "--destination", str(tmp_path), "--overwrite", "--yes"],
         )
         assert result.exit_code == 0
         assert not (project_dir / "stale.txt").exists()
@@ -132,8 +133,23 @@ class TestNew:
         (project_dir / "stale.txt").write_text("stale", encoding="utf-8")
 
         result = runner.invoke(
-            app, ["new", "my-api", "--destination", str(tmp_path), "--overwrite"]
+            app,
+            ["new", "my-api", "--destination", str(tmp_path), "--overwrite", "--yes"],
         )
+        assert result.exit_code == 0
+        assert not (project_dir / "stale.txt").exists()
+        assert (project_dir / "function_app.py").exists()
+
+    def test_overwrite_with_yes_flag(self, tmp_path: Path) -> None:
+        project_dir = tmp_path / "my-api"
+        project_dir.mkdir()
+        (project_dir / "stale.txt").write_text("stale", encoding="utf-8")
+
+        result = runner.invoke(
+            app,
+            ["new", "my-api", "--destination", str(tmp_path), "--overwrite", "--yes"],
+        )
+
         assert result.exit_code == 0
         assert not (project_dir / "stale.txt").exists()
         assert (project_dir / "function_app.py").exists()

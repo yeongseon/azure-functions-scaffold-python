@@ -14,6 +14,7 @@ from azure_functions_scaffold.cli_common import (
     GitOption,
     OverwriteOption,
     PythonVersionOption,
+    YesOption,
     run_intent,
 )
 
@@ -33,6 +34,7 @@ def ai_agent(
     include_azd: AzdOption = False,
     dry_run: DryRunOption = False,
     overwrite: OverwriteOption = False,
+    yes: YesOption = False,
 ) -> None:
     """Create a LangGraph agent project."""
     run_intent(
@@ -45,4 +47,5 @@ def ai_agent(
         include_azd=include_azd,
         dry_run=dry_run,
         overwrite=overwrite,
+        yes=yes,
     )

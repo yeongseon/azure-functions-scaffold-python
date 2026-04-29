@@ -5,8 +5,10 @@ from pathlib import Path
 import re
 import shutil
 import subprocess  # nosec B404
+import sys
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+import typer
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import ProjectOptions, TemplateContext, TemplateSpec
@@ -21,6 +23,7 @@ def scaffold_project(
     template_name: str = "http",
     options: ProjectOptions | None = None,
     overwrite: bool = False,
+    yes: bool = False,
 ) -> Path:
     context, target_dir, template = _resolve_scaffold_inputs(
         project_name=project_name,
@@ -40,6 +43,7 @@ def scaffold_project(
             raise ScaffoldError(
                 f"Target directory already exists: {target_dir}. Use --overwrite to replace it."
             )
+        _confirm_overwrite_or_raise(target_dir, yes=yes)
         logger.warning("Overwriting existing directory: %s", target_dir)
         shutil.rmtree(target_dir)
 
@@ -101,6 +105,7 @@ def describe_scaffold_project(
     template_name: str = "http",
     options: ProjectOptions | None = None,
     overwrite: bool = False,
+    yes: bool = False,
 ) -> list[str]:
     context, target_dir, template = _resolve_scaffold_inputs(
         project_name=project_name,
@@ -142,6 +147,33 @@ def describe_scaffold_project(
         lines.append(f"  - {rendered_path.as_posix()}")
 
     return lines
+
+
+def _confirm_overwrite_or_raise(target_dir: Path, *, yes: bool) -> None:
+    has_git = (target_dir / ".git").is_dir()
+    file_count = sum(1 for path in target_dir.rglob("*") if path.is_file())
+
+    if has_git and not yes:
+        raise ScaffoldError(
+            f"Refusing to overwrite {target_dir} because it contains a .git directory. "
+            f"Pass --yes if you really want to delete this repository."
+        )
+
+    if yes:
+        return
+
+    if not sys.stdin.isatty():
+        raise ScaffoldError(
+            f"--overwrite refused: not running in a TTY. "
+            f"Pass --yes to confirm deletion of {target_dir} ({file_count} files)."
+        )
+
+    git_note = " (contains .git)" if has_git else ""
+    if not typer.confirm(
+        f"Delete and overwrite {target_dir}{git_note} ({file_count} files)?",
+        default=False,
+    ):
+        raise ScaffoldError("Overwrite cancelled by user.")
 
 
 def build_template_context(project_name: str, options: ProjectOptions) -> TemplateContext:

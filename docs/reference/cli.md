@@ -32,6 +32,9 @@ Generates a new Azure Functions Python v2 project from scratch.
 | `--interactive`, `-i` | False | Boolean | Force interactive wizard. |
 | `--dry-run` | False | Boolean | Show planned files without writing to disk. |
 | `--overwrite` | False | Boolean | Overwrite files if the destination directory exists. |
+| `--yes`, `-y` | False | Boolean | Skip overwrite confirmation prompts when deletion is intentional. |
+
+When `--overwrite` is used in an interactive TTY, the CLI prompts before deleting the target directory and defaults to No. In non-interactive sessions, `--overwrite` is refused unless `--yes` is also passed. As an extra safety guard, any target directory containing `.git/` also requires `--yes` before it can be deleted.
 
 ### `add`
 
