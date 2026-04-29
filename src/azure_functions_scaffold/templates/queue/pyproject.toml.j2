@@ -47,6 +47,7 @@ dev = [
 
 {% if include_pytest -%}
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests"]
 {% endif %}
 

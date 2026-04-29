@@ -15,6 +15,10 @@ All notable changes to this project will be documented in this file.
 - Users with previously-scaffolded projects do not need to take action; the marker constants only matter when running `afs api add` / `afs advanced add` / `afs api add-route` / `afs api add-resource` against an existing project. If those commands fail with "marker not found" against an old scaffold, replace the comment in `function_app.py` from `# azure-functions-scaffold-python:` to `# azure-functions-scaffold:`.
 - Users following the previous suffixed install instructions will hit a 404. The README and docs are updated; PyPI package name is now `azure-functions-scaffold`.
 
+### Fixed
+
+- Generated projects' `pytest` invocation no longer fails with `ModuleNotFoundError` for `app.*` imports. Templates now ship `pythonpath = ["."]` in `[tool.pytest.ini_options]`, which pytest 8+ requires when test files live as siblings to the package root (no `tests/__init__.py` convention).
+
 ## [0.5.0] - 2025-04-09
 
 ### Features
