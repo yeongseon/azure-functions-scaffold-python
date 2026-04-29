@@ -179,7 +179,8 @@ def _normalize_function_name(function_name: str) -> str:
             f"or underscores."
         )
 
-    if keyword.iskeyword(module_name) or keyword.issoftkeyword(module_name):
+    soft_keywords = set(getattr(keyword, "softkwlist", ())) | {"_", "case", "match", "type"}
+    if keyword.iskeyword(module_name) or module_name in soft_keywords:
         raise ScaffoldError(
             f"Function name '{function_name}' resolves to a reserved Python "
             f"keyword ('{module_name}'). Choose a different name."
