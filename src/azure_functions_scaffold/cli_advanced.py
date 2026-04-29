@@ -18,7 +18,7 @@ from azure_functions_scaffold.cli_common import (
 )
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.generator import (
-    SUPPORTED_TRIGGERS,
+    ADDABLE_TRIGGERS,
     add_function,
     add_resource,
     add_route,
@@ -193,7 +193,7 @@ def advanced_add(
         str,
         typer.Argument(
             ...,
-            help=f"Trigger type to add. Supported: {', '.join(SUPPORTED_TRIGGERS)}",
+            help=f"Trigger type to add. Supported: {', '.join(ADDABLE_TRIGGERS)}",
         ),
     ],
     function_name: Annotated[

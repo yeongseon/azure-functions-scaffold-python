@@ -131,6 +131,7 @@ Use for adding triggers to existing projects:
 - `add_function(...)`
 - `describe_add_function(...)`
 - `SUPPORTED_TRIGGERS`
+- `ADDABLE_TRIGGERS` - Tuple of trigger names that can be added to an existing project via 'afs advanced add'. Excludes templates (e.g. langgraph) that only support full project creation.
 
 ### `azure_functions_scaffold.template_registry`
 
