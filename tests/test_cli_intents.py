@@ -393,6 +393,16 @@ class TestAiAgent:
         assert '# "azure-functions-langgraph>=0.5.1",' in pyproject_text
         assert "Uncomment after azure-functions-langgraph is published on PyPI." in pyproject_text
 
+    def test_function_app_imports_have_no_blank_lines_within_third_party_section(
+        self, tmp_path: Path
+    ) -> None:
+        result = runner.invoke(app, ["ai", "agent", "my-agent", "--destination", str(tmp_path)])
+        assert result.exit_code == 0
+
+        function_app_text = (tmp_path / "my-agent" / "function_app.py").read_text(encoding="utf-8")
+        head = function_app_text.split("# Create LangGraph app")[0]
+        assert "import azure.functions as func\nfrom azure_functions_langgraph" in head
+
     def test_dry_run(self, tmp_path: Path) -> None:
         result = runner.invoke(
             app, ["ai", "agent", "my-agent", "--destination", str(tmp_path), "--dry-run"]

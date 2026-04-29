@@ -951,6 +951,16 @@ def test_add_route_blueprint_content_is_valid_python(tmp_path: Path) -> None:
     assert 'body="TODO: implement status"' in blueprint_text
 
 
+def test_add_route_blueprint_imports_follow_pep8_grouping(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    add_route(project_root=project_root, route_name="status")
+
+    blueprint_text = (project_root / "app/functions/status.py").read_text(encoding="utf-8")
+    stdlib_index = blueprint_text.index("import logging")
+    third_party_index = blueprint_text.index("import azure.functions as func")
+    assert stdlib_index < third_party_index
+
+
 def test_add_route_test_content_is_valid_python(tmp_path: Path) -> None:
     project_root = scaffold_project("sample", tmp_path)
     add_route(project_root=project_root, route_name="status")
