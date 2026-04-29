@@ -142,6 +142,8 @@ def test_add_function_works_with_legacy_marker(tmp_path: Path) -> None:
         "# azure-functions-scaffold-python: function imports"
     )
     assert "app.register_functions(sync_data_blueprint)" in updated
+
+
 def test_add_function_rolls_back_on_host_json_failure(tmp_path: Path) -> None:
     project_root = scaffold_project("sample", tmp_path)
     function_app_path = project_root / "function_app.py"
@@ -207,6 +209,21 @@ def test_add_function_succeeds_atomically_for_queue_trigger(tmp_path: Path) -> N
     function_app_text = function_app_path.read_text(encoding="utf-8")
     assert "from app.functions.foo import foo_blueprint" in function_app_text
     assert "app.register_functions(foo_blueprint)" in function_app_text
+
+
+def test_add_function_keeps_app_function_imports_sorted(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+
+    add_function(project_root=project_root, trigger="http", function_name="zeta")
+    add_function(project_root=project_root, trigger="http", function_name="alpha")
+    add_function(project_root=project_root, trigger="http", function_name="mango")
+
+    function_app_text = (project_root / "function_app.py").read_text(encoding="utf-8")
+    app_function_imports = [
+        line for line in function_app_text.splitlines() if line.startswith("from app.functions.")
+    ]
+
+    assert app_function_imports == sorted(app_function_imports)
 
 
 def test_add_function_can_skip_test_generation_for_minimal_preset(tmp_path: Path) -> None:

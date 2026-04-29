@@ -433,8 +433,12 @@ def _insert_near_marker(
         # the marker comment, keeping all imports in one contiguous block.
         blank_then_marker = f"\n\n{target_marker}"
         if blank_then_marker in content:
-            return content.replace(blank_then_marker, f"\n{line}\n\n{target_marker}", 1)
-        return content.replace(target_marker, f"{line}\n{target_marker}", 1)
+            updated = content.replace(blank_then_marker, f"\n{line}\n\n{target_marker}", 1)
+        else:
+            updated = content.replace(target_marker, f"{line}\n{target_marker}", 1)
+        if marker == FUNCTION_IMPORT_MARKER or marker == LEGACY_FUNCTION_IMPORT_MARKER:
+            updated = _sort_app_functions_imports(updated, target_marker)
+        return updated
 
     if fallback_anchor not in content:
         raise ScaffoldError(
@@ -445,6 +449,39 @@ def _insert_near_marker(
         return content.replace(fallback_anchor, f"{fallback_anchor}\n{line}", 1)
 
     return content.replace(fallback_anchor, f"{line}\n\n{fallback_anchor}", 1)
+
+
+def _sort_app_functions_imports(content: str, marker: str) -> str:
+    """Sort the contiguous ``from app.functions.* import ...`` block alphabetically.
+
+    Ruff's ``I001`` rule requires imports within the same isort section to be
+    sorted. New entries are appended in insertion order, so we re-sort the
+    contiguous run that ends just before the import marker. Only ``app.functions.*``
+    lines are reordered; surrounding imports keep their original positions.
+    """
+
+    lines = content.split("\n")
+    marker_index = next((i for i, ln in enumerate(lines) if ln.strip() == marker), -1)
+    if marker_index <= 0:
+        return content
+
+    # Walk backwards from the marker, skipping the blank line that separates
+    # imports from the marker, then collect the contiguous app.functions.* run.
+    end = marker_index
+    while end > 0 and lines[end - 1].strip() == "":
+        end -= 1
+    start = end
+    while start > 0 and lines[start - 1].startswith("from app.functions."):
+        start -= 1
+    if end - start < 2:
+        return content
+
+    block = lines[start:end]
+    sorted_block = sorted(block)
+    if block == sorted_block:
+        return content
+    lines[start:end] = sorted_block
+    return "\n".join(lines)
 
 
 def _legacy_marker_for(marker: str) -> str | None:
