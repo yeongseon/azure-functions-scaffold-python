@@ -8,7 +8,7 @@ class AgentState(TypedDict):
     messages: list[dict[str, str]]
 
 
-def chat(state: AgentState) -> dict:
+def chat(state: AgentState) -> dict[str, list[dict[str, str]]]:
     user_msg = state["messages"][-1]["content"]
     return {
         "messages": state["messages"]
