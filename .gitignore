@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *.so
 
+# Sisyphus working directory (planning, scratch)
+.sisyphus/
+
 # Virtual environments
 .venv/
 venv/

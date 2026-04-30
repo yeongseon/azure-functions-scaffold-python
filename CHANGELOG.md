@@ -4,20 +4,57 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-04-30
+
+### Added
+
+- Intent-centric CLI redesign: `afs api`, `afs worker`, `afs ai`, and `afs advanced` command groups. The top-level `afs new` is now a shortcut for `afs api new` (#48, #57).
+- Route and resource scaffolding engine: `afs api add-route`, `afs api add-resource`, and `afs api add` for extending an existing project. Backed by reusable Jinja partials (#56).
+- LangGraph AI agent template (`afs ai agent`) for deploying compiled graphs as Azure Functions (#48, #57).
+- Structured logging out of the box via `azure-functions-logging` in generated projects (#58, #59).
+- `orjson` is now a default dependency in generated projects for faster JSON serialization (#66).
+- Generated-project smoke E2E workflow validates every template and feature combination on every PR (#94).
+
 ### Changed (BREAKING - packaging)
 
-- Renamed PyPI package from `azure-functions-scaffold-python` to `azure-functions-scaffold` to align with the existing PyPI registration (the suffixed name was never published). Install command: `pip install azure-functions-scaffold`. The CLI binary `afs` and the long-form `azure-functions-scaffold` are unchanged behaviorally; the long-form name no longer carries the `-python` suffix.
-- Generated project templates now depend on unsuffixed sibling packages: `azure-functions-logging`, `azure-functions-openapi`, `azure-functions-validation`, `azure-functions-doctor`, `azure-functions-db`. Existing `-python`-suffixed deps were unresolvable on PyPI.
-- Function-app marker comments are now `# azure-functions-scaffold: function imports` / `# azure-functions-scaffold: function registrations` (was `azure-functions-scaffold-python: ...`). Existing scaffolded projects will continue to work because the generator still recognizes both legacy and new markers - see migration notes.
+- Renamed PyPI package from `azure-functions-scaffold-python` to `azure-functions-scaffold` to align with the existing PyPI registration (the suffixed name was never published). Install command: `pip install azure-functions-scaffold`. The CLI binary `afs` and the long-form `azure-functions-scaffold` are unchanged behaviorally; the long-form name no longer carries the `-python` suffix (#90).
+- Generated project templates now depend on unsuffixed sibling packages: `azure-functions-logging`, `azure-functions-openapi`, `azure-functions-validation`, `azure-functions-doctor`, `azure-functions-db`. Existing `-python`-suffixed deps were unresolvable on PyPI (#70, #90).
+- Function-app marker comments are now `# azure-functions-scaffold: function imports` / `# azure-functions-scaffold: function registrations` (was `azure-functions-scaffold-python: ...`). Existing scaffolded projects will continue to work because the generator still recognizes both legacy and new markers - see migration notes (#81).
+
+### Changed (BREAKING - templates)
+
+- Default HTTP template replaces the users CRUD example with a webhook receiver (`webhooks.py`) plus a health endpoint. The webhook handler ships with HMAC signature verification and `AuthLevel.FUNCTION` (#55, #61, #83).
+- `--with-openapi` no longer passes the `FunctionApp` instance to `get_openapi_json`/`get_openapi_yaml` and switches to the non-deprecated `azure_functions_openapi.spec` module path. The `/docs` route now returns `render_swagger_ui(...)` directly (#99).
+- Durable template imports `azure.durable_functions as df` (was the non-existent `azure.functions.durable_functions`) and ships the correct mypy pragmas + `Generator[Any, Any, list[str]]` orchestrator return type so generated projects pass strict mypy (#98).
+
+### Added (DX / UX)
+
+- `afs` CLI prints help when invoked with no subcommand, so first-time users see what is available without a stack trace (#86).
+- Deprecation shims for legacy `afs add` and `afs profiles` commands so users on the previous CLI surface get an actionable migration message (#87).
+- `--overwrite` now requires a TTY confirmation and refuses to clobber a directory that contains a `.git` repository (#89).
+
+### Fixed
+
+- Generated projects' `pytest` invocation no longer fails with `ModuleNotFoundError` for `app.*` imports. Templates now ship `pythonpath = ["."]` in `[tool.pytest.ini_options]`, which pytest 8+ requires when test files live as siblings to the package root (no `tests/__init__.py` convention) (#93).
+- `afs api add` / `afs advanced add` / `afs api add-route` / `afs api add-resource` now sort the contiguous `from app.functions.*` import block above the `# azure-functions-scaffold: function imports` marker after each insertion, eliminating Ruff `I001` violations on the generated project (#96).
+- Route blueprint and LangGraph templates now order imports per PEP 8 (stdlib -> third-party -> local) without blank lines splitting the third-party group (#97).
+- `add_function`, `add_resource`, and `add_route` are now atomic: a failure mid-write rolls the project back instead of leaving a half-written state (#85).
+- Function names are validated against Python keywords and identifier rules before any files are written (#82).
+- Distinguish addable triggers from supported triggers so `afs advanced add` only offers the triggers it can actually generate against an existing project (#84).
+- LangGraph template no longer trips strict mypy: `chat()` is annotated `-> dict[str, list[dict[str, str]]]` and the `azure_functions_langgraph` import suppresses `[import-not-found]` while the upstream wheel ships only dist-info (#100).
+
+### Documentation
+
+- README front-door redesign with the `afs new` vs `func init` comparison table (#57, #92).
+- Migration guide for 0.6.0 added at `docs/migration/0.6.0.md` (#95).
+- Example walkthroughs for every template (#64).
+- CLI reference flags Python 3.14 as Preview on Azure Functions (#91).
 
 ### Migration
 
 - Users with previously-scaffolded projects do not need to take action; the marker constants only matter when running `afs api add` / `afs advanced add` / `afs api add-route` / `afs api add-resource` against an existing project. If those commands fail with "marker not found" against an old scaffold, replace the comment in `function_app.py` from `# azure-functions-scaffold-python:` to `# azure-functions-scaffold:`.
 - Users following the previous suffixed install instructions will hit a 404. The README and docs are updated; PyPI package name is now `azure-functions-scaffold`.
-
-### Fixed
-
-- Generated projects' `pytest` invocation no longer fails with `ModuleNotFoundError` for `app.*` imports. Templates now ship `pythonpath = ["."]` in `[tool.pytest.ini_options]`, which pytest 8+ requires when test files live as siblings to the package root (no `tests/__init__.py` convention).
+- Full migration guide: `docs/migration/0.6.0.md`.
 
 ## [0.5.0] - 2025-04-09
 
