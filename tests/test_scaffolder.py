@@ -12,6 +12,7 @@ from azure_functions_scaffold.models import TemplateContext
 from azure_functions_scaffold.scaffolder import (
     _initialize_git_repository,
     _iter_template_files,
+    _next_python_minor,
     _render_path,
     _slugify,
     build_template_context,
@@ -155,6 +156,16 @@ def test_render_path_strips_jinja_suffix_and_replaces_placeholders() -> None:
 )
 def test_slugify_normalizes_names(raw_value: str, expected: str) -> None:
     assert _slugify(raw_value) == expected
+
+
+def test_next_python_minor_rejects_invalid_format() -> None:
+    with pytest.raises(ScaffoldError, match="Invalid Python version format"):
+        _next_python_minor("3")
+
+
+def test_next_python_minor_rejects_non_numeric_minor() -> None:
+    with pytest.raises(ScaffoldError, match="Invalid Python version format"):
+        _next_python_minor("3.x")
 
 
 def test_scaffold_project_rejects_existing_target(tmp_path: Path) -> None:
@@ -538,6 +549,23 @@ def test_initialize_git_repository_handles_missing_stderr_on_failure(
         ScaffoldError,
         match="Failed to initialize a git repository: git init failed",
     ):
+        _initialize_git_repository(tmp_path)
+
+
+def test_initialize_git_repository_handles_file_not_found_from_subprocess(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fake_run(*args: object, **kwargs: object) -> object:
+        raise FileNotFoundError("git missing")
+
+    monkeypatch.setattr(
+        "azure_functions_scaffold.scaffolder.shutil.which",
+        lambda _: "/usr/bin/git",
+    )
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    with pytest.raises(ScaffoldError, match="Git is not installed or not available on PATH"):
         _initialize_git_repository(tmp_path)
 
 

@@ -8,6 +8,11 @@
 - `CONTRIBUTING.md`
 
 ## Working Rules
+
+### Test Coverage
+- Maintain test coverage at **95% or above** for committed changes and PRs.
+- Run `hatch run pytest --cov --cov-report=term-missing -q` to verify before submitting changes.
+- Any PR that drops coverage below 95% must include additional tests to compensate.
 - Keep repository-level engineering and planning docs at the repository root (`AGENTS.md`, `DESIGN.md`, `PRD.md`).
 - Keep `docs/` for user-facing documentation only.
 - Use Makefile entry points for contributor guidance and CI (`make install`, `make format`, `make lint`, `make typecheck`, `make test`, `make cov`, `make check-all`, `make docs`, `make build`).

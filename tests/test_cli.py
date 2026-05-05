@@ -6,10 +6,12 @@ Intent-specific command tests live in test_cli_intents.py.
 from __future__ import annotations
 
 import pytest
+import typer
 from typer.testing import CliRunner
 
 from azure_functions_scaffold import __version__, cli
 from azure_functions_scaffold.cli import app
+from azure_functions_scaffold.cli_common import run_intent
 
 runner = CliRunner()
 
@@ -67,3 +69,8 @@ def test_main_invokes_typer_app(monkeypatch: pytest.MonkeyPatch) -> None:
     cli.main()
 
     assert called["value"] is True
+
+
+def test_run_intent_rejects_unknown_intent() -> None:
+    with pytest.raises(typer.Exit):
+        run_intent("unknown/intent", "demo")

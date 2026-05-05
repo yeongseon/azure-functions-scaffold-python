@@ -12,11 +12,16 @@ from azure_functions_scaffold.generator import (
     ADDABLE_TRIGGERS,
     FUNCTION_IMPORT_MARKER,
     FUNCTION_REGISTRATION_MARKER,
+    _compute_updated_host_json,
+    _compute_updated_local_settings,
     _derive_resource_names,
+    _ensure_host_extensions,
+    _ensure_local_settings_values,
     _insert_near_marker,
     _normalize_trigger,
     _render_function_module,
     _render_function_test,
+    _sort_app_functions_imports,
     _update_function_app,
     add_function,
     add_resource,
@@ -612,6 +617,105 @@ def test_add_function_skips_local_settings_when_example_missing(tmp_path: Path) 
 
     # Verify the function was still created
     assert (project_root / "app" / "functions" / "event_handler.py").exists()
+
+
+def test_compute_updated_host_json_returns_none_for_non_binding_trigger() -> None:
+    original = '{"version": "2.0"}'
+    assert _compute_updated_host_json(original, "http") is None
+
+
+def test_compute_updated_host_json_rejects_non_object_payload() -> None:
+    with pytest.raises(ScaffoldError, match="Expected host.json to contain a JSON object"):
+        _compute_updated_host_json("[]", "queue")
+
+
+def test_compute_updated_local_settings_rejects_invalid_json() -> None:
+    with pytest.raises(ScaffoldError, match="Invalid JSON in local.settings.json.example"):
+        _compute_updated_local_settings("{not-json", "servicebus")
+
+
+def test_compute_updated_local_settings_rejects_non_object_payload() -> None:
+    with pytest.raises(
+        ScaffoldError,
+        match="Expected local.settings.json.example to contain a JSON object",
+    ):
+        _compute_updated_local_settings("[]", "servicebus")
+
+
+def test_compute_updated_local_settings_creates_values_block_when_missing() -> None:
+    updated = _compute_updated_local_settings('{"IsEncrypted": false}', "servicebus")
+    assert updated is not None
+    parsed = json.loads(updated)
+    assert "Values" in parsed
+    assert "ServiceBusConnection" in parsed["Values"]
+
+
+def test_compute_updated_local_settings_rejects_non_object_values() -> None:
+    with pytest.raises(
+        ScaffoldError,
+        match="Expected local.settings.json.example Values to be a JSON object",
+    ):
+        _compute_updated_local_settings('{"Values": []}', "eventhub")
+
+
+def test_compute_updated_local_settings_returns_none_when_key_already_present() -> None:
+    content = json.dumps(
+        {
+            "Values": {
+                "CosmosDBConnection": "already-set",
+            }
+        }
+    )
+    assert _compute_updated_local_settings(content, "cosmosdb") is None
+
+
+def test_ensure_host_extensions_writes_extension_bundle(tmp_path: Path) -> None:
+    host_json = tmp_path / "host.json"
+    host_json.write_text('{"version": "2.0"}', encoding="utf-8")
+
+    _ensure_host_extensions(host_json, "queue")
+
+    updated = json.loads(host_json.read_text(encoding="utf-8"))
+    assert updated["extensionBundle"]["id"] == "Microsoft.Azure.Functions.ExtensionBundle"
+
+
+def test_ensure_local_settings_values_writes_connection_key(tmp_path: Path) -> None:
+    project_root = tmp_path / "proj"
+    project_root.mkdir()
+    settings = project_root / "local.settings.json.example"
+    settings.write_text('{"IsEncrypted": false}', encoding="utf-8")
+
+    _ensure_local_settings_values(project_root, "eventhub")
+
+    updated = json.loads(settings.read_text(encoding="utf-8"))
+    assert updated["Values"]["EventHubConnection"].startswith("Endpoint=sb://")
+
+
+def test_sort_app_functions_imports_returns_original_when_marker_missing() -> None:
+    content = "from app.functions.zeta import zeta_blueprint\n"
+    assert _sort_app_functions_imports(content, FUNCTION_IMPORT_MARKER) == content
+
+
+def test_add_resource_skips_existing_test_file(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    existing_test = project_root / "tests/test_products.py"
+    existing_test.write_text("# keep me", encoding="utf-8")
+
+    created = add_resource(project_root=project_root, resource_name="products")
+
+    assert existing_test not in created
+    assert existing_test.read_text(encoding="utf-8") == "# keep me"
+
+
+def test_add_route_skips_existing_test_file(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    existing_test = project_root / "tests/test_status.py"
+    existing_test.write_text("# keep me", encoding="utf-8")
+
+    route_path = add_route(project_root=project_root, route_name="status")
+
+    assert route_path == project_root / "app/functions/status.py"
+    assert existing_test.read_text(encoding="utf-8") == "# keep me"
 
 
 # ---------------------------------------------------------------------------

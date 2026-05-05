@@ -233,6 +233,17 @@ class TestApiAdd:
         assert "Dry run:" in result.stdout
         assert not (project_dir / "app/functions/list_items.py").exists()
 
+    def test_rejects_non_scaffold_project(self, tmp_path: Path) -> None:
+        project_dir = tmp_path / "not-a-project"
+        project_dir.mkdir()
+
+        result = runner.invoke(
+            app, ["api", "add", "list-items", "--project-root", str(project_dir)]
+        )
+
+        assert result.exit_code == 1
+        assert "does not look like a scaffolded Azure Functions project" in result.stdout
+
 
 class TestApiAddRoute:
     def test_adds_route(self, tmp_path: Path) -> None:
@@ -690,6 +701,17 @@ class TestAdvancedAddRoute:
         assert "Dry run:" in result.stdout
         assert not (project_dir / "app/functions/status.py").exists()
 
+    def test_rejects_non_scaffold_project(self, tmp_path: Path) -> None:
+        project_dir = tmp_path / "not-a-project"
+        project_dir.mkdir()
+
+        result = runner.invoke(
+            app, ["advanced", "add-route", "status", "--project-root", str(project_dir)]
+        )
+
+        assert result.exit_code == 1
+        assert "does not look like a scaffolded Azure Functions project" in result.stdout
+
 
 class TestAdvancedAddResource:
     def test_adds_resource(self, tmp_path: Path) -> None:
@@ -724,6 +746,18 @@ class TestAdvancedAddResource:
         assert result.exit_code == 0
         assert "Dry run:" in result.stdout
         assert not (project_dir / "app/functions/products.py").exists()
+
+    def test_rejects_non_scaffold_project(self, tmp_path: Path) -> None:
+        project_dir = tmp_path / "not-a-project"
+        project_dir.mkdir()
+
+        result = runner.invoke(
+            app,
+            ["advanced", "add-resource", "products", "--project-root", str(project_dir)],
+        )
+
+        assert result.exit_code == 1
+        assert "does not look like a scaffolded Azure Functions project" in result.stdout
 
 
 # ---------------------------------------------------------------------------
@@ -855,3 +889,12 @@ class TestSuccessMessage:
         assert result.exit_code == 0
         assert "Project created successfully" in result.stdout
         assert "http://localhost:7071/api/docs" not in result.stdout
+
+    def test_success_message_lists_github_actions_when_enabled(self, tmp_path: Path) -> None:
+        result = runner.invoke(
+            app,
+            ["advanced", "new", "gha-test", "--destination", str(tmp_path), "--github-actions"],
+        )
+
+        assert result.exit_code == 0
+        assert "github-actions" in result.stdout
