@@ -18,8 +18,10 @@ class TestAPISurface:
     def test_all_exports(self) -> None:
         assert set(azure_functions_scaffold.__all__) == {"__version__"}
 
-    def test_version_is_0_6_0(self) -> None:
-        assert azure_functions_scaffold.__version__ == "0.6.0"
+    def test_version_matches_distribution_metadata(self) -> None:
+        from importlib.metadata import version
+
+        assert azure_functions_scaffold.__version__ == version("azure-functions-scaffold")
 
     def test_version_is_string(self) -> None:
         assert isinstance(azure_functions_scaffold.__version__, str)

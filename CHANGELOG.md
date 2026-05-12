@@ -1,77 +1,90 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
-
 ## [Unreleased]
-
-## [0.6.0] - 2026-04-30
-
-### Added
-
-- Intent-centric CLI redesign: `afs api`, `afs worker`, `afs ai`, and `afs advanced` command groups. The top-level `afs new` is now a shortcut for `afs api new` (#48, #57).
-- Route and resource scaffolding engine: `afs api add-route`, `afs api add-resource`, and `afs api add` for extending an existing project. Backed by reusable Jinja partials (#56).
-- LangGraph AI agent template (`afs ai agent`) for deploying compiled graphs as Azure Functions (#48, #57).
-- Structured logging out of the box via `azure-functions-logging` in generated projects (#58, #59).
-- `orjson` is now a default dependency in generated projects for faster JSON serialization (#66).
-- Generated-project smoke E2E workflow validates every template and feature combination on every PR (#94).
-
-### Changed (BREAKING - packaging)
-
-- Renamed PyPI package from `azure-functions-scaffold-python` to `azure-functions-scaffold` to align with the existing PyPI registration (the suffixed name was never published). Install command: `pip install azure-functions-scaffold`. The CLI binary `afs` and the long-form `azure-functions-scaffold` are unchanged behaviorally; the long-form name no longer carries the `-python` suffix (#90).
-- Generated project templates now depend on unsuffixed sibling packages: `azure-functions-logging`, `azure-functions-openapi`, `azure-functions-validation`, `azure-functions-doctor`, `azure-functions-db`. Existing `-python`-suffixed deps were unresolvable on PyPI (#70, #90).
-- Function-app marker comments are now `# azure-functions-scaffold: function imports` / `# azure-functions-scaffold: function registrations` (was `azure-functions-scaffold-python: ...`). Existing scaffolded projects will continue to work because the generator still recognizes both legacy and new markers - see migration notes (#81).
-
-### Changed (BREAKING - templates)
-
-- Default HTTP template replaces the users CRUD example with a webhook receiver (`webhooks.py`) plus a health endpoint. The webhook handler ships with HMAC signature verification and `AuthLevel.FUNCTION` (#55, #61, #83).
-- `--with-openapi` no longer passes the `FunctionApp` instance to `get_openapi_json`/`get_openapi_yaml` and switches to the non-deprecated `azure_functions_openapi.spec` module path. The `/docs` route now returns `render_swagger_ui(...)` directly (#99).
-- Durable template imports `azure.durable_functions as df` (was the non-existent `azure.functions.durable_functions`) and ships the correct mypy pragmas + `Generator[Any, Any, list[str]]` orchestrator return type so generated projects pass strict mypy (#98).
-
-### Added (DX / UX)
-
-- `afs` CLI prints help when invoked with no subcommand, so first-time users see what is available without a stack trace (#86).
-- Deprecation shims for legacy `afs add` and `afs profiles` commands so users on the previous CLI surface get an actionable migration message (#87).
-- `--overwrite` now requires a TTY confirmation and refuses to clobber a directory that contains a `.git` repository (#89).
-
-### Fixed
-
-- Generated projects' `pytest` invocation no longer fails with `ModuleNotFoundError` for `app.*` imports. Templates now ship `pythonpath = ["."]` in `[tool.pytest.ini_options]`, which pytest 8+ requires when test files live as siblings to the package root (no `tests/__init__.py` convention) (#93).
-- `afs api add` / `afs advanced add` / `afs api add-route` / `afs api add-resource` now sort the contiguous `from app.functions.*` import block above the `# azure-functions-scaffold: function imports` marker after each insertion, eliminating Ruff `I001` violations on the generated project (#96).
-- Route blueprint and LangGraph templates now order imports per PEP 8 (stdlib -> third-party -> local) without blank lines splitting the third-party group (#97).
-- `add_function`, `add_resource`, and `add_route` are now atomic: a failure mid-write rolls the project back instead of leaving a half-written state (#85).
-- Function names are validated against Python keywords and identifier rules before any files are written (#82).
-- Distinguish addable triggers from supported triggers so `afs advanced add` only offers the triggers it can actually generate against an existing project (#84).
-- LangGraph template no longer trips strict mypy: `chat()` is annotated `-> dict[str, list[dict[str, str]]]` and the `azure_functions_langgraph` import suppresses `[import-not-found]` while the upstream wheel ships only dist-info (#100).
 
 ### Documentation
 
-- README front-door redesign with the `afs new` vs `func init` comparison table (#57, #92).
-- Migration guide for 0.6.0 added at `docs/migration/0.6.0.md` (#95).
-- Example walkthroughs for every template (#64).
-- CLI reference flags Python 3.14 as Preview on Azure Functions (#91).
-
-### Migration
-
-- Users with previously-scaffolded projects do not need to take action; the marker constants only matter when running `afs api add` / `afs advanced add` / `afs api add-route` / `afs api add-resource` against an existing project. If those commands fail with "marker not found" against an old scaffold, replace the comment in `function_app.py` from `# azure-functions-scaffold-python:` to `# azure-functions-scaffold:`.
-- Users following the previous suffixed install instructions will hit a 404. The README and docs are updated; PyPI package name is now `azure-functions-scaffold`.
-- Full migration guide: `docs/migration/0.6.0.md`.
-
-## [0.5.0] - 2025-04-09
-
-### Features
-
-- Add `--with-db/--no-db` CLI flag with interactive prompt support
-- Add `langgraph` template with LangGraphApp, echo agent, and full project structure
-- Add `db-api` profile (http + strict preset + db + openapi + validation + doctor)
-- Add `db_items` blueprint template (GET/POST /items) for database showcase
-- Conditional `azure-functions-db-python[postgres]` dependency in generated pyproject.toml
-- Conditional `DB_URL` in generated local.settings.json.example
+- Fix ecosystem table names, badges, and Part of intro line 
+- Mark cookbook as dogfood, fix ecosystem table description 
 
 ### Testing
 
-- Add tests for `--with-db` flag, langgraph template, and db-api profile (178 pass, 97% coverage)
+- Raise coverage to 95%+ and enforce via AGENTS.md and pyproject.toml 
+## [0.6.0] - 2026-04-30
 
-## [0.4.0] - 2025-03-17
+### Bug Fixes
+
+- *(templates)* Correct langgraph template strict mypy errors (#100) 
+- *(templates)* Correct azure-functions-openapi API usage in http template (#99) 
+- *(templates)* Correct durable Functions imports and types (#98) 
+- *(templates)* Order imports per PEP 8 in route and langgraph templates (#97) 
+- *(generator)* Sort app.functions imports after marker-based insertion (#96) 
+- *(generator)* Split ADDABLE_TRIGGERS from SUPPORTED_TRIGGERS (#84) 
+- *(scaffold)* Guard --overwrite with TTY confirmation and .git check (#89) 
+- *(templates)* Add pythonpath to generated pytest config (#93) 
+- *(templates)* Default to AuthLevel.FUNCTION and require WEBHOOK_SECRET (#83) 
+- *(generator)* Reject Python keywords and invalid identifiers in function names (#82) 
+- *(generator)* Make add_function/add_resource/add_route atomic (#85) 
+- *(generator)* Align function_app.py marker constants with templates (#81) 
+- *(cli)* Validate advanced new flag/template compatibility (#88) 
+- *(cli)* Add deprecation shims for legacy 'add' and 'profiles' (#87) 
+- *(cli)* Print help when invoked with no subcommand (#86) 
+- *(packaging)* Align PyPI name with publish reality (drop -python suffix) (#90) 
+- Align hatch wheel packages and toolkit dependency names (#70) 
+
+### Documentation
+
+- *(readme)* Add afs new vs func init comparison table (#92) 
+- *(migration)* Draft 0.6.0 migration guide (#95) 
+- *(cli)* Flag Python 3.14 as Preview on Azure Functions (#91) 
+- *(agents)* Add Issue Conventions section to AGENTS.md 
+
+### Miscellaneous Tasks
+
+- Add generated-project smoke E2E for every template (#94) 
+- *(deps)* Bump github/codeql-action from 4.35.1 to 4.35.2 (#67) 
+- *(deps)* Bump ruff from 0.15.10 to 0.15.12 (#73) 
+- *(deps)* Bump mypy from 1.20.0 to 1.20.2 (#72) 
+
+### Release
+
+- 0.6.0 (#102) 
+## [0.5.1] - 2026-04-17
+
+### Documentation
+
+- Add example walkthroughs for all remaining templates (#64) 
+- Add blessed package stacks guide 
+- Standardize ecosystem table in README 
+
+### Features
+
+- Add orjson as default dependency for faster JSON serialization (#66) 
+- Replace default users CRUD example with webhook receiver (#61) 
+- Add structured logging and fix Oracle-identified bugs (#58) (#59) 
+- Add top-level afs new alias and README front door redesign (#57) 
+- Add route/resource engine — Jinja partials, generator, CLI commands, tests (#56) 
+- Restructure HTTP template — replace hello endpoint with health+users CRUD (#55) 
+- Intent-centric CLI redesign — replace profiles with intent commands (#48) 
+
+### Miscellaneous Tasks
+
+- *(deps)* Bump actions/upload-artifact from 7.0.0 to 7.0.1 
+- *(deps)* Bump actions/github-script from 8.0.0 to 9.0.0 
+- Update repo references for azure-functions-{feature}-python naming convention 
+- Polish templates — fix sdist paths, update deps, enrich DX (#50) (#51) 
+- Bump ruff from 0.15.9 to 0.15.10 (#46) 
+## [0.5.0] - 2026-04-09
+
+### Features
+
+- Add --with-db flag, langgraph template, and db-api profile 
+
+### Other
+
+- Bump version to 0.5.0 
+## [0.4.0] - 2026-04-08
 
 ### Bug Fixes
 
@@ -82,6 +95,7 @@ All notable changes to this project will be documented in this file.
 
 ### Documentation
 
+- Update changelog 
 - Add llms.txt for LLM-friendly documentation (#40) (#41) 
 - Rewrite deployment guide for developer-friendly Azure Functions experience 
 - Add deployment guide for scaffold CLI and generated projects (#35) 
@@ -118,6 +132,7 @@ All notable changes to this project will be documented in this file.
 
 - Update version assertion to 0.4.0 for upcoming release 
 - Add tests for azd flag, profile system, and profile registry 
+## [0.3.2] - 2026-03-21
 
 ### Bug Fixes
 
@@ -131,7 +146,7 @@ All notable changes to this project will be documented in this file.
 - Add mermaid diagrams to architecture and README 
 - Add mermaid support to mkdocs configuration 
 - Add real Azure e2e test section to testing.md and CHANGELOG 
-- Document azure-functions-logging-python as built-in default 
+- Document azure-functions-logging as built-in default 
 
 ### Features
 
@@ -157,6 +172,7 @@ All notable changes to this project will be documented in this file.
 ### Testing
 
 - Add generator coverage tests to reach 92% threshold 
+## [0.3.1] - 2026-03-14
 
 ### Bug Fixes
 
@@ -186,7 +202,7 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Add --with-doctor flag and conditional Makefile target 
-- Integrate azure-functions-logging-python into all scaffold templates 
+- Integrate azure-functions-logging into all scaffold templates 
 - Add --with-openapi and --with-validation flags to new command 
 - Add explicit overwrite support for project generation 
 - Validate interactive scaffold choices before generation 
@@ -223,4 +239,5 @@ All notable changes to this project will be documented in this file.
 - Update tests for v0.3.0 logging and doctor features 
 - Expand scaffold e2e coverage for simple trigger templates 
 - Test: 
+## [0.1.0] - 2026-03-07
 <!-- generated by git-cliff -->
