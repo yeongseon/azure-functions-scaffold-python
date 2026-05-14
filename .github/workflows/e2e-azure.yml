@@ -47,7 +47,7 @@ jobs:
       - name: Generate project with scaffold CLI
         run: |
           SCAFFOLDED=/tmp/e2e-scaffolded
-          azure-functions-scaffold-python new "e2e-http-app" \
+          azure-functions-scaffold new "e2e-http-app" \
             --destination "$SCAFFOLDED" \
             --template http \
             --no-git \
