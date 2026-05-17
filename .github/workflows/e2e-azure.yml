@@ -49,7 +49,6 @@ jobs:
           SCAFFOLDED=/tmp/e2e-scaffolded
           azure-functions-scaffold new "e2e-http-app" \
             --destination "$SCAFFOLDED" \
-            --template http \
             --no-git \
             --no-github-actions
           echo "E2E_SCAFFOLDED_DIR=$SCAFFOLDED/e2e-http-app" >> "$GITHUB_ENV"
