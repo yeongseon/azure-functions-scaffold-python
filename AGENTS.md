@@ -23,6 +23,7 @@
 - Keep repository structure aligned with sibling azure-functions-* repositories.
 - `make check-all` is the minimum merge gate.
 - Use Conventional Commits with allowed types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `ci`.
+- Pin every external GitHub Action `uses:` ref to a full commit SHA with a `# vX.Y.Z` comment. See [`CONTRIBUTING.md` § "GitHub Actions Pinning"](CONTRIBUTING.md#github-actions-pinning) for the policy and approved exceptions.
 
 ## Issue Conventions
 
