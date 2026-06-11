@@ -12,13 +12,14 @@ Use this as a production baseline for HTTP APIs.
 ## 1) Generate the Project
 
 ```bash
-afs new commerce-api \
+afs advanced new \
   --template http \
   --preset strict \
   --with-openapi \
   --with-validation \
   --with-doctor \
-  --github-actions
+  --github-actions \
+  commerce-api
 ```
 
 This combines template, quality tooling, API docs, validation, diagnostics,

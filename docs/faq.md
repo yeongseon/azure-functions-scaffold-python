@@ -128,7 +128,7 @@ azure-functions-scaffold new my-api
 Yes. Use `--dry-run` on both project creation and add flows.
 
 ```bash
-afs new my-api --preset strict --dry-run
+afs advanced new --preset strict --dry-run my-api
 afs advanced add queue process_orders --project-root ./my-api --dry-run
 ```
 

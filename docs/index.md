@@ -88,7 +88,7 @@ Design goals of this layout:
 
 ```bash
 pip install azure-functions-scaffold
-afs new my-api --preset standard
+afs advanced new --preset standard my-api
 cd my-api
 python -m venv .venv
 . .venv/bin/activate
@@ -106,10 +106,10 @@ http://localhost:7071/api/hello
 
 ```bash
 # Strict HTTP API with docs and validation
-afs new orders-api --preset strict --with-openapi --with-validation
+afs advanced new --preset strict --with-openapi --with-validation orders-api
 
 # Timer-based scheduled job
-afs new nightly-job --template timer --preset standard
+afs advanced new --template timer --preset standard nightly-job
 
 # Add another endpoint to an existing project
 afs api add get_user --project-root ./orders-api

@@ -25,7 +25,7 @@ It generates the wiring you would otherwise repeat manually:
 
 ```bash
 pip install azure-functions-scaffold
-afs new my-api --preset standard
+afs advanced new --preset standard my-api
 cd my-api
 pip install -e .[dev]
 func start

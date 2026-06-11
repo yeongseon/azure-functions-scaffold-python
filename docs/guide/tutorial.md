@@ -215,7 +215,7 @@ Timer triggers are ideal for maintenance tasks, database cleanups, or periodic r
 ### Generate the Project
 
 ```bash
-afs new maintenance-jobs --template timer
+afs worker timer maintenance-jobs
 cd maintenance-jobs
 make install
 ```
@@ -313,7 +313,7 @@ Queue triggers allow you to process messages from Azure Queue Storage asynchrono
 ### Generate the Project
 
 ```bash
-afs new worker-service --template queue
+afs worker queue worker-service
 cd worker-service
 make install
 ```
@@ -413,7 +413,7 @@ Blob triggers respond to new or updated files in Azure Blob Storage.
 ### Generate the Project
 
 ```bash
-afs new image-processor --template blob
+afs worker blob image-processor
 cd image-processor
 make install
 ```
@@ -494,7 +494,7 @@ The Service Bus template is designed for high-throughput enterprise messaging.
 ### Generate the Project
 
 ```bash
-afs new messaging-node --template servicebus
+afs worker servicebus messaging-node
 cd messaging-node
 make install
 ```
