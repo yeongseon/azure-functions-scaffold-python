@@ -18,7 +18,7 @@ afs advanced new \
   --with-openapi \
   --with-validation \
   --with-doctor \
-  --include-github-actions \
+  --github-actions \
   commerce-api
 ```
 

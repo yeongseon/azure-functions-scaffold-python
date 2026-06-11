@@ -35,7 +35,7 @@ afs --version
 Run the `new` command to generate a standard HTTP project.
 
 ```bash
-afs new my-api --preset standard
+afs advanced new --preset standard my-api
 ```
 
 **Expected Output:**

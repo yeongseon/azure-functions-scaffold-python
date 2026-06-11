@@ -121,13 +121,13 @@ Presets define quality tooling included in the generated project.
 
 ```bash
 # Smallest possible scaffold
-afs new scratch-api --preset minimal
+afs advanced new --preset minimal scratch-api
 
 # Good default for API work
-afs new customer-api --preset standard
+afs advanced new --preset standard customer-api
 
 # Strict CI gate from day one
-afs new payments-api --preset strict
+afs advanced new --preset strict payments-api
 ```
 
 ## Feature Combinations
@@ -136,13 +136,13 @@ Feature flags compose with templates and presets.
 
 ```bash
 # HTTP API with docs and validation, strict checks
-afs new orders-api --preset strict --with-openapi --with-validation
+afs advanced new --preset strict --with-openapi --with-validation orders-api
 
 # Timer job with lightweight tooling and doctor checks
 afs advanced new --template timer --preset minimal --with-doctor nightly-cleanup
 
 # Service Bus worker plus CI workflow bootstrap
-afs worker servicebus bus-worker --include-github-actions
+afs worker servicebus bus-worker --github-actions
 ```
 
 !!! tip "Recommended baseline"
@@ -182,7 +182,7 @@ What it asks for:
 Use dry runs in scripts and CI to verify intent before changing the filesystem.
 
 ```bash
-afs new my-api --preset strict --with-openapi --dry-run
+afs advanced new --preset strict --with-openapi --dry-run my-api
 ```
 
 For project expansion:

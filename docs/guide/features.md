@@ -17,7 +17,7 @@ Presets configure `pyproject.toml` with linting, formatting, and testing tools.
 Use the strict preset to enforce type safety and strict linting.
 
 ```bash
-afs new secure-api --preset strict
+afs advanced new --preset strict secure-api
 ```
 
 ### Feature Flags
@@ -57,7 +57,7 @@ See [azure-functions-logging](https://github.com/yeongseon/azure-functions-loggi
 Adds `azure-functions-openapi` to the dependencies and configures HTTP triggers with the necessary decorators for Swagger/OpenAPI documentation.
 
 ```bash
-afs new swagger-api --with-openapi
+afs advanced new --with-openapi swagger-api
 ```
 
 #### --with-validation
@@ -65,7 +65,7 @@ afs new swagger-api --with-openapi
 Adds Pydantic to the dependencies and sets up base models in `app/schemas/`. If used with an HTTP trigger, it provides a `POST` endpoint with request body validation.
 
 ```bash
-afs new validator-api --with-validation
+afs advanced new --with-validation validator-api
 ```
 
 #### --with-doctor
@@ -73,7 +73,7 @@ afs new validator-api --with-validation
 Adds a "Doctor" health check endpoint at `/api/doctor`. This endpoint provides a structured JSON response to verify the function app's health.
 
 ```bash
-afs new healthy-api --with-doctor
+afs advanced new --with-doctor healthy-api
 ```
 
 ### Combination Examples
@@ -82,10 +82,10 @@ You can mix and match any combination of presets and flags.
 
 ```bash
 # Production-ready API with all features
-afs new commerce-api --preset strict --with-openapi --with-validation --with-doctor
+afs advanced new --preset strict --with-openapi --with-validation --with-doctor commerce-api
 
 # Minimal timer function with GitHub Actions workflow
-afs advanced new --template timer --preset minimal --include-github-actions nightly-job
+afs advanced new --template timer --preset minimal --github-actions nightly-job
 ```
 
 ### Interactive Mode
