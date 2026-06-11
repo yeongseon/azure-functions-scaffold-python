@@ -127,7 +127,7 @@ sequenceDiagram
     participant TR as template_registry.py
     participant FS as File System
 
-    Dev->>CLI: afs new my-api --template http
+    Dev->>CLI: afs new my-api
     CLI->>TR: build_project_options(preset, python_version, ...)
     TR-->>CLI: ProjectOptions
     CLI->>SC: scaffold_project(name, template, options)

@@ -85,7 +85,7 @@ You can mix and match any combination of presets and flags.
 afs new commerce-api --preset strict --with-openapi --with-validation --with-doctor
 
 # Minimal timer function with GitHub Actions workflow
-afs new nightly-job --template timer --preset minimal --github-actions
+afs advanced new --template timer --preset minimal --include-github-actions nightly-job
 ```
 
 ### Interactive Mode

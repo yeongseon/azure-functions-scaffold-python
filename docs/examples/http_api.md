@@ -17,11 +17,12 @@ By the end, you will have:
 Create a strict project with OpenAPI and validation enabled:
 
 ```bash
-afs new my-http-api \
+afs advanced new \
   --template http \
   --preset strict \
   --with-openapi \
-  --with-validation
+  --with-validation \
+  my-http-api
 ```
 
 Move into the project and install dependencies:

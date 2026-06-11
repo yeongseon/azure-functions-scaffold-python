@@ -109,7 +109,7 @@ http://localhost:7071/api/hello
 afs new orders-api --preset strict --with-openapi --with-validation
 
 # Timer-based scheduled job
-afs new nightly-job --template timer --preset standard
+afs advanced new --template timer --preset standard nightly-job
 
 # Add another endpoint to an existing project
 afs api add get_user --project-root ./orders-api

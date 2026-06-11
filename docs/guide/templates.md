@@ -6,8 +6,8 @@ The CLI supports the most common Azure Functions triggers. Each trigger-based te
 
 | Template | CLI Command | Primary Use Case |
 | :--- | :--- | :--- |
-| **HTTP** | `afs new <name> --template http` | APIs, webhooks, synchronous requests. |
-| **Timer** | `afs new <name> --template timer` | Scheduled tasks, clean-up jobs, reports. |
+| **HTTP** | `afs new <name>` | APIs, webhooks, synchronous requests. |
+| **Timer** | `afs worker timer <name>` | Scheduled tasks, clean-up jobs, reports. |
 | **Queue** | `afs worker queue <name>` | Async message processing from Azure Storage. |
 | **Blob** | `afs worker blob <name>` | File processing, image resizing, data ingestion. |
 | **Service Bus** | `afs worker servicebus <name>` | Enterprise messaging with topics or queues. |
@@ -22,7 +22,7 @@ The CLI supports the most common Azure Functions triggers. Each trigger-based te
 The default template for building RESTful APIs.
 
 ```bash
-afs new my-api --template http
+afs new my-api
 ```
 
 *   **Generates**: `app/functions/http.py`, `app/services/hello_service.py`, `tests/test_http.py`.
@@ -33,7 +33,7 @@ afs new my-api --template http
 Triggers functions on a schedule using CRON expressions.
 
 ```bash
-afs new nightly-job --template timer
+afs worker timer nightly-job
 ```
 
 *   **Generates**: `app/functions/timer.py`, `app/services/maintenance_service.py`, `tests/test_timer.py`.

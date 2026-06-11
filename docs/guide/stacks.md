@@ -72,7 +72,7 @@ read/write bindings via `@db.input()` and `@db.output()`.
 | `azure-functions-logging` | Structured JSON logging |
 
 ```bash
-afs new my-agent --template langgraph
+afs ai agent my-agent
 ```
 
 ```text
@@ -127,7 +127,7 @@ API docs, structured logging, and pre-deploy health diagnostics.
 |-------|-----------------|----------|----------|
 | API | `afs new my-api --profile api` | 3 | REST APIs, webhooks |
 | DB API | `afs new my-api --profile db-api` | 4 | CRUD with database |
-| AI Agent | `afs new my-agent --template langgraph` | 3 | LangGraph agents |
+| AI Agent | `afs ai agent my-agent` | 3 | LangGraph agents |
 | Full | `afs new my-api --profile db-api --with-doctor` | 5 | Production services |
 
 Start with the smallest stack that covers your needs.

@@ -65,7 +65,7 @@ After following this guide, your scaffolded project will be running on Azure and
 ### Step 1 — Scaffold the project
 
 ```bash
-afs new my-http-api --template http --dry-run
+afs new my-http-api --dry-run
 ```
 
 This shows what files will be created **without writing anything**:
@@ -99,7 +99,7 @@ Files:
 Now create the actual project:
 
 ```bash
-afs new my-http-api --template http
+afs new my-http-api
 cd my-http-api
 ```
 
@@ -260,7 +260,7 @@ Hello, Azure!
 ### Step 1 — Scaffold the project
 
 ```bash
-afs new my-timer-job --template timer --dry-run
+afs worker timer my-timer-job --dry-run
 ```
 
 Output:
@@ -292,7 +292,7 @@ Files:
 Create the actual project:
 
 ```bash
-afs new my-timer-job --template timer
+afs worker timer my-timer-job
 cd my-timer-job
 ```
 

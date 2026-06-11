@@ -139,10 +139,10 @@ Feature flags compose with templates and presets.
 afs new orders-api --preset strict --with-openapi --with-validation
 
 # Timer job with lightweight tooling and doctor checks
-afs new nightly-cleanup --template timer --preset minimal --with-doctor
+afs advanced new --template timer --preset minimal --with-doctor nightly-cleanup
 
 # Service Bus worker plus CI workflow bootstrap
-afs new bus-worker --template servicebus --github-actions
+afs worker servicebus bus-worker --include-github-actions
 ```
 
 !!! tip "Recommended baseline"

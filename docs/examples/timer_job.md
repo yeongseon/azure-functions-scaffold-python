@@ -15,7 +15,7 @@ You will create a timer-driven job that:
 ## 1) Generate a Timer Project
 
 ```bash
-afs new nightly-maintenance --template timer --preset standard
+afs advanced new --template timer --preset standard nightly-maintenance
 ```
 
 Set up environment and dependencies:
