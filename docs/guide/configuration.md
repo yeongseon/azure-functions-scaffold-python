@@ -33,9 +33,10 @@ same.
 
 For projects that need a non-HTTP template, an explicit preset, or feature
 flags, use `afs advanced new` (the power-user variant). The top-level shortcut
-`afs new` is an alias for `afs api new` and only accepts the basic flags listed
-under [Optional Workflow Flags](#optional-workflow-flags) plus `--destination`,
-`--python-version`, `--dry-run`, `--overwrite`, and `--yes`.
+`afs new` is an alias for `afs api new` and accepts only `--destination`,
+`--python-version`, `--github-actions` / `--no-github-actions`,
+`--git` / `--no-git`, `--azd` / `--no-azd`, `--dry-run`, `--overwrite`,
+and `--yes`.
 
 ```bash
 afs advanced new [OPTIONS] PROJECT_NAME
@@ -68,6 +69,7 @@ The scaffolder accepts all listed versions. Choose 3.12 for the broadest compati
 | :--- | :--- | :--- |
 | `--github-actions` / `--no-github-actions` | `--no-github-actions` | Include a starter CI workflow under `.github/workflows/`. |
 | `--git` / `--no-git` | `--no-git` | Run `git init` in the generated project. |
+| `--azd` / `--no-azd` | `--no-azd` | Include Azure Developer CLI (`azd`) support files. |
 | `--overwrite` | `False` | Replace an existing target directory. |
 
 ### Built-in Features
@@ -106,11 +108,12 @@ logger = get_logger("my-api")
     If you pass them to non-HTTP templates, there is no HTTP route to apply
     those integrations.
 
-### Preview Flags
+### Preview and Safety Flags
 
 | Flag | Default | Purpose |
 | :--- | :--- | :--- |
 | `--dry-run` | `False` | Prints what would be generated without writing files. |
+| `--yes`, `-y` | `False` | Skips confirmation prompts (required when `--overwrite` runs in a non-TTY session or against a directory containing `.git`). |
 
 ## Presets in Detail
 
