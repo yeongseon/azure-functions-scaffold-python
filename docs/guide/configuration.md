@@ -29,10 +29,16 @@ You will primarily configure projects through:
 `afs` is a short alias for `azure-functions-scaffold` and behaves exactly the
 same.
 
-## `new` Command Options
+## `advanced new` Command Options
+
+For projects that need a non-HTTP template, an explicit preset, or feature
+flags, use `afs advanced new` (the power-user variant). The top-level shortcut
+`afs new` is an alias for `afs api new` and only accepts the basic flags listed
+under [Optional Workflow Flags](#optional-workflow-flags) plus `--destination`,
+`--python-version`, `--dry-run`, `--overwrite`, and `--yes`.
 
 ```bash
-afs new [PROJECT_NAME] [OPTIONS]
+afs advanced new [OPTIONS] PROJECT_NAME
 ```
 
 ### Core Selection Flags
@@ -40,7 +46,7 @@ afs new [PROJECT_NAME] [OPTIONS]
 | Flag | Default | Values | Purpose |
 | :--- | :--- | :--- | :--- |
 | `--destination`, `-d` | `.` | path | Parent directory where project folder is created. |
-| `--template`, `-t` | `http` | `http`, `timer`, `queue`, `blob`, `servicebus` | Initial trigger template. |
+| `--template`, `-t` | `http` | `http`, `timer`, `queue`, `blob`, `servicebus`, `eventhub`, `cosmosdb`, `durable`, `ai`, `langgraph` | Initial trigger template. |
 | `--preset` | `standard` | `minimal`, `standard`, `strict` | Quality tooling baseline. |
 | `--python-version` | `3.10` | `3.10`, `3.11`, `3.12`, `3.13`, `3.14 (Preview)` | Python version pin for generated metadata. |
 
@@ -100,11 +106,10 @@ logger = get_logger("my-api")
     If you pass them to non-HTTP templates, there is no HTTP route to apply
     those integrations.
 
-### Interaction and Preview Flags
+### Preview Flags
 
 | Flag | Default | Purpose |
 | :--- | :--- | :--- |
-| `--interactive`, `-i` | `False` | Launches prompts for template, preset, tooling, and feature toggles. |
 | `--dry-run` | `False` | Prints what would be generated without writing files. |
 
 ## Presets in Detail
@@ -152,30 +157,6 @@ afs worker servicebus bus-worker --github-actions
     - `--with-openapi`
     - `--with-validation`
     - `--with-doctor`
-
-## Interactive Mode
-
-Interactive mode is useful for new users and for one-off setups where you want
-to choose options through prompts.
-
-```bash
-afs new my-api --interactive
-```
-
-What it asks for:
-
-1. Project name
-2. Template
-3. Preset
-4. Python version
-5. GitHub Actions toggle
-6. Git init toggle
-7. Tooling selection (`ruff`, `mypy`, `pytest`)
-8. Feature toggles (`openapi`, `validation`, `doctor`)
-
-!!! note "Custom tooling outcome"
-    In interactive mode, if you pick tooling that differs from the preset
-    default set, the generated project records the preset name as `custom`.
 
 ## Dry Run Workflows
 

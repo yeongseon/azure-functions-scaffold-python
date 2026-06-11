@@ -88,14 +88,6 @@ afs advanced new --preset strict --with-openapi --with-validation --with-doctor 
 afs advanced new --template timer --preset minimal --github-actions nightly-job
 ```
 
-### Interactive Mode
-
-If you're unsure which flags to use, start the CLI in interactive mode to be guided through the selection process.
-
-```bash
-afs new my-api --interactive
-```
-
 ### What's Next?
 
 Learn how to [Expand Your Project](expanding.md) by adding more triggers to an existing codebase.
