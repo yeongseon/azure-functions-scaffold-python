@@ -51,7 +51,7 @@ Python バージョンサポート: Azure Functions では 3.10-3.13 は GA、3.
 - Azure Functions Python **v2 プログラミングモデル**
 - デコレータベースの `func.FunctionApp()` アプリケーション
 - CLI 駆動のプロジェクト生成と拡張
-- HTTP、Timer、Queue、Blob、Service Bus、LangGraph トリガー用テンプレート
+- HTTP、Timer、Queue、Blob、Service Bus、Event Hub、Cosmos DB、Durable Functions、AI (Azure OpenAI)、LangGraph トリガー用テンプレート
 
 このツールはプロジェクトスキャフォールドを生成します。ランタイムライブラリは提供**しません**。
 
@@ -145,6 +145,10 @@ my-api/
 | queue | `afs worker queue my-worker` | メッセージ処理 (Azurite) |
 | blob | `afs worker blob my-blob` | ファイル処理 (Azurite) |
 | servicebus | `afs worker servicebus my-bus` | エンタープライズメッセージング |
+| eventhub | `afs worker eventhub my-hub` | 高スループットイベントストリーム取り込み |
+| cosmosdb | `afs advanced new --template cosmosdb my-processor` | Cosmos DB 変更フィード処理 |
+| durable | `afs advanced new --template durable my-workflow` | オーケストレーションワークフロー |
+| ai | `afs advanced new --template ai my-ai-api` | Azure OpenAI チャット完了エンドポイント |
 
 注: `afs` は `azure-functions-scaffold` の短縮形です。どちらも利用できます。
 
@@ -155,6 +159,10 @@ my-api/
 - `queue`: ローカル Azurite 開発向けに準備された Storage Queue トリガー。
 - `blob`: ファイル取り込みパイプライン向け Blob トリガースキャフォールド。
 - `servicebus`: 開発用プレースホルダー付きの Service Bus トリガースキャフォールド。
+- `eventhub`: 高スループットのイベントストリーム用に `EventHubConnection` を使用する Event Hub トリガースキャフォールド。
+- `cosmosdb`: `CosmosDBConnection` とリースコンテナを使用する Cosmos DB 変更フィードプロセッサー。
+- `durable`: HTTP スターター、オーケストレーター、アクティビティ例を含む Durable Functions スキャフォールド (Azurite 必須)。
+- `ai`: `AZURE_OPENAI_ENDPOINT`、`AZURE_OPENAI_API_KEY`、`AZURE_OPENAI_DEPLOYMENT` 設定が必要な Azure OpenAI チャットエンドポイント。
 
 ## オプション機能
 

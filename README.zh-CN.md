@@ -51,7 +51,7 @@ Python 版本支持: Azure Functions 上 3.10-3.13 为 GA，3.14 为 **Preview**
 - Azure Functions Python **v2 编程模型**
 - 基于装饰器的 `func.FunctionApp()` 应用
 - CLI 驱动的项目生成与扩展
-- HTTP、Timer、Queue、Blob、Service Bus 和 LangGraph 触发器模板
+- HTTP、Timer、Queue、Blob、Service Bus、Event Hub、Cosmos DB、Durable Functions、AI (Azure OpenAI) 和 LangGraph 触发器模板
 
 此工具用于生成项目脚手架，**不**提供运行时库。
 
@@ -145,6 +145,10 @@ my-api/
 | queue | `afs worker queue my-worker` | 消息处理 (Azurite) |
 | blob | `afs worker blob my-blob` | 文件处理 (Azurite) |
 | servicebus | `afs worker servicebus my-bus` | 企业消息传递 |
+| eventhub | `afs worker eventhub my-hub` | 高吞吐量事件流摄取 |
+| cosmosdb | `afs advanced new --template cosmosdb my-processor` | Cosmos DB 变更源处理 |
+| durable | `afs advanced new --template durable my-workflow` | 编排工作流 |
+| ai | `afs advanced new --template ai my-ai-api` | Azure OpenAI 聊天完成端点 |
 
 注意: `afs` 是 `azure-functions-scaffold` 的简称。两者都可用。
 
@@ -155,6 +159,10 @@ my-api/
 - `queue`: 为本地 Azurite 开发准备好的 Storage Queue 触发器。
 - `blob`: 用于文件摄取流水线的 Blob 触发器脚手架。
 - `servicebus`: 带开发占位符的 Service Bus 触发器脚手架。
+- `eventhub`: 使用 `EventHubConnection` 的 Event Hub 触发器脚手架，适用于高吞吐量事件流。
+- `cosmosdb`: 使用 `CosmosDBConnection` 和租约容器的 Cosmos DB 变更源处理器。
+- `durable`: 包含 HTTP 启动器、编排器和活动示例的 Durable Functions 脚手架 (需要 Azurite)。
+- `ai`: 需要 `AZURE_OPENAI_ENDPOINT`、`AZURE_OPENAI_API_KEY` 和 `AZURE_OPENAI_DEPLOYMENT` 设置的 Azure OpenAI 聊天端点。
 
 ## 可选功能
 
