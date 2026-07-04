@@ -68,7 +68,7 @@ flowchart LR
 - Azure Functions Python **v2 programming model**
 - Decorator-based `func.FunctionApp()` applications
 - CLI-driven project generation and expansion
-- Templates for HTTP, Timer, Queue, Blob, Service Bus triggers, and LangGraph agents
+- Templates for HTTP, Timer, Queue, Blob, Service Bus, Event Hub, Cosmos DB, Durable Functions, AI (Azure OpenAI), and LangGraph agents
 
 This tool generates project scaffolds. It does **not** provide runtime libraries.
 
@@ -174,6 +174,10 @@ Why this layout works:
 | queue | `afs worker queue my-worker` | Message processing (Azurite) |
 | blob | `afs worker blob my-blob` | File processing (Azurite) |
 | servicebus | `afs worker servicebus my-bus` | Enterprise messaging |
+| eventhub | `afs worker eventhub my-hub` | High-throughput event stream ingestion |
+| cosmosdb | `afs advanced new --template cosmosdb my-processor` | Cosmos DB change feed processing |
+| durable | `afs advanced new --template durable my-workflow` | Orchestrated workflows with fan-out |
+| ai | `afs advanced new --template ai my-ai-api` | Azure OpenAI chat completion endpoint |
 | langgraph | `afs ai agent my-agent` | LangGraph AI agent deployment |
 
 Note: `afs` is short for `azure-functions-scaffold`. Both work.
@@ -185,6 +189,10 @@ Template defaults:
 - `queue`: Storage Queue trigger ready for local Azurite development.
 - `blob`: Blob trigger scaffold for file-ingestion pipelines.
 - `servicebus`: Service Bus trigger scaffold with development placeholders.
+- `eventhub`: Event Hub trigger scaffold using `EventHubConnection` for high-throughput event streams.
+- `cosmosdb`: Cosmos DB change feed processor with `CosmosDBConnection` and lease container.
+- `durable`: Durable Functions orchestrator with HTTP starter, orchestrator, and activity example (requires Azurite).
+- `ai`: Azure OpenAI chat endpoint requiring `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, and `AZURE_OPENAI_DEPLOYMENT` settings.
 
 ## Optional Features
 

@@ -51,7 +51,7 @@ Python 버전 지원: Azure Functions에서 3.10-3.13은 GA이며, 3.14는 **Pre
 - Azure Functions Python **v2 프로그래밍 모델**
 - 데코레이터 기반 `func.FunctionApp()` 애플리케이션
 - CLI 기반 프로젝트 생성 및 확장
-- HTTP, Timer, Queue, Blob, Service Bus, LangGraph 트리거 템플릿
+- HTTP, Timer, Queue, Blob, Service Bus, Event Hub, Cosmos DB, Durable Functions, AI (Azure OpenAI), LangGraph 트리거 템플릿
 
 이 도구는 프로젝트 스캐폴드를 생성합니다. 런타임 라이브러리를 제공하지는 **않습니다**.
 
@@ -145,6 +145,10 @@ my-api/
 | queue | `afs worker queue my-worker` | 메시지 처리 (Azurite) |
 | blob | `afs worker blob my-blob` | 파일 처리 (Azurite) |
 | servicebus | `afs worker servicebus my-bus` | 엔터프라이즈 메시징 |
+| eventhub | `afs worker eventhub my-hub` | 고처리량 이벤트 스트림 수집 |
+| cosmosdb | `afs advanced new --template cosmosdb my-processor` | Cosmos DB 변경 피드 처리 |
+| durable | `afs advanced new --template durable my-workflow` | 오케스트레이션 워크플로우 |
+| ai | `afs advanced new --template ai my-ai-api` | Azure OpenAI 채팅 완성 엔드포인트 |
 
 참고: `afs`는 `azure-functions-scaffold`의 줄임말입니다. 둘 다 동작합니다.
 
@@ -155,6 +159,10 @@ my-api/
 - `queue`: 로컬 Azurite 개발에 바로 사용할 수 있는 Storage Queue 트리거.
 - `blob`: 파일 수집 파이프라인을 위한 Blob 트리거 스캐폴드.
 - `servicebus`: 개발용 자리표시자가 포함된 Service Bus 트리거 스캐폴드.
+- `eventhub`: 고처리량 이벤트 스트림을 위한 `EventHubConnection` 사용 Event Hub 트리거 스캐폴드.
+- `cosmosdb`: `CosmosDBConnection`과 리스 컨테이너를 사용하는 Cosmos DB 변경 피드 프로세서.
+- `durable`: HTTP 시작기, 오케스트레이터, 활동 예제가 포함된 Durable Functions 스캐폴드 (Azurite 필요).
+- `ai`: `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_DEPLOYMENT` 설정이 필요한 Azure OpenAI 채팅 엔드포인트.
 
 ## 선택 기능
 
