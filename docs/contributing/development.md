@@ -55,6 +55,45 @@ Use these commands to manage your development workflow:
 | `make clean` | Remove build artifacts and temporary files |
 | `make clean-all` | Full cleanup including virtual environments |
 
+## Generated Artifacts
+
+Several development tools produce files that must **never** be committed to source control. They bloat the repository, create noisy diffs across machines, and can leak environment-specific data.
+
+The repository's `.gitignore` already blocks the common offenders, but contributors should still verify before staging:
+
+| Path / Pattern | Produced By | How To Clean |
+| :--- | :--- | :--- |
+| `.venv/`, `venv/`, `env/` | Virtual environment creation (`make install`, `hatch env create`) | `make clean-all` |
+| `.coverage`, `.coverage.*` | `pytest --cov` (the `.coverage.*` files are per-process data emitted by `coverage run --parallel`) | `make clean` |
+| `coverage.xml`, `htmlcov/` | `make cov` and CI coverage steps | `make clean` |
+| `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/` | `pytest`, `mypy`, `ruff` | `make clean` |
+| `build/`, `dist/`, `*.egg-info/` | `make build`, `hatch build` | `make clean` |
+| `site/` | `make docs` (MkDocs output) | `make clean` |
+| `__pycache__/`, `*.py[cod]` | Python interpreter bytecode | `make clean` |
+| `.DS_Store` | macOS Finder metadata | `make clean-all` |
+
+### Verify before committing
+
+Always run `git status` before `git add`, and avoid bulk-staging from the repository root:
+
+```bash
+git status
+git add <specific file>      # preferred over `git add .` or `git add -A`
+```
+
+If a generated artifact appears in `git status`, prefer fixing `.gitignore` (and submitting that fix as part of your change) over committing the artifact.
+
+### If something was committed by mistake
+
+Generated artifacts that slip into history should be removed in a dedicated cleanup commit:
+
+```bash
+git rm -r --cached <path>    # untrack without deleting from disk
+git commit -m "chore: stop tracking <path>"
+```
+
+Then confirm `.gitignore` blocks the path so it cannot be reintroduced.
+
 ## Code Quality Tools
 
 The project uses several tools to maintain high standards:

@@ -16,6 +16,7 @@ env/
 .mypy_cache/
 .ruff_cache/
 .coverage
+.coverage.*
 coverage.xml
 htmlcov/
 
@@ -27,6 +28,9 @@ dist/
 # IDE
 .vscode/
 .idea/
+
+# OS
+.DS_Store
 
 # Docs
 site/
