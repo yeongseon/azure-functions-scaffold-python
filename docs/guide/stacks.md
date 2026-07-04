@@ -14,9 +14,10 @@ and the scaffold command to generate a matching project.
 | `azure-functions-openapi` | Swagger UI + OpenAPI 3.1 spec |
 | `azure-functions-validation` | Pydantic request/response validation |
 | `azure-functions-logging` | Structured JSON logging |
+| `azure-functions-doctor` | Pre-deploy diagnostic checks |
 
 ```bash
-afs new my-api --profile api
+afs new my-api
 ```
 
 ```text
@@ -28,7 +29,8 @@ azure-functions-logging
 ```
 
 **What you get:** validated HTTP endpoints with auto-generated API docs,
-structured logs, and request correlation IDs.
+structured logs, request correlation IDs, and pre-wired `azure-functions-doctor`
+health checks.
 
 ---
 
@@ -44,7 +46,7 @@ structured logs, and request correlation IDs.
 | `azure-functions-logging` | Structured JSON logging |
 
 ```bash
-afs new my-api --profile db-api
+afs new my-api
 ```
 
 ```text
@@ -58,6 +60,10 @@ azure-functions-logging
 
 **What you get:** everything in the API Stack plus declarative database
 read/write bindings via `@db.input()` and `@db.output()`.
+
+> **Manual step:** `afs new` does not yet ship a `--with-db` flag. After
+> scaffolding, add `azure-functions-db[postgres]` (or another supported
+> engine) to `requirements.txt` and wire up your bindings under `app/`.
 
 ---
 
@@ -103,7 +109,7 @@ database access, health diagnostics, and observability.
 | `azure-functions-doctor` | Pre-deploy diagnostic checks |
 
 ```bash
-afs new my-api --profile db-api
+afs new my-api
 ```
 
 ```text
@@ -117,7 +123,11 @@ azure-functions-doctor
 ```
 
 **What you get:** a fully instrumented API with validation, database access,
-API docs, structured logging, and pre-deploy health diagnostics.
+API docs, structured logging, and pre-wired health diagnostics.
+
+> **Manual step:** `afs new` does not yet ship a `--with-db` flag. After
+> scaffolding, add `azure-functions-db[postgres]` (or another supported
+> engine) to `requirements.txt` and wire up your bindings under `app/`.
 
 ---
 
@@ -125,10 +135,10 @@ API docs, structured logging, and pre-deploy health diagnostics.
 
 | Stack | Scaffold Command | Packages | Use Case |
 |-------|-----------------|----------|----------|
-| API | `afs new my-api --profile api` | 3 | REST APIs, webhooks |
-| DB API | `afs new my-api --profile db-api` | 4 | CRUD with database |
+| API | `afs new my-api` | 4 | REST APIs, webhooks |
+| DB API | `afs new my-api` + `pip install azure-functions-db[<engine>]` | 5 | CRUD with database |
 | AI Agent | `afs ai agent my-agent` | 3 | LangGraph agents |
-| Full | `afs new my-api --profile db-api` | 5 | Production services |
+| Full | `afs new my-api` + `pip install azure-functions-db[<engine>]` | 5 | Production services |
 
 Start with the smallest stack that covers your needs.
 Add packages incrementally — the toolkit is designed for zero coupling between packages.
