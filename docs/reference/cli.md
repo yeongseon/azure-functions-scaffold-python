@@ -14,7 +14,7 @@ Generates a new Azure Functions Python v2 project from scratch.
 
 | Argument | Required | Description |
 | :--- | :--- | :--- |
-| `PROJECT_NAME` | No | Name of the project directory. If omitted, the tool enters interactive mode. |
+| `PROJECT_NAME` | Yes | Name of the project directory. Must start with an alphanumeric character and contain only letters, numbers, hyphens, or underscores. |
 
 #### Options
 
@@ -29,7 +29,6 @@ Generates a new Azure Functions Python v2 project from scratch.
 | `--with-openapi` / `--no-openapi` | `--no-openapi` | Boolean | Include OpenAPI/Swagger documentation support. |
 | `--with-validation` / `--no-validation` | `--no-validation` | Boolean | Include Pydantic-based request validation. |
 | `--with-doctor` / `--no-doctor` | `--no-doctor` | Boolean | Include a `doctor.py` script for environment checks. |
-| `--interactive`, `-i` | False | Boolean | Force interactive wizard. |
 | `--dry-run` | False | Boolean | Show planned files without writing to disk. |
 | `--overwrite` | False | Boolean | Overwrite files if the destination directory exists. |
 | `--yes`, `-y` | False | Boolean | Skip overwrite confirmation prompts when deletion is intentional. |
