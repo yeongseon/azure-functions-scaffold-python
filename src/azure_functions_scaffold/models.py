@@ -27,6 +27,7 @@ class TemplateSpec:
     name: str
     description: str
     root: Path
+    allowed_features: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True)

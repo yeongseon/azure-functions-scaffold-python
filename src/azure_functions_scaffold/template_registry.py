@@ -14,51 +14,61 @@ TEMPLATE_SPECS = (
         name="http",
         description="HTTP-trigger Azure Functions Python v2 application.",
         root=TEMPLATE_ROOT / "http",
+        allowed_features=frozenset({"openapi", "validation", "doctor", "azd"}),
     ),
     TemplateSpec(
         name="timer",
         description="Timer-trigger Azure Functions Python v2 application.",
         root=TEMPLATE_ROOT / "timer",
+        allowed_features=frozenset({"doctor", "azd"}),
     ),
     TemplateSpec(
         name="queue",
         description="Queue-trigger Azure Functions Python v2 application.",
         root=TEMPLATE_ROOT / "queue",
+        allowed_features=frozenset({"doctor", "azd"}),
     ),
     TemplateSpec(
         name="blob",
         description="Blob-trigger Azure Functions Python v2 application.",
         root=TEMPLATE_ROOT / "blob",
+        allowed_features=frozenset({"doctor", "azd"}),
     ),
     TemplateSpec(
         name="servicebus",
         description="Service Bus-trigger Azure Functions Python v2 application.",
         root=TEMPLATE_ROOT / "servicebus",
+        allowed_features=frozenset({"doctor", "azd"}),
     ),
     TemplateSpec(
         name="eventhub",
         description="EventHub-trigger Azure Functions Python v2 application.",
         root=TEMPLATE_ROOT / "eventhub",
+        allowed_features=frozenset({"doctor", "azd"}),
     ),
     TemplateSpec(
         name="cosmosdb",
         description="CosmosDB-trigger Azure Functions Python v2 application.",
         root=TEMPLATE_ROOT / "cosmosdb",
+        allowed_features=frozenset({"doctor", "azd"}),
     ),
     TemplateSpec(
         name="durable",
         description="Durable Functions Azure Functions Python v2 application.",
         root=TEMPLATE_ROOT / "durable",
+        allowed_features=frozenset({"doctor", "azd"}),
     ),
     TemplateSpec(
         name="ai",
         description="AI/Azure OpenAI Azure Functions Python v2 application.",
         root=TEMPLATE_ROOT / "ai",
+        allowed_features=frozenset({"doctor", "azd"}),
     ),
     TemplateSpec(
         name="langgraph",
         description="LangGraph agent deployment on Azure Functions Python v2.",
         root=TEMPLATE_ROOT / "langgraph",
+        allowed_features=frozenset({"azd"}),
     ),
 )
 PRESET_SPECS = (
