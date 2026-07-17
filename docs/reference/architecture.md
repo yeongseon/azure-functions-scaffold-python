@@ -163,7 +163,7 @@ classDiagram
     class ProjectOptions {
         +str preset_name
         +str python_version
-        +tuple~str~ tooling
+        +tuple[str] tooling
         +bool include_github_actions
         +bool initialize_git
         +bool include_openapi
@@ -193,7 +193,7 @@ classDiagram
     class PresetSpec {
         +str name
         +str description
-        +tuple~str~ tooling
+        +tuple[str] tooling
     }
     class ScaffoldError {
     }

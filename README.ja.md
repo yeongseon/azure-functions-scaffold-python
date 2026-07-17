@@ -46,6 +46,21 @@ Python バージョンサポート: Azure Functions では 3.10-3.13 は GA、3.
 
 新しい Azure Functions プロジェクトを始めるには、ボイラープレートの設定が必要です: `host.json`、`function_app.py`、ディレクトリ構造、ツール設定、テスト。`azure-functions-scaffold` は一つのコマンドでプロダクションレベルのプロジェクトレイアウトを生成し、最初からビジネスロジックに集中できるようにします。
 
+```mermaid
+flowchart LR
+    Dev(["開発者"])
+    CLI["afs new my-api"]
+    T["テンプレート"]
+    P["生成されたプロジェクト"]
+    VAL["azure-functions-validation"]
+
+    Dev --> CLI
+    CLI --> T
+    T --> P
+    CLI --> VAL
+    VAL --> P
+```
+
 ## スコープ
 
 - Azure Functions Python **v2 プログラミングモデル**
