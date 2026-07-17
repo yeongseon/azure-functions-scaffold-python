@@ -140,3 +140,77 @@ class TestTopLevelAfsNewRegex:
             "azure-functions-scaffold new my-api"
         ) is None
 
+
+CLI_REFERENCE = DOCS_ROOT / "reference" / "cli.md"
+
+
+def _cli_reference_text() -> str:
+    return CLI_REFERENCE.read_text(encoding="utf-8")
+
+
+def _iter_command_paths() -> list[str]:
+    """Return every implemented command path from the live Typer app tree.
+
+    Walks the top-level app plus every registered sub-group so the set reflects
+    the real command surface (``api new``, ``worker timer``, ``advanced add`` ...).
+    Deprecated shims are excluded — they are documented separately.
+    """
+    from azure_functions_scaffold.cli import app
+
+    paths: list[str] = []
+
+    def _walk(typer_app: object, prefix: str) -> None:
+        for command in getattr(typer_app, "registered_commands", []):
+            if getattr(command, "deprecated", False):
+                continue
+            name = command.name or command.callback.__name__.replace("_", "-")
+            paths.append(f"{prefix}{name}".strip())
+        for group in getattr(typer_app, "registered_groups", []):
+            _walk(group.typer_instance, f"{prefix}{group.name} ")
+
+    _walk(app, "")
+    return sorted(set(paths))
+
+
+# Flags that the CLI reference must document (implemented across the command groups).
+REQUIRED_FLAGS: frozenset[str] = frozenset(
+    {
+        "--destination",
+        "--python-version",
+        "--github-actions",
+        "--git",
+        "--azd",
+        "--dry-run",
+        "--overwrite",
+        "--yes",
+        "--template",
+        "--preset",
+        "--with-openapi",
+        "--with-validation",
+        "--with-doctor",
+        "--project-root",
+        "--version",
+    }
+)
+
+
+class TestCliReferenceCoverage:
+    """Guard: ``docs/reference/cli.md`` must cover the implemented command surface."""
+
+    @pytest.mark.parametrize("command_path", _iter_command_paths())
+    def test_every_command_group_is_documented(self, command_path: str) -> None:
+        """Each non-deprecated command (e.g. ``api new``) must appear in the reference."""
+        text = _cli_reference_text()
+        assert command_path in text, (
+            f"docs/reference/cli.md does not document the `afs {command_path}` command. "
+            "Update the CLI reference when the command surface changes."
+        )
+
+    @pytest.mark.parametrize("flag", sorted(REQUIRED_FLAGS))
+    def test_every_implemented_flag_is_documented(self, flag: str) -> None:
+        """Each implemented CLI flag must be documented in the reference."""
+        text = _cli_reference_text()
+        assert flag in text, (
+            f"docs/reference/cli.md does not document the `{flag}` flag. "
+            "Update the CLI reference when flags change."
+        )

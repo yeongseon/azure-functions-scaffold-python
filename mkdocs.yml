@@ -78,6 +78,9 @@ plugins:
             show_root_full_path: false
             merge_init_into_class: true
 
+hooks:
+  - docs_hooks/changelog.py
+
 extra:
   social:
     - icon: fontawesome/brands/github
