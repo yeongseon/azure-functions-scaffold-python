@@ -182,9 +182,17 @@ def _run_generated_project_tests(project_root: Path) -> subprocess.CompletedProc
             },
         )
     except subprocess.TimeoutExpired as exc:  # pragma: no cover - safety bound
+        stdout = exc.stdout
+        stderr = exc.stderr
+        if isinstance(stdout, bytes):
+            stdout = stdout.decode("utf-8", "replace")
+        if isinstance(stderr, bytes):
+            stderr = stderr.decode("utf-8", "replace")
         pytest.fail(
             f"Generated project tests exceeded "
-            f"{_SMOKE_SUBPROCESS_TIMEOUT_SECONDS}s and were terminated: {exc}"
+            f"{_SMOKE_SUBPROCESS_TIMEOUT_SECONDS}s and were terminated: {exc}\n"
+            f"--- captured stdout ---\n{stdout or '<empty>'}\n"
+            f"--- captured stderr ---\n{stderr or '<empty>'}"
         )
 
 
