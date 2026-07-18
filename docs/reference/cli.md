@@ -215,7 +215,7 @@ The CLI returns exit code `1` under the following conditions:
 - **Directory Conflict**: Destination directory is not empty and `--overwrite` is not set.
 - **Invalid Template**: Specified trigger template does not exist in the registry.
 - **Invalid Preset**: Specified preset name is not recognized.
-- **Unsupported Feature Flag**: A `--with-*` / `--azd` flag is not allowed for the chosen template.
+- **Unsupported Feature Flag**: A `--with-*` flag (OpenAPI/validation/doctor) is not allowed for the chosen template. (`--azd` is allowed for every template.)
 - **Python Version Mismatch**: Host Python version is lower than required by the tool.
 - **Missing Project Root**: an `add` command executed outside a valid scaffolded project.
 - **Validation Failure**: Project/function name contains illegal characters or is a Python keyword.

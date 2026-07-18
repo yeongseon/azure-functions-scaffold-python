@@ -172,27 +172,63 @@ def _iter_command_paths() -> list[str]:
     return sorted(set(paths))
 
 
-# Flags that the CLI reference must document (implemented across the command groups).
-REQUIRED_FLAGS: frozenset[str] = frozenset(
+# Completion/help machinery that Typer/Click injects automatically. These are not
+# part of the scaffold's documented CLI surface, so exclude them from the guard.
+_IGNORED_FLAGS: frozenset[str] = frozenset(
     {
-        "--destination",
-        "--python-version",
-        "--github-actions",
-        "--git",
-        "--azd",
-        "--dry-run",
-        "--overwrite",
-        "--yes",
-        "--template",
-        "--preset",
-        "--with-openapi",
-        "--with-validation",
-        "--with-doctor",
-        "--project-root",
-        "--version",
+        "--help",
+        "--install-completion",
+        "--show-completion",
     }
 )
 
+
+def _iter_command_flags() -> list[str]:
+    """Return every long option flag from the live Typer/Click command tree.
+
+    Derives the flag set directly from the command surface so newly added
+    options are caught automatically, rather than a hand-curated list.
+
+    Uses duck-typing rather than ``isinstance`` checks: Typer vendors its own
+    click fork (``typer._click``), so its commands/params are not instances of
+    the public ``click.Group`` / ``click.Option`` classes.
+    """
+    import typer.main
+
+    from azure_functions_scaffold.cli import app
+
+    root = typer.main.get_command(app)
+    flags: set[str] = set()
+    seen: set[int] = set()
+
+    def _walk(command: object) -> None:
+        if id(command) in seen:
+            return
+        seen.add(id(command))
+        for param in getattr(command, "params", []):
+            for opt in list(getattr(param, "opts", [])) + list(
+                getattr(param, "secondary_opts", [])
+            ):
+                if isinstance(opt, str) and opt.startswith("--"):
+                    flags.add(opt)
+        list_commands = getattr(command, "list_commands", None)
+        get_command = getattr(command, "get_command", None)
+        if callable(list_commands) and callable(get_command):
+            import click
+
+            ctx = click.Context(command)  # type: ignore[arg-type]
+            for name in list_commands(ctx):
+                sub = get_command(ctx, name)
+                if sub is not None:
+                    _walk(sub)
+
+    _walk(root)
+    return sorted(flags - _IGNORED_FLAGS)
+
+
+# Every long option flag implemented across the command groups, derived from the
+# live Click command tree so newly-added flags are caught automatically.
+IMPLEMENTED_FLAGS: list[str] = _iter_command_flags()
 
 class TestCliReferenceCoverage:
     """Guard: ``docs/reference/cli.md`` must cover the implemented command surface."""
@@ -206,9 +242,14 @@ class TestCliReferenceCoverage:
             "Update the CLI reference when the command surface changes."
         )
 
-    @pytest.mark.parametrize("flag", sorted(REQUIRED_FLAGS))
+    @pytest.mark.parametrize("flag", IMPLEMENTED_FLAGS)
     def test_every_implemented_flag_is_documented(self, flag: str) -> None:
-        """Each implemented CLI flag must be documented in the reference."""
+        """Every long option flag on the live command tree must be documented.
+
+        The flag set is derived from the Typer/Click command tree (see
+        ``_iter_command_flags``), so newly-added options — including ``--no-*``
+        negations — are caught automatically without updating a curated list.
+        """
         text = _cli_reference_text()
         assert flag in text, (
             f"docs/reference/cli.md does not document the `{flag}` flag. "
