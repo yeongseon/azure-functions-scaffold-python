@@ -164,6 +164,13 @@ def test_scaffolded_pyproject_sdist_includes_do_not_use_leading_slashes(
 _SMOKE_SUBPROCESS_TIMEOUT_SECONDS = 300
 
 
+def _as_text(value: str | bytes | None) -> str:
+    """Normalize captured subprocess output to text for failure messages."""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", "replace")
+    return value or ""
+
+
 def _run_generated_project_tests(project_root: Path) -> subprocess.CompletedProcess[str]:
     """Run a scaffolded project's own pytest suite in a bounded subprocess."""
     try:
@@ -182,12 +189,8 @@ def _run_generated_project_tests(project_root: Path) -> subprocess.CompletedProc
             },
         )
     except subprocess.TimeoutExpired as exc:  # pragma: no cover - safety bound
-        stdout = exc.stdout
-        stderr = exc.stderr
-        if isinstance(stdout, bytes):
-            stdout = stdout.decode("utf-8", "replace")
-        if isinstance(stderr, bytes):
-            stderr = stderr.decode("utf-8", "replace")
+        stdout = _as_text(exc.stdout)
+        stderr = _as_text(exc.stderr)
         pytest.fail(
             f"Generated project tests exceeded "
             f"{_SMOKE_SUBPROCESS_TIMEOUT_SECONDS}s and were terminated: {exc}\n"
