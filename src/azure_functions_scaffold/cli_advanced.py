@@ -37,18 +37,16 @@ advanced_app = typer.Typer(
     help="Power-user project scaffolding with full option control.",
 )
 
-_TEMPLATE_ALLOWED_FEATURES: dict[str, frozenset[str]] = {
-    "http": frozenset({"openapi", "validation", "doctor", "azd"}),
-    "timer": frozenset({"doctor", "azd"}),
-    "queue": frozenset({"doctor", "azd"}),
-    "blob": frozenset({"doctor", "azd"}),
-    "servicebus": frozenset({"doctor", "azd"}),
-    "eventhub": frozenset({"doctor", "azd"}),
-    "cosmosdb": frozenset({"doctor", "azd"}),
-    "durable": frozenset({"doctor", "azd"}),
-    "ai": frozenset({"doctor", "azd"}),
-    "langgraph": frozenset({"azd"}),
-}
+def _allowed_features_for_template(template: str) -> frozenset[str] | None:
+    # Normalize the same way template_registry.get_template() resolves names
+    # (case/whitespace-insensitive) so validation cannot be bypassed by passing
+    # e.g. "Timer" or " timer " alongside an unsupported feature flag.
+    normalized = template.strip().lower()
+    spec = next((t for t in list_templates() if t.name == normalized), None)
+    if spec is None:
+        return None
+    return spec.allowed_features
+
 
 
 def _validate_feature_flags_for_template(
@@ -66,7 +64,7 @@ def _validate_feature_flags_for_template(
         "azd": with_azd,
     }
     enabled = {name for name, is_enabled in requested.items() if is_enabled}
-    allowed = _TEMPLATE_ALLOWED_FEATURES.get(template)
+    allowed = _allowed_features_for_template(template)
     if allowed is None:
         return
     invalid = sorted(enabled - allowed)
