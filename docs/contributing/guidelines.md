@@ -61,6 +61,22 @@ If you are modifying templates in `src/azure_functions_scaffold/templates/`, fol
 5. Verify the generated project can be initialized (e.g., `pip install -r requirements.txt`).
 6. Confirm the generated code is valid Python and follows Azure Functions best practices.
 
+## Documentation & i18n Sync
+
+The primary `README.md` is mirrored by localized translations: `README.ko.md` (한국어),
+`README.ja.md` (日本語), and `README.zh-CN.md` (简体中文). When a change alters user-facing
+**command examples, CLI flags, or the command surface**, keep documentation in lockstep:
+
+1. Update `docs/reference/cli.md` so the CLI reference matches the implemented command/flag surface.
+   The `tests/test_docs_cli_examples.py` regression guard fails the build if the reference drifts.
+2. If the change touches examples shown in the READMEs, update **all four** READMEs
+   (`README.md`, `README.ko.md`, `README.ja.md`, `README.zh-CN.md`) in the same PR — do not let the
+   localized copies fall behind the English original.
+3. If a change adds or renames a public symbol, update `docs/reference/api.md` accordingly.
+
+Reviewers should reject PRs that change command examples in `README.md` without matching updates to
+the localized READMEs.
+
 ## Pull Request Process
 
 - Provide a clear title and description of the change in your PR.
