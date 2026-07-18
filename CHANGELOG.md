@@ -1,10 +1,62 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.6.2] - 2026-07-18
+
+### Bug Fixes
+
+- *(ci)* Normalize e2e-azure OIDC subject via environment declaration (#123) 
+- *(ci)* Replace fragile apt install of Core Tools with pinned npm (#126) 
+- *(ci)* Remove obsolete --template option from e2e workflow 
+- *(ci)* Correct CLI entrypoint name in e2e workflow 
+
+### Documentation
+
+- *(cli)* Align CLI reference with implemented commands and fix changelog/migration drift (#160) 
+- *(diagram)* Portable classDiagram notation and i18n README flowchart parity (#161) 
+- Add discoverability metadata (pepy badge + llms.txt) (#166) 
+- Document Release Process in AGENTS.md (#154) 
+- *(readme)* Document all 9 ADDABLE_TRIGGERS across en/ko/ja/zh-CN (#145) 
+- *(stacks)* Restructure --profile examples for current CLI surface (#141) 
+- *(reference)* Remove stale --interactive flag from cli.md (#139) 
+- *(cli)* Update stale top-level afs new examples after CLI surface change (#127) 
+
+### Miscellaneous Tasks
+
+- *(deps)* Bump github/codeql-action/analyze from 4.36.2 to 4.37.0 (#149) 
+- *(deps)* Bump github/codeql-action/init from 4.36.2 to 4.37.0 (#148) 
+- *(deps)* Bump actions/stale from 10.3.0 to 10.4.0 (#150) 
+- *(deps)* Bump ruff from 0.15.20 to 0.15.21 (#151) 
+- *(deps)* Bump mypy from 2.1.0 to 2.2.0 (#152) 
+- *(deps)* Bump actions/checkout from 6.0.2 to 7.0.0 (#134) 
+- *(deps)* Bump actions/setup-python from 6.2.0 to 6.3.0 (#136) 
+- *(deps)* Bump ruff from 0.15.16 to 0.15.20 (#137) 
+- *(repo)* Harden gitignore and document generated artifacts (#124) 
+- *(deps)* Bump codecov/codecov-action from 6.0.1 to 7.0.0 (#132) 
+- *(ci)* Standardize Action pinning to immutable SHAs (#125) 
+- *(deps)* Bump ruff from 0.15.12 to 0.15.16 (#122) 
+- *(deps)* Bump github/codeql-action from 4.35.4 to 4.36.2 (#121) 
+- *(deps)* Bump actions/stale from 10.2.0 to 10.3.0 (#118) 
+- *(deps)* Bump codecov/codecov-action from 6.0.0 to 6.0.1 (#116) 
+- *(deps)* Bump mypy from 2.0.0 to 2.1.0 (#110) 
+
+### Other
+
+- Bump version to 0.6.2 
+
+### Refactor
+
+- *(generator)* Co-locate allowed features on TemplateSpec (#164) 
+
+### Testing
+
+- Correct Codecov version comment and bound generated-project smoke tests (#162) 
+- *(docs)* Broaden cli-example smoke test to accept azure-functions-scaffold alias (#142) 
 ## [0.6.1] - 2026-05-14
 
 ### Documentation
 
+- Update changelog 
 - Fix ecosystem table names, badges, and Part of intro line 
 - Mark cookbook as dogfood, fix ecosystem table description 
 
