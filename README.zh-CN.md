@@ -47,6 +47,21 @@ Python 版本支持: Azure Functions 上 3.10-3.13 为 GA，3.14 为 **Preview**
 
 启动新的 Azure Functions 项目意味着设置样板文件：`host.json`、`function_app.py`、目录结构、工具配置和测试。`azure-functions-scaffold` 通过一个命令生成生产级项目布局，让你从一开始就专注于业务逻辑。
 
+```mermaid
+flowchart LR
+    Dev(["开发者"])
+    CLI["afs new my-api"]
+    T["模板"]
+    P["生成的项目"]
+    VAL["azure-functions-validation"]
+
+    Dev --> CLI
+    CLI --> T
+    T --> P
+    CLI --> VAL
+    VAL --> P
+```
+
 ## 范围
 
 - Azure Functions Python **v2 编程模型**

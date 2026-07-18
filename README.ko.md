@@ -47,6 +47,21 @@ Python 버전 지원: Azure Functions에서 3.10-3.13은 GA이며, 3.14는 **Pre
 
 새로운 Azure Functions 프로젝트를 시작하려면 보일러플레이트 설정이 필요합니다: `host.json`, `function_app.py`, 디렉터리 구조, 도구 설정, 테스트. `azure-functions-scaffold`는 한 번의 명령으로 프로덕션 수준의 프로젝트 레이아웃을 생성하여, 처음부터 비즈니스 로직에 집중할 수 있게 합니다.
 
+```mermaid
+flowchart LR
+    Dev(["개발자"])
+    CLI["afs new my-api"]
+    T["템플릿"]
+    P["생성된 프로젝트"]
+    VAL["azure-functions-validation"]
+
+    Dev --> CLI
+    CLI --> T
+    T --> P
+    CLI --> VAL
+    VAL --> P
+```
+
 ## 범위
 
 - Azure Functions Python **v2 프로그래밍 모델**
