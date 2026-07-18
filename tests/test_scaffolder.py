@@ -393,6 +393,24 @@ def test_durable_template_uses_correct_durable_module_path(tmp_path: Path) -> No
     assert "Generator[Any, Any, list[str]]" in durable_text
 
 
+def test_cosmosdb_template_uses_v3_trigger_param_names(tmp_path: Path) -> None:
+    project_path = scaffold_project(
+        "cosmosdb-sample",
+        tmp_path,
+        template_name="cosmosdb",
+    )
+
+    cosmosdb_text = (project_path / "app/functions/cosmosdb.py").read_text(encoding="utf-8")
+    # The `cosmos_db_trigger_v3` decorator requires the legacy Cosmos DB param
+    # names (collection_name / connection_string_setting), NOT the newer
+    # container_name / connection names used by the non-v3 `cosmos_db_trigger`.
+    assert 'collection_name="my-container"' in cosmosdb_text
+    assert 'connection_string_setting="CosmosDBConnection"' in cosmosdb_text
+    assert 'lease_collection_name="leases"' in cosmosdb_text
+    assert "create_lease_collection_if_not_exists=True" in cosmosdb_text
+    assert "container_name" not in cosmosdb_text
+
+
 @pytest.mark.parametrize("template_name", ["queue", "blob", "servicebus", "eventhub", "cosmosdb"])
 def test_binding_templates_include_extension_bundle(tmp_path: Path, template_name: str) -> None:
     project_path = scaffold_project(
