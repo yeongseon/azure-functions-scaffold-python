@@ -158,6 +158,47 @@ def test_scaffolded_pyproject_sdist_includes_do_not_use_leading_slashes(
     assert all(not path.startswith("/") for path in sdist_includes)
 
 
+# Upper bound (seconds) for a generated project's own test run. Keeps the smoke
+# tests deterministic: a hung subprocess fails fast instead of stalling CI on
+# every Python version in the matrix.
+_SMOKE_SUBPROCESS_TIMEOUT_SECONDS = 300
+
+
+def _as_text(value: str | bytes | None) -> str:
+    """Normalize captured subprocess output to text for failure messages."""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", "replace")
+    return value or ""
+
+
+def _run_generated_project_tests(project_root: Path) -> subprocess.CompletedProcess[str]:
+    """Run a scaffolded project's own pytest suite in a bounded subprocess."""
+    try:
+        return subprocess.run(
+            [sys.executable, "-m", "pytest", "-x", "-q", str(project_root / "tests")],
+            cwd=str(project_root),
+            capture_output=True,
+            text=True,
+            timeout=_SMOKE_SUBPROCESS_TIMEOUT_SECONDS,
+            env={
+                **os.environ,
+                "WEBHOOK_SECRET": "test-secret-key",
+                "PYTHONPATH": os.pathsep.join(
+                    filter(None, [str(project_root), os.environ.get("PYTHONPATH", "")])
+                ),
+            },
+        )
+    except subprocess.TimeoutExpired as exc:  # pragma: no cover - safety bound
+        stdout = _as_text(exc.stdout)
+        stderr = _as_text(exc.stderr)
+        pytest.fail(
+            f"Generated project tests exceeded "
+            f"{_SMOKE_SUBPROCESS_TIMEOUT_SECONDS}s and were terminated: {exc}\n"
+            f"--- captured stdout ---\n{stdout or '<empty>'}\n"
+            f"--- captured stderr ---\n{stderr or '<empty>'}"
+        )
+
+
 @pytest.mark.slow
 def test_rendered_strict_http_project_tests_pass(tmp_path: Path) -> None:
     """Scaffold a strict HTTP project and run its generated tests."""
@@ -177,21 +218,7 @@ def test_rendered_strict_http_project_tests_pass(tmp_path: Path) -> None:
         options=options,
     )
 
-    # Run the generated project's own tests using the current interpreter.
-    # All runtime deps (azure-functions, pydantic, etc.) are already installed.
-    result = subprocess.run(
-        [sys.executable, "-m", "pytest", "-x", "-q", str(project_root / "tests")],
-        cwd=str(project_root),
-        capture_output=True,
-        text=True,
-        env={
-            **os.environ,
-            "WEBHOOK_SECRET": "test-secret-key",
-            "PYTHONPATH": os.pathsep.join(
-                filter(None, [str(project_root), os.environ.get("PYTHONPATH", "")])
-            ),
-        },
-    )
+    result = _run_generated_project_tests(project_root)
     assert result.returncode == 0, (
         f"Generated project tests failed (rc={result.returncode}):\n"
         f"stdout:\n{result.stdout}\n"
@@ -218,19 +245,7 @@ def test_rendered_standard_http_project_tests_pass(tmp_path: Path) -> None:
         options=options,
     )
 
-    result = subprocess.run(
-        [sys.executable, "-m", "pytest", "-x", "-q", str(project_root / "tests")],
-        cwd=str(project_root),
-        capture_output=True,
-        text=True,
-        env={
-            **os.environ,
-            "WEBHOOK_SECRET": "test-secret-key",
-            "PYTHONPATH": os.pathsep.join(
-                filter(None, [str(project_root), os.environ.get("PYTHONPATH", "")])
-            ),
-        },
-    )
+    result = _run_generated_project_tests(project_root)
     assert result.returncode == 0, (
         f"Generated project tests failed (rc={result.returncode}):\n"
         f"stdout:\n{result.stdout}\n"
