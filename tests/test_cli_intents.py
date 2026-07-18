@@ -675,6 +675,27 @@ class TestAdvancedNewFlagValidation:
         assert "--with-openapi" in out
         assert "--with-validation" in out
 
+    def test_case_insensitive_template_still_validates_flags(self, tmp_path: Path) -> None:
+        # Regression: feature-flag validation must not be bypassed by passing a
+        # non-canonical template name (e.g. " Blob ") that still resolves later.
+        result = runner.invoke(
+            app,
+            [
+                "advanced",
+                "new",
+                "myproj",
+                "--destination",
+                str(tmp_path),
+                "--template",
+                " Blob ",
+                "--with-openapi",
+            ],
+        )
+
+        assert result.exit_code != 0
+        out = (result.stdout or "") + (result.stderr or "")
+        assert "--with-openapi" in out
+
 
 class TestAdvancedAddRoute:
     def test_adds_route(self, tmp_path: Path) -> None:

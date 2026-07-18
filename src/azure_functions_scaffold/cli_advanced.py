@@ -38,7 +38,11 @@ advanced_app = typer.Typer(
 )
 
 def _allowed_features_for_template(template: str) -> frozenset[str] | None:
-    spec = next((t for t in list_templates() if t.name == template), None)
+    # Normalize the same way template_registry.get_template() resolves names
+    # (case/whitespace-insensitive) so validation cannot be bypassed by passing
+    # e.g. "Timer" or " timer " alongside an unsupported feature flag.
+    normalized = template.strip().lower()
+    spec = next((t for t in list_templates() if t.name == normalized), None)
     if spec is None:
         return None
     return spec.allowed_features
