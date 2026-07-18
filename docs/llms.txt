@@ -1,0 +1,26 @@
+# Azure Functions Scaffold
+
+> Scaffolding CLI for Azure Functions Python v2 projects.
+
+Part of the **Azure Functions Python DX Toolkit**. Generate production-ready Azure Functions Python v2 projects from templates and presets — wiring up structure, tooling, and recommended stacks so you start from a working baseline. Install from PyPI with `pip install azure-functions-scaffold`.
+
+## Getting Started
+- [Introduction](https://yeongseon.github.io/azure-functions-scaffold-python/guide/): Overview.
+- [Getting Started](https://yeongseon.github.io/azure-functions-scaffold-python/guide/getting-started/): Create your first project.
+- [Configuration](https://yeongseon.github.io/azure-functions-scaffold-python/guide/configuration/): Configure generation.
+
+## User Guide
+- [Templates](https://yeongseon.github.io/azure-functions-scaffold-python/guide/templates/): Available templates.
+- [Features & Presets](https://yeongseon.github.io/azure-functions-scaffold-python/guide/features/): Opt-in features.
+- [Recommended Stacks](https://yeongseon.github.io/azure-functions-scaffold-python/guide/stacks/): Curated stacks.
+- [Project Structure](https://yeongseon.github.io/azure-functions-scaffold-python/guide/project-structure/): What gets generated.
+
+## Reference
+- [CLI Reference](https://yeongseon.github.io/azure-functions-scaffold-python/reference/cli/): Command reference.
+- [Template Specification](https://yeongseon.github.io/azure-functions-scaffold-python/reference/template-spec/): Template spec.
+- [Architecture](https://yeongseon.github.io/azure-functions-scaffold-python/reference/architecture/): How the generator works.
+- [API Reference](https://yeongseon.github.io/azure-functions-scaffold-python/reference/api/): Public API surface.
+
+## Optional
+- [Troubleshooting](https://yeongseon.github.io/azure-functions-scaffold-python/guide/troubleshooting/): Common issues and fixes.
+- [Changelog](https://yeongseon.github.io/azure-functions-scaffold-python/changelog/): Release history.
