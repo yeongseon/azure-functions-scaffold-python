@@ -22,6 +22,7 @@ nav:
       - Tutorials: guide/tutorial.md
       - Project Structure: guide/project-structure.md
       - Templates: guide/templates.md
+      - Generated Output: guide/generated-output.md
       - Features & Presets: guide/features.md
       - Recommended Stacks: guide/stacks.md
       - Expanding Your Project: guide/expanding.md

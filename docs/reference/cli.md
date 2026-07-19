@@ -17,6 +17,10 @@ flowchart LR
 
 ## Command Overview
 
+!!! tip "See what gets generated"
+    For per-template project trees and `function_app.py` / `host.json` snippets showing exactly
+    what each command produces, see [Generated Output](../guide/generated-output.md).
+
 | Command | Kind | Purpose |
 | :--- | :--- | :--- |
 | `afs new` | shortcut | Alias for `afs api new` (HTTP REST API project). |

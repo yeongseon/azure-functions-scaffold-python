@@ -1,6 +1,6 @@
 # Templates
 
-The CLI supports the most common Azure Functions triggers. Each trigger-based template follows the Blueprint pattern, automatically generating the trigger, a corresponding service, and a test file. The LangGraph template uses a different structure based on `LangGraphApp`.
+The CLI supports the most common Azure Functions triggers. Each trigger-based template follows the Blueprint pattern, automatically generating the trigger, a corresponding service, and a test file. The LangGraph template uses a different structure based on `LangGraphApp`. To preview the exact files each template produces, see [Generated Output](generated-output.md).
 
 ### Template Overview
 
@@ -136,3 +136,5 @@ afs ai agent my-agent
 ### What's Next?
 
 Enhance your project with [Features and Presets](features.md) like OpenAPI or Pydantic validation.
+
+Want to see exactly what each template produces? Check the [Generated Output](generated-output.md) reference for per-template project trees and `function_app.py` / `host.json` snippets.
