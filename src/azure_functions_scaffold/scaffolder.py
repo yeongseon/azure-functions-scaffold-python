@@ -89,11 +89,6 @@ def scaffold_project(
             include_doctor=context.include_doctor,
             include_azd=context.include_azd,
         )
-        rendered_content = _normalize_rendered_content(
-            template_name=template.name,
-            rendered_path=rendered_path,
-            rendered_content=rendered_content,
-        )
         logger.debug("Rendering template: %s -> %s", template_rel_name, output_path)
         output_path.write_text(rendered_content, encoding="utf-8")
 
@@ -251,45 +246,6 @@ def _render_path(relative_path: Path, context: TemplateContext) -> Path:
             rendered = rendered[:-3]
         rendered_parts.append(rendered)
     return Path(*rendered_parts)
-
-
-def _normalize_rendered_content(
-    *, template_name: str, rendered_path: Path, rendered_content: str
-) -> str:
-    normalized_path = rendered_path.as_posix()
-
-    if template_name == "cosmosdb" and normalized_path == "app/functions/cosmosdb.py":
-        return (
-            rendered_content.replace(
-                'container_name="my-container"', 'collection_name="my-container"'
-            )
-            .replace(
-                'connection="CosmosDBConnection"', 'connection_string_setting="CosmosDBConnection"'
-            )
-            .replace('lease_container_name="leases"', 'lease_collection_name="leases"')
-            .replace(
-                "create_lease_container_if_not_exists=True",
-                "create_lease_collection_if_not_exists=True",
-            )
-        )
-
-    if template_name == "durable" and normalized_path == "app/functions/durable.py":
-        return (
-            rendered_content.replace(
-                'results.append(yield context.call_activity("say_hello", "Tokyo"))',
-                'results.append((yield context.call_activity("say_hello", "Tokyo")))',
-            )
-            .replace(
-                'results.append(yield context.call_activity("say_hello", "Seattle"))',
-                'results.append((yield context.call_activity("say_hello", "Seattle")))',
-            )
-            .replace(
-                'results.append(yield context.call_activity("say_hello", "London"))',
-                'results.append((yield context.call_activity("say_hello", "London")))',
-            )
-        )
-
-    return rendered_content
 
 
 def _slugify(value: str) -> str:

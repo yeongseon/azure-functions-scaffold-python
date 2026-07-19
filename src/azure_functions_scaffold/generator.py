@@ -633,11 +633,11 @@ import azure.functions as func
 
 @{function_name}_blueprint.cosmos_db_trigger_v3(
     arg_name="documents",
-    container_name="my-container",
+    collection_name="my-container",
     database_name="my-database",
-    connection="CosmosDBConnection",
-    lease_container_name="leases",
-    create_lease_container_if_not_exists=True,
+    connection_string_setting="CosmosDBConnection",
+    lease_collection_name="leases",
+    create_lease_collection_if_not_exists=True,
 )
 def {function_name}(documents: func.DocumentList) -> None:
     logging.info("CosmosDB trigger '{function_name}' processed %s document(s).", len(documents))

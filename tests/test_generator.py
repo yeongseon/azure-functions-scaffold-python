@@ -562,6 +562,27 @@ app.register_functions(my_blueprint)"""
     assert "app = FunctionApp()\nnew_line_here" in result
 
 
+def test_render_cosmosdb_module_uses_v3_trigger_param_names() -> None:
+    """The generator's cosmosdb path must emit legacy v3 Cosmos DB param names.
+
+    ``cosmos_db_trigger_v3`` requires the legacy ``collection_name`` /
+    ``connection_string_setting`` / ``lease_collection_name`` /
+    ``create_lease_collection_if_not_exists`` names, not the newer
+    ``container_name`` / ``connection`` names used by non-v3 ``cosmos_db_trigger``.
+    """
+    module = _render_function_module(trigger="cosmosdb", function_name="on_change")
+    assert "cosmos_db_trigger_v3(" in module
+    assert "collection_name=" in module
+    assert "connection_string_setting=" in module
+    assert "lease_collection_name=" in module
+    assert "create_lease_collection_if_not_exists=" in module
+    # The v4 (non-v3) parameter names must not appear with the v3 decorator.
+    assert "container_name=" not in module
+    assert "connection=" not in module
+    assert "lease_container_name=" not in module
+    assert "create_lease_container_if_not_exists=" not in module
+
+
 def test_render_function_module_raises_for_unknown_trigger() -> None:
     """Test that _render_function_module raises error for unknown trigger."""
     with pytest.raises(ScaffoldError, match="No function module template for trigger"):

@@ -11,11 +11,11 @@ cosmosdb_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 @cosmosdb_blueprint.cosmos_db_trigger_v3(
     arg_name="documents",
-    container_name="my-container",
+    collection_name="my-container",
     database_name="my-database",
-    connection="CosmosDBConnection",
-    lease_container_name="leases",
-    create_lease_container_if_not_exists=True,
+    connection_string_setting="CosmosDBConnection",
+    lease_collection_name="leases",
+    create_lease_collection_if_not_exists=True,
 )
 def process_cosmos_changes(documents: func.DocumentList) -> None:
     count = describe_documents(documents)
