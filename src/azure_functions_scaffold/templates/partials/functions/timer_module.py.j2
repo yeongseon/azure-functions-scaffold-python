@@ -1,0 +1,20 @@
+from __future__ import annotations
+
+import logging
+
+import azure.functions as func
+
+{{ function_name }}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
+
+
+@{{ function_name }}_blueprint.timer_trigger(
+    arg_name="timer",
+    schedule="0 */5 * * * *",
+    run_on_startup=False,
+    use_monitor=True,
+)
+def {{ function_name }}(timer: func.TimerRequest) -> None:
+    if timer.past_due:
+        logging.warning("Timer trigger '{{ function_name }}' is running late.")
+
+    logging.info("Timer trigger '{{ function_name }}' executed.")
