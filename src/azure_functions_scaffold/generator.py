@@ -476,387 +476,55 @@ def _legacy_marker_for(marker: str) -> str | None:
     return None
 
 
+_FUNCTION_MODULE_TEMPLATES: dict[str, str] = {
+    "http": "functions/http_module.py.j2",
+    "timer": "functions/timer_module.py.j2",
+    "queue": "functions/queue_module.py.j2",
+    "blob": "functions/blob_module.py.j2",
+    "servicebus": "functions/servicebus_module.py.j2",
+    "eventhub": "functions/eventhub_module.py.j2",
+    "cosmosdb": "functions/cosmosdb_module.py.j2",
+    "durable": "functions/durable_module.py.j2",
+    "ai": "functions/ai_module.py.j2",
+}
+
+_FUNCTION_TEST_TEMPLATES: dict[str, str] = {
+    "http": "functions/http_test.py.j2",
+    "timer": "functions/timer_test.py.j2",
+    "queue": "functions/queue_test.py.j2",
+    "blob": "functions/blob_test.py.j2",
+    "servicebus": "functions/servicebus_test.py.j2",
+    "eventhub": "functions/eventhub_test.py.j2",
+    "cosmosdb": "functions/cosmosdb_test.py.j2",
+    "durable": "functions/durable_test.py.j2",
+    "ai": "functions/ai_test.py.j2",
+}
+
+
 def _render_function_module(trigger: str, function_name: str) -> str:
-    route_name = function_name.replace("_", "-")
-
-    if trigger == "http":
-        return f"""from __future__ import annotations
-
-import azure.functions as func
-
-{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
-
-
-@{function_name}_blueprint.route(
-    route="{route_name}",
-    methods=["GET"],
-    auth_level=func.AuthLevel.FUNCTION,
-)
-def {function_name}(req: func.HttpRequest) -> func.HttpResponse:
-    return func.HttpResponse(
-        body="TODO: implement {route_name}",
-        status_code=200,
+    template_name = _FUNCTION_MODULE_TEMPLATES.get(trigger)
+    if template_name is None:
+        raise ScaffoldError(f"No function module template for trigger '{trigger}'.")
+    return _render_partial(
+        template_name,
+        {
+            "function_name": function_name,
+            "route_name": function_name.replace("_", "-"),
+        },
     )
-"""
-
-    if trigger == "timer":
-        return f"""from __future__ import annotations
-
-import logging
-
-import azure.functions as func
-
-{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
-
-
-@{function_name}_blueprint.timer_trigger(
-    arg_name="timer",
-    schedule="0 */5 * * * *",
-    run_on_startup=False,
-    use_monitor=True,
-)
-def {function_name}(timer: func.TimerRequest) -> None:
-    if timer.past_due:
-        logging.warning("Timer trigger '{function_name}' is running late.")
-
-    logging.info("Timer trigger '{function_name}' executed.")
-"""
-
-    if trigger == "queue":
-        return f"""from __future__ import annotations
-
-import logging
-
-import azure.functions as func
-
-{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
-
-
-@{function_name}_blueprint.queue_trigger(
-    arg_name="message",
-    queue_name="work-items",
-    connection="AzureWebJobsStorage",
-)
-def {function_name}(message: func.QueueMessage) -> None:
-    payload = message.get_body().decode("utf-8")
-    logging.info("Queue trigger '{function_name}' processed: %s", payload)
-"""
-
-    if trigger == "blob":
-        return f"""from __future__ import annotations
-
-import logging
-
-import azure.functions as func
-
-{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
-
-
-@{function_name}_blueprint.blob_trigger(
-    arg_name="blob",
-    path="samples-workitems/{{name}}",
-    connection="AzureWebJobsStorage",
-)
-def {function_name}(blob: func.InputStream) -> None:
-    logging.info(
-        "Blob trigger '{function_name}' processed %s (%s bytes).",
-        blob.name,
-        blob.length,
-    )
-"""
-
-    if trigger == "servicebus":
-        return f"""from __future__ import annotations
-
-import logging
-
-import azure.functions as func
-
-{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
-
-
-@{function_name}_blueprint.service_bus_queue_trigger(
-    arg_name="message",
-    queue_name="work-items",
-    connection="ServiceBusConnection",
-)
-def {function_name}(message: func.ServiceBusMessage) -> None:
-    body = message.get_body().decode("utf-8")
-    logging.info("Service Bus trigger '{function_name}' processed: %s", body)
-"""
-
-    if trigger == "eventhub":
-        return f"""from __future__ import annotations
-
-import logging
-
-import azure.functions as func
-
-{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
-
-
-@{function_name}_blueprint.event_hub_message_trigger(
-    arg_name="event",
-    event_hub_name="my-event-hub",
-    connection="EventHubConnection",
-)
-def {function_name}(event: func.EventHubEvent) -> None:
-    payload = event.get_body().decode("utf-8")
-    logging.info("EventHub trigger '{function_name}' processed: %s", payload)
-"""
-
-    if trigger == "cosmosdb":
-        return f"""from __future__ import annotations
-
-import logging
-
-import azure.functions as func
-
-{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
-
-
-@{function_name}_blueprint.cosmos_db_trigger_v3(
-    arg_name="documents",
-    collection_name="my-container",
-    database_name="my-database",
-    connection_string_setting="CosmosDBConnection",
-    lease_collection_name="leases",
-    create_lease_collection_if_not_exists=True,
-)
-def {function_name}(documents: func.DocumentList) -> None:
-    logging.info("CosmosDB trigger '{function_name}' processed %s document(s).", len(documents))
-"""
-
-    if trigger == "durable":
-        return f"""from __future__ import annotations
-
-import logging
-
-import azure.functions as func
-import azure.functions.durable_functions as df
-
-{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
-
-
-@{function_name}_blueprint.route(
-    route="orchestrators/{{functionName}}",
-    methods=["POST"],
-    auth_level=func.AuthLevel.FUNCTION,
-)
-@{function_name}_blueprint.durable_client_input(client_name="client")
-async def {function_name}_http_start(
-    req: func.HttpRequest, client: df.DurableOrchestrationClient
-) -> func.HttpResponse:
-    instance_id = await client.start_new(req.route_params["functionName"])
-    logging.info("Started orchestration with ID '%s'.", instance_id)
-    return client.create_check_status_response(req, instance_id)
-
-
-@{function_name}_blueprint.orchestration_trigger(context_name="context")
-def {function_name}_orchestrator(context: df.DurableOrchestrationContext) -> list[str]:
-    results: list[str] = []
-    results.append(yield context.call_activity("{function_name}_activity", "Tokyo"))
-    results.append(yield context.call_activity("{function_name}_activity", "Seattle"))
-    results.append(yield context.call_activity("{function_name}_activity", "London"))
-    return results
-
-
-@{function_name}_blueprint.activity_trigger(input_name="city")
-def {function_name}_activity(city: str) -> str:
-    return f"Hello, {{city}}!"
-"""
-
-    if trigger == "ai":
-        return f"""from __future__ import annotations
-
-import json
-import logging
-import os
-
-import azure.functions as func
-
-{function_name}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
-
-
-@{function_name}_blueprint.route(
-    route="chat",
-    methods=["POST"],
-    auth_level=func.AuthLevel.FUNCTION,
-)
-async def {function_name}(req: func.HttpRequest) -> func.HttpResponse:
-    try:
-        body = req.get_json()
-        prompt = body.get("prompt", "")
-    except ValueError:
-        return func.HttpResponse(
-            body=json.dumps({{"error": "Invalid JSON body."}}),
-            status_code=400,
-            mimetype="application/json",
-        )
-
-    if not prompt:
-        return func.HttpResponse(
-            body=json.dumps({{"error": "Missing 'prompt' field."}}),
-            status_code=400,
-            mimetype="application/json",
-        )
-
-    logging.info("AI function '{function_name}' received prompt: %s", prompt[:50])
-    return func.HttpResponse(
-        body=json.dumps({{"response": f"Echo: {{prompt}}"}}),
-        status_code=200,
-        mimetype="application/json",
-    )
-"""
-
-    raise ScaffoldError(f"No function module template for trigger '{trigger}'.")
 
 
 def _render_function_test(trigger: str, function_name: str) -> str:
-    if trigger == "http":
-        route_name = function_name.replace("_", "-")
-        return f"""from __future__ import annotations
-
-import azure.functions as func
-
-from app.functions.{function_name} import {function_name}
-
-
-def test_{function_name}_returns_placeholder_response() -> None:
-    request = func.HttpRequest(
-        method="GET",
-        url="http://localhost/api/{route_name}",
-        params={{}},
-        body=b"",
+    template_name = _FUNCTION_TEST_TEMPLATES.get(trigger)
+    if template_name is None:
+        raise ScaffoldError(f"No function test template for trigger '{trigger}'.")
+    return _render_partial(
+        template_name,
+        {
+            "function_name": function_name,
+            "route_name": function_name.replace("_", "-"),
+        },
     )
-
-    response = {function_name}(request)
-
-    assert response.status_code == 200
-    assert response.get_body() == b"TODO: implement {route_name}"
-"""
-
-    if trigger == "timer":
-        return f"""from __future__ import annotations
-
-from types import SimpleNamespace
-
-from app.functions.{function_name} import {function_name}
-
-
-def test_{function_name}_runs_without_error() -> None:
-    timer = SimpleNamespace(past_due=False)
-
-    {function_name}(timer)
-"""
-
-    if trigger == "queue":
-        return f"""from __future__ import annotations
-
-from types import SimpleNamespace
-
-from app.functions.{function_name} import {function_name}
-
-
-def test_{function_name}_runs_without_error() -> None:
-    message = SimpleNamespace(get_body=lambda: b"hello")
-
-    {function_name}(message)
-"""
-
-    if trigger == "blob":
-        return f"""from __future__ import annotations
-
-from types import SimpleNamespace
-
-from app.functions.{function_name} import {function_name}
-
-
-def test_{function_name}_runs_without_error() -> None:
-    blob = SimpleNamespace(name="samples-workitems/input.txt", length=12)
-
-    {function_name}(blob)
-"""
-
-    if trigger == "servicebus":
-        return f"""from __future__ import annotations
-
-from types import SimpleNamespace
-
-from app.functions.{function_name} import {function_name}
-
-
-def test_{function_name}_runs_without_error() -> None:
-    message = SimpleNamespace(get_body=lambda: b"hello")
-
-    {function_name}(message)
-"""
-
-    if trigger == "eventhub":
-        return f"""from __future__ import annotations
-
-from types import SimpleNamespace
-
-from app.functions.{function_name} import {function_name}
-
-
-def test_{function_name}_runs_without_error() -> None:
-    event = SimpleNamespace(get_body=lambda: b"hello")
-
-    {function_name}(event)
-"""
-
-    if trigger == "cosmosdb":
-        return f"""from __future__ import annotations
-
-from app.functions.{function_name} import {function_name}
-
-
-def test_{function_name}_runs_without_error() -> None:
-    documents = [{{"id": "1", "data": "hello"}}]
-
-    {function_name}(documents)
-"""
-
-    if trigger == "durable":
-        return f"""from __future__ import annotations
-
-from app.functions.{function_name} import {function_name}_activity
-
-
-def test_{function_name}_activity_returns_greeting() -> None:
-    result = {function_name}_activity("Tokyo")
-
-    assert result == "Hello, Tokyo!"
-"""
-
-    if trigger == "ai":
-        return f"""from __future__ import annotations
-
-import json
-
-import azure.functions as func
-
-from app.functions.{function_name} import {function_name}
-
-
-def test_{function_name}_rejects_missing_prompt() -> None:
-    request = func.HttpRequest(
-        method="POST",
-        url="http://localhost/api/chat",
-        params={{}},
-        body=json.dumps({{"prompt": ""}}).encode(),
-        headers={{"Content-Type": "application/json"}},
-    )
-
-    import asyncio
-
-    response = asyncio.run({function_name}(request))
-
-    assert response.status_code == 400
-"""
-
-    raise ScaffoldError(f"No function test template for trigger '{trigger}'.")
 
 
 # ---------------------------------------------------------------------------

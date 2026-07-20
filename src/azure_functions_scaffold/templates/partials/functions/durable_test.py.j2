@@ -1,0 +1,9 @@
+from __future__ import annotations
+
+from app.functions.{{ function_name }} import {{ function_name }}_activity
+
+
+def test_{{ function_name }}_activity_returns_greeting() -> None:
+    result = {{ function_name }}_activity("Tokyo")
+
+    assert result == "Hello, Tokyo!"

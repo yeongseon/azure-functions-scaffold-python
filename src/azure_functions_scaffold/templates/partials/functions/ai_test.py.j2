@@ -1,0 +1,23 @@
+from __future__ import annotations
+
+import json
+
+import azure.functions as func
+
+from app.functions.{{ function_name }} import {{ function_name }}
+
+
+def test_{{ function_name }}_rejects_missing_prompt() -> None:
+    request = func.HttpRequest(
+        method="POST",
+        url="http://localhost/api/chat",
+        params={},
+        body=json.dumps({"prompt": ""}).encode(),
+        headers={"Content-Type": "application/json"},
+    )
+
+    import asyncio
+
+    response = asyncio.run({{ function_name }}(request))
+
+    assert response.status_code == 400

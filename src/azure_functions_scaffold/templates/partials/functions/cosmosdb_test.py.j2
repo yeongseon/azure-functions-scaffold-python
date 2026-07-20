@@ -1,0 +1,9 @@
+from __future__ import annotations
+
+from app.functions.{{ function_name }} import {{ function_name }}
+
+
+def test_{{ function_name }}_runs_without_error() -> None:
+    documents = [{"id": "1", "data": "hello"}]
+
+    {{ function_name }}(documents)

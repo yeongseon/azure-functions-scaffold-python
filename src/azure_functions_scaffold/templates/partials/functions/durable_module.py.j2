@@ -1,0 +1,36 @@
+from __future__ import annotations
+
+import logging
+
+import azure.functions as func
+import azure.functions.durable_functions as df
+
+{{ function_name }}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
+
+
+@{{ function_name }}_blueprint.route(
+    route="orchestrators/{functionName}",
+    methods=["POST"],
+    auth_level=func.AuthLevel.FUNCTION,
+)
+@{{ function_name }}_blueprint.durable_client_input(client_name="client")
+async def {{ function_name }}_http_start(
+    req: func.HttpRequest, client: df.DurableOrchestrationClient
+) -> func.HttpResponse:
+    instance_id = await client.start_new(req.route_params["functionName"])
+    logging.info("Started orchestration with ID '%s'.", instance_id)
+    return client.create_check_status_response(req, instance_id)
+
+
+@{{ function_name }}_blueprint.orchestration_trigger(context_name="context")
+def {{ function_name }}_orchestrator(context: df.DurableOrchestrationContext) -> list[str]:
+    results: list[str] = []
+    results.append(yield context.call_activity("{{ function_name }}_activity", "Tokyo"))
+    results.append(yield context.call_activity("{{ function_name }}_activity", "Seattle"))
+    results.append(yield context.call_activity("{{ function_name }}_activity", "London"))
+    return results
+
+
+@{{ function_name }}_blueprint.activity_trigger(input_name="city")
+def {{ function_name }}_activity(city: str) -> str:
+    return f"Hello, {city}!"

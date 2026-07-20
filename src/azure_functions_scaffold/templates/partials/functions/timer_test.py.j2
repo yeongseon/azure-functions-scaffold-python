@@ -1,0 +1,11 @@
+from __future__ import annotations
+
+from types import SimpleNamespace
+
+from app.functions.{{ function_name }} import {{ function_name }}
+
+
+def test_{{ function_name }}_runs_without_error() -> None:
+    timer = SimpleNamespace(past_due=False)
+
+    {{ function_name }}(timer)

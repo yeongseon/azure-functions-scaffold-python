@@ -1,0 +1,17 @@
+from __future__ import annotations
+
+import logging
+
+import azure.functions as func
+
+{{ function_name }}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
+
+
+@{{ function_name }}_blueprint.service_bus_queue_trigger(
+    arg_name="message",
+    queue_name="work-items",
+    connection="ServiceBusConnection",
+)
+def {{ function_name }}(message: func.ServiceBusMessage) -> None:
+    body = message.get_body().decode("utf-8")
+    logging.info("Service Bus trigger '{{ function_name }}' processed: %s", body)

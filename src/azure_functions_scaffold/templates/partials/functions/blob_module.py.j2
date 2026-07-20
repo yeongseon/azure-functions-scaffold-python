@@ -1,0 +1,20 @@
+from __future__ import annotations
+
+import logging
+
+import azure.functions as func
+
+{{ function_name }}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
+
+
+@{{ function_name }}_blueprint.blob_trigger(
+    arg_name="blob",
+    path="samples-workitems/{name}",
+    connection="AzureWebJobsStorage",
+)
+def {{ function_name }}(blob: func.InputStream) -> None:
+    logging.info(
+        "Blob trigger '{{ function_name }}' processed %s (%s bytes).",
+        blob.name,
+        blob.length,
+    )
