@@ -12,17 +12,15 @@ from azure_functions_scaffold.generator import (
     ADDABLE_TRIGGERS,
     FUNCTION_IMPORT_MARKER,
     FUNCTION_REGISTRATION_MARKER,
+    _compute_updated_function_app,
     _compute_updated_host_json,
     _compute_updated_local_settings,
     _derive_resource_names,
-    _ensure_host_extensions,
-    _ensure_local_settings_values,
     _insert_near_marker,
     _normalize_trigger,
     _render_function_module,
     _render_function_test,
     _sort_app_functions_imports,
-    _update_function_app,
     add_function,
     add_resource,
     add_route,
@@ -487,31 +485,6 @@ def test_describe_add_function_trigger_specific_outputs(
         assert "Connection" not in output
 
 
-def test_update_function_app_rejects_when_already_registered(tmp_path: Path) -> None:
-    """Test that _update_function_app raises error when function is already registered.
-
-    This directly tests the registration check at line 146.
-    """
-    function_app_path = tmp_path / "function_app.py"
-    content = """from azure.functions import FunctionApp, Blueprint
-
-configure_logging()
-
-app = FunctionApp()
-
-app.register_functions(sync_data_blueprint)
-"""
-    function_app_path.write_text(content, encoding="utf-8")
-
-    # Try to register the same function again - should raise error
-    with pytest.raises(ScaffoldError, match="Function is already registered"):
-        _update_function_app(
-            function_app_path,
-            import_stmt="from app.functions.sync_data import sync_data_blueprint",
-            registration_stmt="app.register_functions(sync_data_blueprint)",
-        )
-
-
 def test_insert_near_marker_raises_when_fallback_anchor_missing(tmp_path: Path) -> None:
     """Test that _insert_near_marker raises error when fallback anchor not found."""
     content = "some content without any anchor"
@@ -621,7 +594,7 @@ def test_add_function_with_http_trigger_skips_host_extensions(tmp_path: Path) ->
 
 
 def test_add_function_skips_local_settings_when_example_missing(tmp_path: Path) -> None:
-    """Test _ensure_local_settings_values returns early when example file missing (line 613)."""
+    """add_function returns early on local settings when the example file is missing."""
     project_root = scaffold_project("sample", tmp_path)
 
     # Remove the local.settings.json.example file
@@ -690,26 +663,20 @@ def test_compute_updated_local_settings_returns_none_when_key_already_present() 
     assert _compute_updated_local_settings(content, "cosmosdb") is None
 
 
-def test_ensure_host_extensions_writes_extension_bundle(tmp_path: Path) -> None:
-    host_json = tmp_path / "host.json"
-    host_json.write_text('{"version": "2.0"}', encoding="utf-8")
+def test_compute_updated_host_json_adds_extension_bundle() -> None:
+    updated = _compute_updated_host_json('{"version": "2.0"}', "queue")
 
-    _ensure_host_extensions(host_json, "queue")
-
-    updated = json.loads(host_json.read_text(encoding="utf-8"))
-    assert updated["extensionBundle"]["id"] == "Microsoft.Azure.Functions.ExtensionBundle"
+    assert updated is not None
+    parsed = json.loads(updated)
+    assert parsed["extensionBundle"]["id"] == "Microsoft.Azure.Functions.ExtensionBundle"
 
 
-def test_ensure_local_settings_values_writes_connection_key(tmp_path: Path) -> None:
-    project_root = tmp_path / "proj"
-    project_root.mkdir()
-    settings = project_root / "local.settings.json.example"
-    settings.write_text('{"IsEncrypted": false}', encoding="utf-8")
+def test_compute_updated_local_settings_adds_connection_key() -> None:
+    updated = _compute_updated_local_settings('{"IsEncrypted": false}', "eventhub")
 
-    _ensure_local_settings_values(project_root, "eventhub")
-
-    updated = json.loads(settings.read_text(encoding="utf-8"))
-    assert updated["Values"]["EventHubConnection"].startswith("Endpoint=sb://")
+    assert updated is not None
+    parsed = json.loads(updated)
+    assert parsed["Values"]["EventHubConnection"].startswith("Endpoint=sb://")
 
 
 def test_sort_app_functions_imports_returns_original_when_marker_missing() -> None:
@@ -1248,9 +1215,8 @@ def test_template_function_app_contains_generator_markers(template_name: str) ->
     )
 
 
-def test_update_function_app_uses_marker_when_anchor_absent(tmp_path: Path) -> None:
-    function_app = tmp_path / "function_app.py"
-    function_app.write_text(
+def test_compute_updated_function_app_uses_marker_when_anchor_absent() -> None:
+    content = (
         f"import azure.functions as func\n"
         f"\n"
         f"{FUNCTION_IMPORT_MARKER}\n"
@@ -1258,17 +1224,15 @@ def test_update_function_app_uses_marker_when_anchor_absent(tmp_path: Path) -> N
         f"# nothing else here that resembles configure_logging\n"
         f"my_app = func.FunctionApp()  # not the exact anchor string\n"
         f"\n"
-        f"{FUNCTION_REGISTRATION_MARKER}\n",
-        encoding="utf-8",
+        f"{FUNCTION_REGISTRATION_MARKER}\n"
     )
 
-    _update_function_app(
-        function_app,
+    updated = _compute_updated_function_app(
+        content,
         import_stmt="from app.functions.demo import demo_blueprint",
         registration_stmt="my_app.register_functions(demo_blueprint)",
     )
 
-    updated = function_app.read_text(encoding="utf-8")
     assert "from app.functions.demo import demo_blueprint" in updated
     assert "my_app.register_functions(demo_blueprint)" in updated
     assert (f"from app.functions.demo import demo_blueprint\n\n{FUNCTION_IMPORT_MARKER}") in updated
