@@ -398,22 +398,6 @@ def _validate_project_root(project_root: Path) -> None:
         raise ScaffoldError("Project root does not look like a scaffolded Azure Functions project.")
 
 
-def _update_function_app(
-    function_app_path: Path,
-    *,
-    import_stmt: str,
-    registration_stmt: str,
-) -> None:
-    logger.debug("Updating function_app.py: %s", import_stmt)
-    content = function_app_path.read_text(encoding="utf-8")
-    updated = _compute_updated_function_app(
-        content,
-        import_stmt=import_stmt,
-        registration_stmt=registration_stmt,
-    )
-    function_app_path.write_text(updated, encoding="utf-8")
-
-
 def _insert_near_marker(
     content: str,
     *,
@@ -873,31 +857,6 @@ def test_{function_name}_rejects_missing_prompt() -> None:
 """
 
     raise ScaffoldError(f"No function test template for trigger '{trigger}'.")
-
-
-def _ensure_host_extensions(host_json_path: Path, trigger: str) -> None:
-    if trigger not in HOST_JSON_TRIGGERS or not host_json_path.exists():
-        return
-
-    content = host_json_path.read_text(encoding="utf-8")
-    updated = _compute_updated_host_json(content, trigger)
-    if updated is None:
-        return
-    logger.debug("Adding extensionBundle to host.json")
-    host_json_path.write_text(updated, encoding="utf-8")
-
-
-def _ensure_local_settings_values(project_root: Path, trigger: str) -> None:
-    local_settings_path = project_root / "local.settings.json.example"
-    if not local_settings_path.exists():
-        return
-
-    content = local_settings_path.read_text(encoding="utf-8")
-    updated = _compute_updated_local_settings(content, trigger)
-    if updated is None:
-        return
-    logger.debug("Updating local.settings.json.example for %s", trigger)
-    local_settings_path.write_text(updated, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
