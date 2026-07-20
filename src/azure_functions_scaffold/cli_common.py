@@ -9,6 +9,14 @@ from typing import Annotated
 import typer
 
 from azure_functions_scaffold.errors import ScaffoldError
+from azure_functions_scaffold.generator import (
+    add_function,
+    add_resource,
+    add_route,
+    describe_add_function,
+    describe_add_resource,
+    describe_add_route,
+)
 from azure_functions_scaffold.models import ProjectOptions
 from azure_functions_scaffold.scaffolder import describe_scaffold_project, scaffold_project
 from azure_functions_scaffold.template_registry import (
@@ -262,3 +270,90 @@ def _print_success_message(
         typer.secho("  API docs:", bold=True)
         typer.echo("    http://localhost:7071/api/docs")
     typer.echo("")
+
+
+# ---------------------------------------------------------------------------
+# Shared add-* intent execution (used by both `api` and `advanced` groups)
+# ---------------------------------------------------------------------------
+
+
+def run_add_function(
+    *,
+    project_root: Path,
+    trigger: str,
+    function_name: str,
+    dry_run: bool = False,
+) -> None:
+    """Add a function module (or preview via *dry_run*) with unified error handling."""
+    try:
+        if dry_run:
+            for line in describe_add_function(
+                project_root=project_root,
+                trigger=trigger,
+                function_name=function_name,
+            ):
+                typer.echo(line)
+            return
+        function_path = add_function(
+            project_root=project_root,
+            trigger=trigger,
+            function_name=function_name,
+        )
+    except ScaffoldError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Created function at {function_path}")
+
+
+def run_add_route(
+    *,
+    project_root: Path,
+    route_name: str,
+    dry_run: bool = False,
+) -> None:
+    """Add an HTTP route (or preview via *dry_run*) with unified error handling."""
+    try:
+        if dry_run:
+            for line in describe_add_route(
+                project_root=project_root,
+                route_name=route_name,
+            ):
+                typer.echo(line)
+            return
+        route_path = add_route(
+            project_root=project_root,
+            route_name=route_name,
+        )
+    except ScaffoldError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo(f"Created route at {route_path}")
+
+
+def run_add_resource(
+    *,
+    project_root: Path,
+    resource_name: str,
+    dry_run: bool = False,
+) -> None:
+    """Add a CRUD resource (or preview via *dry_run*) with unified error handling."""
+    try:
+        if dry_run:
+            for line in describe_add_resource(
+                project_root=project_root,
+                resource_name=resource_name,
+            ):
+                typer.echo(line)
+            return
+        created = add_resource(
+            project_root=project_root,
+            resource_name=resource_name,
+        )
+    except ScaffoldError as exc:
+        typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+
+    for path in created:
+        typer.echo(f"Created {path}")

@@ -8,24 +8,19 @@ from typing import Annotated
 import typer
 
 from azure_functions_scaffold.cli_common import (
-    PYTHON_VERSION_HELP,
-    AzdOption,
-    DestinationOption,
-    DryRunOption,
-    OverwriteOption,
+PYTHON_VERSION_HELP,
+AzdOption,
+DestinationOption,
+DryRunOption,
+OverwriteOption,
     YesOption,
-    run_scaffold,
+    run_add_function,
+    run_add_resource,
+    run_add_route,
+run_scaffold,
 )
 from azure_functions_scaffold.errors import ScaffoldError
-from azure_functions_scaffold.generator import (
-    ADDABLE_TRIGGERS,
-    add_function,
-    add_resource,
-    add_route,
-    describe_add_function,
-    describe_add_resource,
-    describe_add_route,
-)
+from azure_functions_scaffold.generator import ADDABLE_TRIGGERS
 from azure_functions_scaffold.template_registry import (
     build_project_options,
     list_presets,
@@ -209,25 +204,12 @@ def advanced_add(
     dry_run: DryRunOption = False,
 ) -> None:
     """Add a function module to an existing project (any trigger type)."""
-    try:
-        if dry_run:
-            for line in describe_add_function(
-                project_root=project_root,
-                trigger=trigger,
-                function_name=function_name,
-            ):
-                typer.echo(line)
-            return
-        function_path = add_function(
-            project_root=project_root,
-            trigger=trigger,
-            function_name=function_name,
-        )
-    except ScaffoldError as exc:
-        typer.secho(str(exc), fg=typer.colors.RED)
-        raise typer.Exit(code=1) from exc
-
-    typer.echo(f"Created function at {function_path}")
+    run_add_function(
+        project_root=project_root,
+        trigger=trigger,
+        function_name=function_name,
+        dry_run=dry_run,
+    )
 
 
 @advanced_app.command("templates")
@@ -262,23 +244,11 @@ def advanced_add_route(
     dry_run: DryRunOption = False,
 ) -> None:
     """Add a simple HTTP route to an existing project."""
-    try:
-        if dry_run:
-            for line in describe_add_route(
-                project_root=project_root,
-                route_name=route_name,
-            ):
-                typer.echo(line)
-            return
-        route_path = add_route(
-            project_root=project_root,
-            route_name=route_name,
-        )
-    except ScaffoldError as exc:
-        typer.secho(str(exc), fg=typer.colors.RED)
-        raise typer.Exit(code=1) from exc
-
-    typer.echo(f"Created route at {route_path}")
+    run_add_route(
+        project_root=project_root,
+        route_name=route_name,
+        dry_run=dry_run,
+    )
 
 
 @advanced_app.command("add-resource")
@@ -298,21 +268,8 @@ def advanced_add_resource(
     dry_run: DryRunOption = False,
 ) -> None:
     """Add a full CRUD resource (blueprint, service, schema, test) to an existing project."""
-    try:
-        if dry_run:
-            for line in describe_add_resource(
-                project_root=project_root,
-                resource_name=resource_name,
-            ):
-                typer.echo(line)
-            return
-        created = add_resource(
-            project_root=project_root,
-            resource_name=resource_name,
-        )
-    except ScaffoldError as exc:
-        typer.secho(str(exc), fg=typer.colors.RED)
-        raise typer.Exit(code=1) from exc
-
-    for path in created:
-        typer.echo(f"Created {path}")
+    run_add_resource(
+        project_root=project_root,
+        resource_name=resource_name,
+        dry_run=dry_run,
+    )
