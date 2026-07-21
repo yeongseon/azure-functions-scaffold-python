@@ -19,6 +19,7 @@ import keyword
 import logging
 from pathlib import Path
 import re
+from typing import Literal, overload
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -77,13 +78,40 @@ PARTIALS_ROOT = Path(__file__).parent.parent / "templates" / "partials"
 logger = logging.getLogger(__name__)
 
 
+@overload
 def add_function(
     *,
     project_root: Path,
     trigger: str,
     function_name: str,
-) -> Path:
-    logger.info("Adding %s function '%s' to %s", trigger, function_name, project_root)
+    dry_run: Literal[False] = False,
+) -> Path: ...
+
+
+@overload
+def add_function(
+    *,
+    project_root: Path,
+    trigger: str,
+    function_name: str,
+    dry_run: Literal[True],
+) -> list[str]: ...
+
+
+def add_function(
+    *,
+    project_root: Path,
+    trigger: str,
+    function_name: str,
+    dry_run: bool = False,
+) -> Path | list[str]:
+    """Add a function module to an existing scaffolded project.
+
+    When *dry_run* is true no files are written; a human-readable description
+    of the planned changes is returned instead of the created path.
+    """
+    if not dry_run:
+        logger.info("Adding %s function '%s' to %s", trigger, function_name, project_root)
     normalized_trigger = _normalize_trigger(trigger)
     normalized_name = _normalize_function_name(function_name)
 
@@ -101,6 +129,10 @@ def add_function(
         import_stmt=import_stmt,
         registration_stmt=registration_stmt,
     )
+
+    if dry_run:
+        return _describe_add_function_lines(project_root, normalized_trigger, normalized_name)
+
     function_app_content = function_app_path.read_text(encoding="utf-8")
     updated_function_app = _compute_updated_function_app(
         function_app_content,
@@ -167,26 +199,12 @@ def add_function(
     return function_path
 
 
-def describe_add_function(
-    *,
+def _describe_add_function_lines(
     project_root: Path,
-    trigger: str,
-    function_name: str,
+    normalized_trigger: str,
+    normalized_name: str,
 ) -> list[str]:
-    normalized_trigger = _normalize_trigger(trigger)
-    normalized_name = _normalize_function_name(function_name)
-    _validate_project_root(project_root)
-
-    function_path = project_root / "app" / "functions" / f"{normalized_name}.py"
-    if function_path.exists():
-        raise ScaffoldError(f"Function module already exists: {function_path}")
-
-    _validate_function_app_updatable(
-        project_root / "function_app.py",
-        import_stmt=f"from app.functions.{normalized_name} import {normalized_name}_blueprint",
-        registration_stmt=f"app.register_functions({normalized_name}_blueprint)",
-    )
-
+    """Build the dry-run description lines for :func:`add_function`."""
     host_json_path = project_root / "host.json"
     if host_json_path.exists() and normalized_trigger in HOST_JSON_TRIGGERS:
         _compute_updated_host_json(host_json_path.read_text(encoding="utf-8"), normalized_trigger)
@@ -225,6 +243,21 @@ def describe_add_function(
         lines.append("  - local.settings.json.example CosmosDBConnection")
 
     return lines
+
+
+def describe_add_function(
+    *,
+    project_root: Path,
+    trigger: str,
+    function_name: str,
+) -> list[str]:
+    """Return a dry-run description of what :func:`add_function` would do."""
+    return add_function(
+        project_root=project_root,
+        trigger=trigger,
+        function_name=function_name,
+        dry_run=True,
+    )
 
 
 def _normalize_trigger(trigger: str) -> str:
@@ -407,11 +440,30 @@ def _render_partial(template_name: str, context: dict[str, str]) -> str:
     return template.render(**context)
 
 
+@overload
 def add_resource(
     *,
     project_root: Path,
     resource_name: str,
-) -> list[Path]:
+    dry_run: Literal[False] = False,
+) -> list[Path]: ...
+
+
+@overload
+def add_resource(
+    *,
+    project_root: Path,
+    resource_name: str,
+    dry_run: Literal[True],
+) -> list[str]: ...
+
+
+def add_resource(
+    *,
+    project_root: Path,
+    resource_name: str,
+    dry_run: bool = False,
+) -> list[Path] | list[str]:
     """Add a full CRUD resource to an existing scaffolded project.
 
     Creates four files:
@@ -422,9 +474,11 @@ def add_resource(
 
     Also registers the new blueprint in ``function_app.py`` via markers.
 
-    Returns the list of created file paths.
+    When *dry_run* is true no files are written; a human-readable description
+    of the planned changes is returned instead of the created paths.
     """
-    logger.info("Adding resource '%s' to %s", resource_name, project_root)
+    if not dry_run:
+        logger.info("Adding resource '%s' to %s", resource_name, project_root)
     normalized = _normalize_function_name(resource_name)
     _validate_project_root(project_root)
     names = _derive_resource_names(normalized)
@@ -446,6 +500,10 @@ def add_resource(
         import_stmt=import_stmt,
         registration_stmt=registration_stmt,
     )
+
+    if dry_run:
+        return _describe_add_resource_lines(project_root, normalized)
+
     function_app_content = function_app_path.read_text(encoding="utf-8")
     updated_function_app = _compute_updated_function_app(
         function_app_content,
@@ -498,29 +556,8 @@ def add_resource(
     return created
 
 
-def describe_add_resource(
-    *,
-    project_root: Path,
-    resource_name: str,
-) -> list[str]:
-    """Return a dry-run description of what ``add_resource`` would do."""
-    normalized = _normalize_function_name(resource_name)
-    _validate_project_root(project_root)
-
-    blueprint_path = project_root / "app" / "functions" / f"{normalized}.py"
-    service_path = project_root / "app" / "services" / f"{normalized}_service.py"
-    schema_path = project_root / "app" / "schemas" / f"{normalized}.py"
-
-    for path in (blueprint_path, service_path, schema_path):
-        if path.exists():
-            raise ScaffoldError(f"File already exists: {path}")
-
-    _validate_function_app_updatable(
-        project_root / "function_app.py",
-        import_stmt=f"from app.functions.{normalized} import {normalized}_blueprint",
-        registration_stmt=f"app.register_functions({normalized}_blueprint)",
-    )
-
+def _describe_add_resource_lines(project_root: Path, normalized: str) -> list[str]:
+    """Build the dry-run description lines for :func:`add_resource`."""
     lines = [
         f"Dry run: add resource '{normalized}'",
         f"Project root: {project_root}",
@@ -543,16 +580,48 @@ def describe_add_resource(
     return lines
 
 
+def describe_add_resource(
+    *,
+    project_root: Path,
+    resource_name: str,
+) -> list[str]:
+    """Return a dry-run description of what :func:`add_resource` would do."""
+    return add_resource(
+        project_root=project_root,
+        resource_name=resource_name,
+        dry_run=True,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Route generation (Jinja partials)
 # ---------------------------------------------------------------------------
+
+
+@overload
+def add_route(
+    *,
+    project_root: Path,
+    route_name: str,
+    dry_run: Literal[False] = False,
+) -> Path: ...
+
+
+@overload
+def add_route(
+    *,
+    project_root: Path,
+    route_name: str,
+    dry_run: Literal[True],
+) -> list[str]: ...
 
 
 def add_route(
     *,
     project_root: Path,
     route_name: str,
-) -> Path:
+    dry_run: bool = False,
+) -> Path | list[str]:
     """Add a simple HTTP route blueprint to an existing scaffolded project.
 
     Creates:
@@ -561,9 +630,11 @@ def add_route(
 
     Also registers the new blueprint in ``function_app.py`` via markers.
 
-    Returns the path to the created blueprint file.
+    When *dry_run* is true no files are written; a human-readable description
+    of the planned changes is returned instead of the created path.
     """
-    logger.info("Adding route '%s' to %s", route_name, project_root)
+    if not dry_run:
+        logger.info("Adding route '%s' to %s", route_name, project_root)
     normalized = _normalize_function_name(route_name)
     _validate_project_root(project_root)
 
@@ -579,6 +650,10 @@ def add_route(
         import_stmt=import_stmt,
         registration_stmt=registration_stmt,
     )
+
+    if dry_run:
+        return _describe_add_route_lines(project_root, normalized)
+
     function_app_content = function_app_path.read_text(encoding="utf-8")
     updated_function_app = _compute_updated_function_app(
         function_app_content,
@@ -623,25 +698,8 @@ def add_route(
     return blueprint_path
 
 
-def describe_add_route(
-    *,
-    project_root: Path,
-    route_name: str,
-) -> list[str]:
-    """Return a dry-run description of what ``add_route`` would do."""
-    normalized = _normalize_function_name(route_name)
-    _validate_project_root(project_root)
-
-    blueprint_path = project_root / "app" / "functions" / f"{normalized}.py"
-    if blueprint_path.exists():
-        raise ScaffoldError(f"Function module already exists: {blueprint_path}")
-
-    _validate_function_app_updatable(
-        project_root / "function_app.py",
-        import_stmt=f"from app.functions.{normalized} import {normalized}_blueprint",
-        registration_stmt=f"app.register_functions({normalized}_blueprint)",
-    )
-
+def _describe_add_route_lines(project_root: Path, normalized: str) -> list[str]:
+    """Build the dry-run description lines for :func:`add_route`."""
     lines = [
         f"Dry run: add route '{normalized}'",
         f"Project root: {project_root}",
@@ -660,3 +718,16 @@ def describe_add_route(
     )
 
     return lines
+
+
+def describe_add_route(
+    *,
+    project_root: Path,
+    route_name: str,
+) -> list[str]:
+    """Return a dry-run description of what :func:`add_route` would do."""
+    return add_route(
+        project_root=project_root,
+        route_name=route_name,
+        dry_run=True,
+    )
