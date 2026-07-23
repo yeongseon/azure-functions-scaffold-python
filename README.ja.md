@@ -262,16 +262,20 @@ make build
 
 このパッケージは **Azure Functions Python DX Toolkit** の一部です。
 
+**設計原則:** `azure-functions-scaffold` はプロジェクト生成とテンプレート展開を担当します。ランタイムライブラリは提供せず — ランタイムの動作は [`azure-functions-openapi`](https://github.com/yeongseon/azure-functions-openapi-python)（API ドキュメントとスペック生成）、[`azure-functions-validation`](https://github.com/yeongseon/azure-functions-validation-python)（リクエスト/レスポンスのバリデーション）、[`azure-functions-langgraph`](https://github.com/yeongseon/azure-functions-langgraph-python)（LangGraph ランタイムの公開）に属します。
+
 | パッケージ | 役割 |
 |---------|------|
-| **azure-functions-scaffold** | プロジェクトスキャフォールディング CLI |
-| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation-python) | リクエスト/レスポンスバリデーションとシリアライゼーション |
-| [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi-python) | OpenAPI 仕様生成と Swagger UI |
-| [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph-python) | Azure Functions 向け LangGraph デプロイアダプター |
-| [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging-python) | 構造化ロギングとオブザーバビリティ |
-| [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor-python) | デプロイ前診断 CLI |
-| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph-python) | Durable Functions ベースのグラフランタイム *(計画中)* |
-| [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook-python) | レシピとサンプル |
+| [azure-functions-openapi-python](https://github.com/yeongseon/azure-functions-openapi-python) | OpenAPI スペック生成と Swagger UI |
+| [azure-functions-validation-python](https://github.com/yeongseon/azure-functions-validation-python) | リクエスト/レスポンスのバリデーションとシリアライズ |
+| [azure-functions-db-python](https://github.com/yeongseon/azure-functions-db-python) | SQLAlchemy ベースの DB 統合ヘルパー（ポーリングベースの擬似トリガー、入力/出力/クライアント注入） |
+| [azure-functions-langgraph-python](https://github.com/yeongseon/azure-functions-langgraph-python) | Azure Functions 向け LangGraph デプロイアダプター |
+| **azure-functions-scaffold-python** | プロジェクトスキャフォールディング CLI |
+| [azure-functions-logging-python](https://github.com/yeongseon/azure-functions-logging-python) | 構造化ロギングと可観測性 |
+| [azure-functions-doctor-python](https://github.com/yeongseon/azure-functions-doctor-python) | デプロイ前診断 CLI |
+| [azure-functions-durable-graph-python](https://github.com/yeongseon/azure-functions-durable-graph-python) | Durable Functions によるマニフェストファーストのグラフランタイム *(実験的)* |
+| [azure-functions-knowledge-python](https://github.com/yeongseon/azure-functions-knowledge-python) | 知識検索（RAG）デコレーター |
+| [azure-functions-cookbook-python](https://github.com/yeongseon/azure-functions-cookbook-python) | ドッグフード例 — ツールキット全体を活用する実行可能なレシピ |
 
 ## 免責事項
 
