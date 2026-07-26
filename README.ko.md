@@ -262,16 +262,20 @@ make build
 
 이 패키지는 **Azure Functions Python DX Toolkit**의 일부입니다.
 
+**설계 원칙:** `azure-functions-scaffold`는 프로젝트 생성과 템플릿 확장을 담당합니다. 런타임 라이브러리를 제공하지 않으며 — 런타임 동작은 [`azure-functions-openapi`](https://github.com/yeongseon/azure-functions-openapi-python)(API 문서화 및 스펙 생성), [`azure-functions-validation`](https://github.com/yeongseon/azure-functions-validation-python)(요청/응답 검증), [`azure-functions-langgraph`](https://github.com/yeongseon/azure-functions-langgraph-python)(LangGraph 런타임 노출)에 속합니다.
+
 | 패키지 | 역할 |
 |---------|------|
-| **azure-functions-scaffold** | 프로젝트 스캐폴딩 CLI |
-| [azure-functions-validation](https://github.com/yeongseon/azure-functions-validation-python) | 요청/응답 검증 및 직렬화 |
-| [azure-functions-openapi](https://github.com/yeongseon/azure-functions-openapi-python) | OpenAPI 사양 생성 및 Swagger UI |
-| [azure-functions-langgraph](https://github.com/yeongseon/azure-functions-langgraph-python) | Azure Functions용 LangGraph 배포 어댑터 |
-| [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging-python) | 구조화된 로깅 및 관측성 |
-| [azure-functions-doctor](https://github.com/yeongseon/azure-functions-doctor-python) | 배포 전 진단 CLI |
-| [azure-functions-durable-graph](https://github.com/yeongseon/azure-functions-durable-graph-python) | Durable Functions 기반 그래프 런타임 *(계획)* |
-| [azure-functions-cookbook](https://github.com/yeongseon/azure-functions-cookbook-python) | 레시피 및 예제 |
+| [azure-functions-openapi-python](https://github.com/yeongseon/azure-functions-openapi-python) | OpenAPI 스펙 생성 및 Swagger UI |
+| [azure-functions-validation-python](https://github.com/yeongseon/azure-functions-validation-python) | 요청/응답 검증 및 직렬화 |
+| [azure-functions-db-python](https://github.com/yeongseon/azure-functions-db-python) | SQLAlchemy 기반 DB 통합 헬퍼 (폴링 기반 의사 트리거, 입력/출력/클라이언트 주입) |
+| [azure-functions-langgraph-python](https://github.com/yeongseon/azure-functions-langgraph-python) | Azure Functions용 LangGraph 배포 어댑터 |
+| **azure-functions-scaffold-python** | 프로젝트 스캐폴딩 CLI |
+| [azure-functions-logging-python](https://github.com/yeongseon/azure-functions-logging-python) | 구조화된 로깅 및 관측성 |
+| [azure-functions-doctor-python](https://github.com/yeongseon/azure-functions-doctor-python) | 배포 전 진단 CLI |
+| [azure-functions-durable-graph-python](https://github.com/yeongseon/azure-functions-durable-graph-python) | Durable Functions 기반 매니페스트 우선 그래프 런타임 *(실험적)* |
+| [azure-functions-knowledge-python](https://github.com/yeongseon/azure-functions-knowledge-python) | 지식 검색(RAG) 데코레이터 |
+| [azure-functions-cookbook-python](https://github.com/yeongseon/azure-functions-cookbook-python) | 도그푸드 예제 — 전체 툴킷을 활용하는 실행 가능한 레시피 |
 
 ## 면책 조항
 
