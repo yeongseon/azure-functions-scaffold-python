@@ -167,7 +167,7 @@ make check-all
 2. Lint (`ruff check .`)
 3. Type check (`mypy .`)
 4. Test (`pytest`)
-5. Doctor checks (`python -m azure_functions_doctor check .`)
+5. Doctor checks (`azure-functions-doctor doctor --path .`)
 
 This order gives fast feedback while keeping release gates strict.
 

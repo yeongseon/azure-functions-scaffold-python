@@ -62,5 +62,5 @@ endif
 {% if include_doctor -%}
 .PHONY: doctor
 doctor:
-	$(PYTHON) -m azure_functions_doctor check .
+	azure-functions-doctor doctor --path .
 {% endif -%}
