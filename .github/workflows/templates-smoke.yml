@@ -122,7 +122,7 @@ jobs:
         working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
         run: |
           python -m pip install azure-functions-doctor
-          python -m azure_functions_doctor check .
+          azure-functions-doctor doctor .
 
   scaffold-with-features:
     runs-on: ubuntu-latest
