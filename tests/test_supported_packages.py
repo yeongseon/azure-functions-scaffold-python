@@ -45,8 +45,9 @@ def test_templates_reference_catalog() -> None:
     for template_pyproject in sorted(_TEMPLATES_ROOT.glob("*/pyproject.toml.j2")):
         text = template_pyproject.read_text(encoding="utf-8")
         if "azure-functions" in text:
+            rel = template_pyproject.relative_to(_REPO_ROOT).as_posix()
             assert "supported_packages[" in text, (
-                f"{template_pyproject.relative_to(_REPO_ROOT).as_posix()} pins toolkit packages but does not use the catalog"
+                f"{rel} pins toolkit packages but does not use the catalog"
             )
 
 
