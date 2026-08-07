@@ -26,12 +26,13 @@ def test_requirement_builds_full_specifier() -> None:
 
 def test_templates_have_no_hardcoded_toolkit_pins() -> None:
     offenders: list[str] = []
-    for template_pyproject in _TEMPLATES_ROOT.glob("*/pyproject.toml.j2"):
+    for template_pyproject in sorted(_TEMPLATES_ROOT.glob("*/pyproject.toml.j2")):
         for lineno, line in enumerate(
             template_pyproject.read_text(encoding="utf-8").splitlines(), start=1
         ):
             if _BARE_PIN.search(line):
-                offenders.append(f"{template_pyproject.name}:{lineno}: {line.strip()}")
+                offender = template_pyproject.relative_to(_REPO_ROOT).as_posix()
+                offenders.append(f"{offender}:{lineno}: {line.strip()}")
     assert offenders == [], (
         "Template pyproject files must reference SUPPORTED_PACKAGES, not hardcoded "
         f"toolkit pins:\n{chr(10).join(offenders)}"
@@ -41,11 +42,11 @@ def test_templates_have_no_hardcoded_toolkit_pins() -> None:
 def test_templates_reference_catalog() -> None:
     # Every template pyproject that pins a toolkit package must do so via the
     # `supported_packages` render variable.
-    for template_pyproject in _TEMPLATES_ROOT.glob("*/pyproject.toml.j2"):
+    for template_pyproject in sorted(_TEMPLATES_ROOT.glob("*/pyproject.toml.j2")):
         text = template_pyproject.read_text(encoding="utf-8")
         if "azure-functions" in text:
             assert "supported_packages[" in text, (
-                f"{template_pyproject} pins toolkit packages but does not use the catalog"
+                f"{template_pyproject.relative_to(_REPO_ROOT).as_posix()} pins toolkit packages but does not use the catalog"
             )
 
 
