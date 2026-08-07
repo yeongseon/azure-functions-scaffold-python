@@ -121,7 +121,7 @@ jobs:
       - name: Run Doctor diagnostics on generated project
         working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
         run: |
-          pip install azure-functions-doctor
+          python -m pip install azure-functions-doctor
           python -m azure_functions_doctor check .
 
   scaffold-with-features:
