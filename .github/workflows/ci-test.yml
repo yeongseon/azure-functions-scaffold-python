@@ -41,7 +41,7 @@ jobs:
 
       - name: Downgrade to minimum dependency floors
         if: matrix.resolution == 'minimum'
-        run: hatch run pip install -c constraints-min.txt -e ".[dev]"
+        run: .venv/bin/hatch run pip install -c constraints-min.txt -e ".[dev]"
 
       - name: Run full quality checks
         run: make check-all
