@@ -12,6 +12,7 @@ import typer
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import ProjectOptions, TemplateContext, TemplateSpec
+from azure_functions_scaffold.packages import SUPPORTED_PACKAGES
 from azure_functions_scaffold.template_registry import (
     build_project_options,
     get_template,
@@ -88,6 +89,7 @@ def scaffold_project(
             include_validation=context.include_validation,
             include_doctor=context.include_doctor,
             include_azd=context.include_azd,
+            supported_packages=SUPPORTED_PACKAGES,
         )
         logger.debug("Rendering template: %s -> %s", template_rel_name, output_path)
         output_path.write_text(rendered_content, encoding="utf-8")
