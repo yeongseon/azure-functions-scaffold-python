@@ -24,8 +24,8 @@ description = "LangGraph agent on Azure Functions Python v2, scaffolded by azure
 readme = "README.md"
 requires-python = ">={{ python_version }},<{{ python_upper_bound }}"
 dependencies = [
-  "azure-functions>=1.23.0",
-  # "azure-functions-langgraph>=0.5.1",
+  "azure-functions{{ supported_packages['azure-functions'] }}",
+  # "azure-functions-langgraph{{ supported_packages['azure-functions-langgraph'] }}",
   # Uncomment after azure-functions-langgraph is published on PyPI.
   "langgraph>=0.2.0",
   "orjson>=3.10.0",
