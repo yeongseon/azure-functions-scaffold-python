@@ -1,0 +1,12 @@
+# Minimum dependency floors for the "minimum" CI resolution axis.
+# Pins each DIRECT declared dependency (runtime + smoke-test extras) to the
+# lowest version allowed by pyproject.toml so compatibility breaks at the
+# declared floor are caught in CI. Keep in sync with pyproject.toml.
+jinja2==3.1.0
+typer==0.16.0
+azure-functions==1.23.0
+azure-functions-logging==0.5.0
+azure-functions-openapi==0.17.0
+azure-functions-validation==0.7.0
+azure-functions-doctor==0.16.0
+pydantic==2.0.0
