@@ -20,7 +20,7 @@ _BARE_PIN = re.compile(r'"azure-functions[a-z-]*>=')
 
 
 def test_requirement_builds_full_specifier() -> None:
-    assert requirement("azure-functions") == "azure-functions>=1.23.0"
+    assert requirement("azure-functions") == "azure-functions>=1.23.0,<2.0.0"
     assert requirement("azure-functions-doctor") == "azure-functions-doctor>=0.16.0"
 
 
