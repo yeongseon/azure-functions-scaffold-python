@@ -123,9 +123,17 @@ jobs:
         run: |
           python -m pip install azure-functions-doctor
           # Doctor runs as an informational smoke check. Scaffolded projects are
-          # pyproject-only and intentionally omit requirements.txt, which published
-          # azure-functions-doctor flags as a failure; don't fail the job on that.
-          azure-functions-doctor doctor --path . || true
+          # pyproject-only; older published azure-functions-doctor versions flag a
+          # missing requirements.txt as a diagnostics failure (exit 1). Tolerate
+          # exit 1 (findings) but fail the job on exit 2+ (CLI crash/usage error).
+          set +e
+          azure-functions-doctor doctor --path .
+          status=$?
+          set -e
+          if [ "${status}" -gt 1 ]; then
+            echo "azure-functions-doctor crashed (exit ${status})"
+            exit "${status}"
+          fi
 
   scaffold-with-features:
     runs-on: ubuntu-latest
@@ -198,7 +206,16 @@ jobs:
         working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
         run: |
           if grep -Eq '^doctor:' Makefile; then
-            make doctor || true
+            # Tolerate diagnostics findings (exit 1) but fail on a Doctor crash
+            # or usage error (exit 2+).
+            set +e
+            make doctor
+            status=$?
+            set -e
+            if [ "${status}" -gt 1 ]; then
+              echo "make doctor failed unexpectedly (exit ${status})"
+              exit "${status}"
+            fi
           else
             echo "Skipping Doctor: generated project has no doctor target"
           fi
