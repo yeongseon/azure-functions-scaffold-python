@@ -1,6 +1,47 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.6.3] - 2026-08-09
+
+### Documentation
+
+- Require translation sync in the same PR as English changes (Closes #183) (#184) 
+- Correct azure-functions-db description in ecosystem table (#182) 
+- Add per-template generated-output examples (#174) 
+- *(readme)* Fix broken Release badge to publish-pypi.yml (#167) 
+
+### Miscellaneous Tasks
+
+- *(deps)* Cap azure-functions below 2.0.0 (#216) 
+- Run doctor in scaffold template smoke tests (#199) 
+- Add min-vs-latest dependency test matrix (#200) 
+- *(deps)* Bump codeql-action init+analyze to 4.37.4 atomically 
+- *(deps)* Bump actions/stale from 10.4.0 to 11.0.0 (#193) 
+- Track issue priority via priority:* labels instead of body line (#194) 
+- *(deps)* Bump github/codeql-action/init from 4.37.1 to 4.37.3 (#189) 
+- *(deps)* Bump actions/checkout from 7.0.0 to 7.0.1 (#187) 
+- *(deps)* Bump ruff from 0.15.22 to 0.16.0 (#186) 
+- *(deps)* Bump actions/setup-python from 6.3.0 to 7.0.0 (#185) 
+- *(generator)* Decompose generator into focused package (#179) 
+- *(deps)* Bump github/codeql-action/analyze from 4.37.0 to 4.37.1 (#171) 
+- *(deps)* Bump github/codeql-action/init from 4.37.0 to 4.37.1 (#169) 
+- *(deps)* Bump mypy from 2.2.0 to 2.3.0 (#170) 
+- *(deps)* Bump actions/setup-node from 6.4.0 to 7.0.0 (#172) 
+- *(deps)* Bump ruff from 0.15.21 to 0.15.22 (#173) 
+
+### Other
+
+- Bump version to 0.6.3 
+
+### Refactor
+
+- *(templates)* Centralize supported-package version catalog (#198) 
+- *(generator)* Unify dry-run via dry_run param on add_* functions (#180) 
+- *(cli)* Dedupe overlapping add-* commands via shared cli_common helpers (#178) 
+- *(generator)* Extract inline function templates to Jinja partials (#177) 
+- *(cli)* Generate worker commands from INTENT_SPECS table (#163) (#176) 
+- *(generator)* Drop dead legacy write-path helpers (#163) (#175) 
+- *(scaffold)* Fix cosmosdb template at source, drop normalize patch (#168) 
 ## [0.6.2] - 2026-07-18
 
 ### Bug Fixes
@@ -12,6 +53,7 @@ All notable changes to this project will be documented in this file.
 
 ### Documentation
 
+- Update changelog 
 - *(cli)* Align CLI reference with implemented commands and fix changelog/migration drift (#160) 
 - *(diagram)* Portable classDiagram notation and i18n README flowchart parity (#161) 
 - Add discoverability metadata (pepy badge + llms.txt) (#166) 
