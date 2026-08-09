@@ -44,7 +44,7 @@ dev = [
     "types-requests",
     # Smoke-test deps: generated project runtime packages needed by
     # test_template_smoke.py to run the scaffolded project's own test suite.
-    "azure-functions>=1.23.0",
+    "azure-functions>=1.23.0,<2.0.0",
     "azure-functions-logging>=0.5.0",
     "azure-functions-openapi>=0.17.0",
     "azure-functions-validation>=0.7.0",
