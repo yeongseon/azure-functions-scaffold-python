@@ -14,14 +14,14 @@ from azure_functions_scaffold.template_registry import build_project_options
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _TEMPLATES_ROOT = _REPO_ROOT / "src" / "azure_functions_scaffold" / "templates"
 
-# Bare toolkit pins like `"azure-functions-openapi>=0.17.0"` must not survive in
+# Bare toolkit pins like `"azure-functions-openapi>=0.21.0"` must not survive in
 # the templates — they have to flow through the catalog instead.
 _BARE_PIN = re.compile(r'"azure-functions[a-z-]*>=')
 
 
 def test_requirement_builds_full_specifier() -> None:
     assert requirement("azure-functions") == "azure-functions>=1.23.0,<2.0.0"
-    assert requirement("azure-functions-doctor") == "azure-functions-doctor>=0.16.0"
+    assert requirement("azure-functions-doctor") == "azure-functions-doctor>=0.19.0"
 
 
 def test_templates_have_no_hardcoded_toolkit_pins() -> None:

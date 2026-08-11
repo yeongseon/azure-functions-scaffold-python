@@ -15,10 +15,10 @@ SUPPORTED_PACKAGES: dict[str, str] = {
     # Upper bound <2.0.0: azure-functions v2 may change worker function-indexing
     # behavior the toolkit relies on; generated projects inherit this cap. See dx#8.
     "azure-functions": ">=1.23.0,<2.0.0",
-    "azure-functions-logging": ">=0.5.0",
-    "azure-functions-openapi": ">=0.17.0",
-    "azure-functions-validation": ">=0.7.0",
-    "azure-functions-doctor": ">=0.16.0",
+    "azure-functions-logging": ">=0.10.0",
+    "azure-functions-openapi": ">=0.21.0",
+    "azure-functions-validation": ">=0.10.0",
+    "azure-functions-doctor": ">=0.19.0",
     "azure-functions-durable": ">=1.2.9",
     "azure-functions-langgraph": ">=0.5.1",
 }

@@ -377,7 +377,7 @@ def test_scaffold_project_generates_expected_project_contract(
     assert "mypy>=1.17.1" in pyproject_text
     assert "pytest>=8.3.5" in pyproject_text
     assert "Preset: `strict`" in readme_text
-    assert "azure-functions-logging>=0.5.0" in pyproject_text
+    assert "azure-functions-logging>=0.10.0" in pyproject_text
 
 
 def test_durable_template_uses_correct_durable_module_path(tmp_path: Path) -> None:
