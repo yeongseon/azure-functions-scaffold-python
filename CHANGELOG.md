@@ -1,10 +1,31 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.6.4] - 2026-08-11
+
+### Documentation
+
+- Add Branch Hygiene section to AGENTS.md 
+- Fix broken doc links to unblock strict mkdocs build 
+- *(release)* Require cookbook dogfood verification after publish 
+
+### Miscellaneous Tasks
+
+- *(deps)* Bump ruff from 0.16.0 to 0.16.1 (#205) 
+- *(deps)* Bump azure/login from 3.0.0 to 3.0.1 (#204) 
+- *(deps)* Sync package catalog + tests to bumped sibling floors 
+- *(deps)* Bump sibling toolkit floors to latest releases 
+- *(ci)* Replace || true with exit-code-aware doctor assertion in smoke tests (#203) 
+- *(codeql)* Bump codeql-action init+analyze to v4.37.6 together 
+
+### Other
+
+- Bump version to 0.6.4 
 ## [0.6.3] - 2026-08-09
 
 ### Documentation
 
+- Update changelog 
 - Require translation sync in the same PR as English changes (Closes #183) (#184) 
 - Correct azure-functions-db description in ecosystem table (#182) 
 - Add per-template generated-output examples (#174) 
