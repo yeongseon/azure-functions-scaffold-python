@@ -33,6 +33,7 @@ These variables are available within all Jinja2 templates.
 | `include_openapi` | Boolean | Whether to include Swagger/OpenAPI support. |
 | `include_validation` | Boolean | Whether to include Pydantic-based validation. |
 | `include_doctor` | Boolean | Whether to include `doctor.py` script. |
+| `include_azd` | Boolean | Whether to include Azure Developer CLI (`azd`) support files. |
 
 ## Required Output Files
 
