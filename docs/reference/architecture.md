@@ -139,7 +139,7 @@ sequenceDiagram
     SC-->>Dev: project ready at ./my-api
 ```
 
-### `afs add` flow
+### `afs advanced add` flow
 
 ```mermaid
 sequenceDiagram
@@ -148,7 +148,7 @@ sequenceDiagram
     participant GEN as generator.py
     participant FS as File System
 
-    Dev->>CLI: afs add http get-user --project-root ./my-api
+    Dev->>CLI: afs advanced add http get-user --project-root ./my-api
     CLI->>GEN: verify project root
     GEN->>FS: read function_app.py
     GEN->>FS: render new function module
@@ -169,6 +169,7 @@ classDiagram
         +bool include_openapi
         +bool include_validation
         +bool include_doctor
+        +bool include_azd
     }
     class TemplateContext {
         +str project_name
@@ -184,6 +185,7 @@ classDiagram
         +bool include_openapi
         +bool include_validation
         +bool include_doctor
+        +bool include_azd
     }
     class TemplateSpec {
         +str name
