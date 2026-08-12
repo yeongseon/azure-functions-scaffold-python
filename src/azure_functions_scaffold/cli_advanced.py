@@ -8,16 +8,16 @@ from typing import Annotated
 import typer
 
 from azure_functions_scaffold.cli_common import (
-PYTHON_VERSION_HELP,
-AzdOption,
-DestinationOption,
-DryRunOption,
-OverwriteOption,
+    PYTHON_VERSION_HELP,
+    AzdOption,
+    DestinationOption,
+    DryRunOption,
+    OverwriteOption,
     YesOption,
     run_add_function,
     run_add_resource,
     run_add_route,
-run_scaffold,
+    run_scaffold,
 )
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.generator import ADDABLE_TRIGGERS
@@ -32,6 +32,7 @@ advanced_app = typer.Typer(
     help="Power-user project scaffolding with full option control.",
 )
 
+
 def _allowed_features_for_template(template: str) -> frozenset[str] | None:
     # Normalize the same way template_registry.get_template() resolves names
     # (case/whitespace-insensitive) so validation cannot be bypassed by passing
@@ -41,7 +42,6 @@ def _allowed_features_for_template(template: str) -> frozenset[str] | None:
     if spec is None:
         return None
     return spec.allowed_features
-
 
 
 def _validate_feature_flags_for_template(

@@ -97,33 +97,34 @@ class TestTopLevelAfsNewRegex:
 
     def test_matches_short_alias_with_drifted_flag(self) -> None:
         """``afs new`` + a drifted flag still triggers the regex."""
-        assert TOP_LEVEL_AFS_NEW_RE.search(
-            "afs new my-api --template http"
-        ) is not None
+        assert TOP_LEVEL_AFS_NEW_RE.search("afs new my-api --template http") is not None
 
     def test_matches_long_alias_with_drifted_flag(self) -> None:
         """``azure-functions-scaffold new`` + a drifted flag also triggers."""
-        assert TOP_LEVEL_AFS_NEW_RE.search(
-            "azure-functions-scaffold new my-api --template http"
-        ) is not None
+        assert (
+            TOP_LEVEL_AFS_NEW_RE.search("azure-functions-scaffold new my-api --template http")
+            is not None
+        )
 
     def test_matches_long_alias_with_interactive_flag(self) -> None:
         """``--interactive`` on the long alias also triggers."""
-        assert TOP_LEVEL_AFS_NEW_RE.search(
-            "azure-functions-scaffold new my-api --interactive"
-        ) is not None
+        assert (
+            TOP_LEVEL_AFS_NEW_RE.search("azure-functions-scaffold new my-api --interactive")
+            is not None
+        )
 
     def test_ignores_short_alias_advanced_new(self) -> None:
         """``afs advanced new`` with drifted flag is a valid, current CLI shape."""
-        assert TOP_LEVEL_AFS_NEW_RE.search(
-            "afs advanced new my-api --template http"
-        ) is None
+        assert TOP_LEVEL_AFS_NEW_RE.search("afs advanced new my-api --template http") is None
 
     def test_ignores_long_alias_advanced_new(self) -> None:
         """``azure-functions-scaffold advanced new`` is a valid, current CLI shape."""
-        assert TOP_LEVEL_AFS_NEW_RE.search(
-            "azure-functions-scaffold advanced new my-api --template http"
-        ) is None
+        assert (
+            TOP_LEVEL_AFS_NEW_RE.search(
+                "azure-functions-scaffold advanced new my-api --template http"
+            )
+            is None
+        )
 
     def test_ignores_legacy_scaffold_python_distribution(self) -> None:
         """``azure-functions-scaffold-python new`` must be caught by LEGACY_NEW_RE,
@@ -136,9 +137,7 @@ class TestTopLevelAfsNewRegex:
     def test_ignores_bare_afs_new_without_drifted_flags(self) -> None:
         """Current, correct ``afs new`` invocations must not trip the regex."""
         assert TOP_LEVEL_AFS_NEW_RE.search("afs new my-api") is None
-        assert TOP_LEVEL_AFS_NEW_RE.search(
-            "azure-functions-scaffold new my-api"
-        ) is None
+        assert TOP_LEVEL_AFS_NEW_RE.search("azure-functions-scaffold new my-api") is None
 
 
 CLI_REFERENCE = DOCS_ROOT / "reference" / "cli.md"
@@ -229,6 +228,7 @@ def _iter_command_flags() -> list[str]:
 # Every long option flag implemented across the command groups, derived from the
 # live Click command tree so newly-added flags are caught automatically.
 IMPLEMENTED_FLAGS: list[str] = _iter_command_flags()
+
 
 class TestCliReferenceCoverage:
     """Guard: ``docs/reference/cli.md`` must cover the implemented command surface."""
