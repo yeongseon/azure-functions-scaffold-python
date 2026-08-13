@@ -13,6 +13,8 @@
 
 其他语言: [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md)
 
+> ℹ️ 本翻译由社区维护，仅供参考，可能落后于最新的 [English README](README.md)。请以英文版为准。
+
 用于生产级 Azure Functions Python v2 项目的脚手架 CLI.
 
 Python 版本支持: Azure Functions 上 3.10-3.13 为 GA，3.14 为 **Preview**。详情请参阅 [Python 版本支持](docs/guide/configuration.md#python-version-support)。
