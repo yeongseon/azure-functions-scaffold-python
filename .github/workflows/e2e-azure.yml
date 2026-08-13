@@ -27,14 +27,12 @@ jobs:
   deploy_and_test:
     name: Generate, Deploy & Test
     runs-on: ubuntu-latest
-    # OIDC subject must match the Azure AD federated credential behind AZURE_CLIENT_ID:
-    #   repo:yeongseon/azure-functions-scaffold-python:environment:azure-e2e
-    # The environment declaration normalizes the OIDC `sub` claim across both
-    # workflow_dispatch and tag-push triggers (otherwise GitHub mints
-    # ref-based subjects like refs/heads/main or refs/tags/v0.6.1). See
-    # docs/contributing/testing.md ("Azure End-to-End Tests") for setup and
-    # troubleshooting AADSTS700213.
-    environment: azure-e2e
+    # OIDC subject must match the Azure AD federated credential behind AZURE_CLIENT_ID.
+    # This workflow is dispatch-only, so GitHub mints a ref-based subject:
+    #   repo:yeongseon/azure-functions-scaffold-python:ref:refs/heads/main
+    # This mirrors the sibling azure-functions-* repositories (no GitHub
+    # environment). See docs/contributing/testing.md ("Azure End-to-End Tests")
+    # for setup and troubleshooting AADSTS700213.
     outputs:
       resource_group: ${{ steps.names.outputs.rg }}
 
@@ -199,8 +197,7 @@ jobs:
   cleanup:
     name: Cleanup Azure Resources
     runs-on: ubuntu-latest
-    # Same OIDC subject as deploy_and_test; see docs/contributing/testing.md.
-    environment: azure-e2e
+    # Same ref-based OIDC subject as deploy_and_test; see docs/contributing/testing.md.
     needs: [deploy_and_test]
     if: always()
     steps:
