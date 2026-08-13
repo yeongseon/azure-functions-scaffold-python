@@ -77,9 +77,12 @@ curl "http://localhost:7071/api/health"
 
 Test the webhook inbound endpoint. It requires `WEBHOOK_SECRET` to be set
 locally and a matching HMAC-SHA256 `X-Signature` header; without a valid
-signature it returns `401` (or `503` when the secret is unset):
+signature it returns `401` (or `503` when the secret is unset). Set the same
+secret in `local.settings.json` (under `Values`) so the running Function can
+read it, then export it in your shell to sign the request:
 
 ```bash
+export WEBHOOK_SECRET="replace-with-your-local-secret"
 BODY='{"event_type":"order.placed","source":"shop"}'
 SIG="sha256=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | awk '{print $2}')"
 
