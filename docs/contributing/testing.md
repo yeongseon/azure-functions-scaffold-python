@@ -110,15 +110,13 @@ The `.github/workflows/e2e-azure.yml` workflow generates a scaffolded project, d
 ### Workflow
 
 - **File**: `.github/workflows/e2e-azure.yml`
-- **Trigger**: Tag push (`v*`) or manual (`workflow_dispatch`)
+- **Trigger**: Manual only (`workflow_dispatch`)
 - **Infrastructure**: Azure Consumption plan, `koreacentral` region (`AZURE_LOCATION` variable)
 - **Cleanup**: Resource group deleted immediately after tests (`if: always()`)
 
 ### Required Secrets & Variables
 
-Both `deploy_and_test` and `cleanup` jobs declare `environment: azure-e2e`. The Azure OIDC secrets (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_SUBSCRIPTION_ID`) may be provided either as environment secrets on `azure-e2e` or as repository-level secrets with the same names. `AZURE_LOCATION` is read from the `vars` context with a fallback to `koreacentral`.
-
-If `azure-e2e` later enables required reviewers or wait timers, both `deploy_and_test` and `cleanup` will pause for approval before Azure access because both jobs declare that environment.
+The Azure OIDC secrets (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_SUBSCRIPTION_ID`) are provided as repository-level secrets, matching the sibling `azure-functions-*` repositories. `AZURE_LOCATION` is read from the `vars` context with a fallback to `koreacentral`.
 
 | Name | Type | Description |
 | --- | --- | --- |
@@ -134,28 +132,24 @@ Azure login uses [GitHub OIDC](https://docs.github.com/en/actions/deployment/sec
 For this workflow, the expected subject is:
 
 ```text
-repo:yeongseon/azure-functions-scaffold-python:environment:azure-e2e
+repo:yeongseon/azure-functions-scaffold-python:ref:refs/heads/main
 ```
 
-The subject is composed of `repo:<owner>/<repo>:environment:<environment_name>`, where:
+The subject is composed of `repo:<owner>/<repo>:ref:<git_ref>`, where:
 
 - `<owner>/<repo>` is the GitHub repository slug (`github.repository`). Not the PyPI package name (`azure-functions-scaffold-python`) or the Python import name (`azure_functions_scaffold`).
-- `<environment_name>` is the GitHub Environment declared on the workflow jobs (`environment: azure-e2e`).
+- `<git_ref>` is the ref the workflow runs against. Because the workflow is dispatch-only and dispatched from `main`, GitHub mints `ref:refs/heads/main`.
 
-The match is **case-sensitive** and exact. Renaming the GitHub owner, repository, or environment requires updating the federated credential in Azure to match the new subject; otherwise Azure login fails with `AADSTS700213`.
+The match is **case-sensitive** and exact. Renaming the GitHub owner or repository, or dispatching from a different branch, requires updating the federated credential in Azure to match the new subject; otherwise Azure login fails with `AADSTS700213`.
 
-#### Why one environment-based subject (and not branch / tag subjects)?
+#### Why a ref-based subject (and no GitHub environment)?
 
-The workflow runs from both `workflow_dispatch` (typically against `main`) and `push` of `v*` tags. Without an environment, GitHub mints ref-based OIDC subjects such as:
+This workflow does not declare a GitHub `environment:`, matching the sibling `azure-functions-*` repositories (`openapi`, `logging`, `doctor`). Since the workflow is dispatch-only and always dispatched from `main`, GitHub mints a single stable ref-based subject (`ref:refs/heads/main`), so exactly one federated credential is required. A GitHub environment would instead mint `environment:<name>` and require a matching environment-scoped credential.
 
-- `repo:yeongseon/azure-functions-scaffold-python:ref:refs/heads/main` (for dispatches against `main`)
-- `repo:yeongseon/azure-functions-scaffold-python:ref:refs/tags/v0.6.1` (for tag pushes)
-
-Maintaining ref-based credentials is brittle: you need one for `refs/heads/main` and, for tag runs, either flexible tag matching in Entra or separate credentials for concrete tag refs. Using a GitHub environment avoids that drift and keeps one stable subject, which only changes if the owner/repo/environment is renamed.
+> If you later want approval gating (required reviewers or wait timers) before the destructive Azure run, declare `environment: azure-e2e` on both jobs **and** add an environment-scoped federated credential (`...:environment:azure-e2e`) to the app registration. Do both together, or Azure login will fail with `AADSTS700213`.
 
 Reference:
 
-- Workflow declares `environment: azure-e2e` on both `deploy_and_test` and `cleanup` jobs in `.github/workflows/e2e-azure.yml`.
 - Azure docs: [Configure a federated identity credential on an app](https://learn.microsoft.com/en-us/entra/workload-id/workload-identity-federation-create-trust?pivots=identity-wif-apps-methods-azp).
 
 ### Troubleshooting Azure E2E
@@ -165,15 +159,15 @@ Reference:
 The OIDC subject GitHub presented does not match any federated credential on the Azure AD app registration behind `AZURE_CLIENT_ID`. Typical causes:
 
 1. The repository was renamed (for example, the toolkit-wide `-python` suffix migration) and the federated credential still references the old subject.
-2. The `environment:` value on the workflow job changed and the federated credential references the old environment name.
-3. A different app registration is configured in the `azure-e2e` environment secrets than the one carrying the federated credential.
-4. The federated credential still references a ref-based subject (`refs/heads/main` or a concrete `refs/tags/<tag>`) from a version of the workflow that did not declare `environment:`.
+2. A GitHub `environment:` was added to the workflow job, so GitHub now mints an `environment:<name>` subject, but the credential still references the ref-based subject (or vice versa).
+3. A different app registration is configured in the repository secrets than the one carrying the federated credential.
+4. The workflow was dispatched from a branch other than `main`, minting `ref:refs/heads/<branch>` with no matching credential.
 
 To recover:
 
-1. Confirm which Azure AD app registration is referenced by the `AZURE_CLIENT_ID` value used by the `azure-e2e` GitHub Environment (or the repository).
-2. On that app registration, add or update a federated credential with subject `repo:yeongseon/azure-functions-scaffold-python:environment:azure-e2e`, issuer `https://token.actions.githubusercontent.com`, and audience `api://AzureADTokenExchange`.
-3. Re-run `e2e-azure` (tag push or `workflow_dispatch`) and confirm the `Azure login (OIDC)` step succeeds.
+1. Confirm which Azure AD app registration is referenced by the repository's `AZURE_CLIENT_ID` value.
+2. On that app registration, add or update a federated credential with subject `repo:yeongseon/azure-functions-scaffold-python:ref:refs/heads/main`, issuer `https://token.actions.githubusercontent.com`, and audience `api://AzureADTokenExchange`.
+3. Re-run `e2e-azure` via `workflow_dispatch` and confirm the `Azure login (OIDC)` step succeeds.
 
 ## Troubleshooting
 
