@@ -25,8 +25,8 @@ The default template for building RESTful APIs.
 afs new my-api
 ```
 
-*   **Generates**: `app/functions/http.py`, `app/services/hello_service.py`, `tests/test_http.py`.
-*   **Key points**: Configured with a default `hello` route and JSON response handling.
+*   **Generates**: `app/functions/health.py`, `app/functions/webhooks.py`, `app/services/health_service.py`, `app/services/webhook_service.py`, `tests/test_health.py`, `tests/test_webhooks.py`.
+*   **Key points**: Includes a `GET /api/health` endpoint (anonymous auth) and a `POST /api/webhooks/inbound` endpoint (FUNCTION auth, HMAC-SHA256 signature verification).
 
 ### Timer Template
 

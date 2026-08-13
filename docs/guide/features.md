@@ -47,7 +47,7 @@ To use structured logging anywhere in your app:
 ```python
 from app.core.logging import logger
 
-logger.info("request received", route="/api/hello")
+logger.info("request received", route="/api/health")
 ```
 
 See [azure-functions-logging](https://github.com/yeongseon/azure-functions-logging-python) for the full API.

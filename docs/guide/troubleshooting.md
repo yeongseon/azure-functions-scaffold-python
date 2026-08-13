@@ -109,17 +109,17 @@ Supported presets are `minimal`, `standard`, `strict`.
 
 **Symptoms**
 
-- `GET /api/hello` no longer works
-- body validation errors on hello route
+- `GET /api/health` returns unexpected results
+- body validation errors on webhooks route
 
 **Explanation**
 
-With `--with-validation`, generated hello endpoint uses POST body validation.
+With `--with-validation`, the generated webhooks endpoint requires a valid request body matching the schema.
 
 **Fix**
 
-- send JSON body matching request model, or
-- adjust generated endpoint method/signature to fit your API contract
+- send a JSON body matching the request model, or
+- adjust the generated endpoint method/signature to fit your API contract
 
 ### Doctor command unavailable
 

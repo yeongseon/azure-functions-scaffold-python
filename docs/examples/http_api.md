@@ -9,7 +9,7 @@ By the end, you will have:
 
 - a scaffolded HTTP project
 - optional OpenAPI and validation support
-- two HTTP function modules (`hello` and `users`)
+- two HTTP function modules (`health` and `webhooks`)
 - local run and curl verification flow
 
 ## 1) Generate the Project
@@ -42,13 +42,13 @@ make check-all
 
 ## 2) Understand Generated HTTP Behavior
 
-With `--with-validation` enabled, the default `hello` route is generated as a
-`POST` endpoint that validates body models.
+The `http` template generates two endpoints:
 
-!!! note "Default route mode changes"
-    Without validation, the default route is `GET /api/hello` and reads query
-    params. With validation enabled, it becomes `POST /api/hello` and expects a
-    JSON body.
+- `GET /api/health` — anonymous auth, returns `{"status": "ok"}`.
+- `POST /api/webhooks/inbound` — FUNCTION auth, verifies an HMAC-SHA256 signature from the `X-Signature` header against the `WEBHOOK_SECRET` environment variable. Returns 503 when the secret is not configured, 401 on signature mismatch, and 202 on success.
+
+!!! note "Default route mode"
+    The health endpoint uses anonymous auth so it can be polled by infrastructure without credentials. The webhook endpoint uses FUNCTION auth and signature verification to authenticate external callers.
 
 The `function_app.py` entrypoint also includes OpenAPI routes when
 `--with-openapi` is enabled:
@@ -63,18 +63,16 @@ The `function_app.py` entrypoint also includes OpenAPI routes when
 func start
 ```
 
-In a second terminal, test the validated hello route:
+In a second terminal, test the health endpoint:
 
 ```bash
-curl -X POST "http://localhost:7071/api/hello" \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Azure"}'
+curl "http://localhost:7071/api/health"
 ```
 
-Expected response shape:
+Expected response:
 
 ```json
-{"message":"Hello, Azure!"}
+{"status": "ok"}
 ```
 
 Open Swagger UI:
@@ -179,9 +177,8 @@ Example response:
     Regenerate with `--with-openapi`, or verify your project was created with
     that flag. OpenAPI routes are generated at creation time.
 
-!!! warning "Validation errors on hello"
-    With validation enabled, `hello` expects JSON body fields that match
-    `app/schemas/request_models.py`.
+!!! warning "Webhook secret not set"
+    With `WEBHOOK_SECRET` unset, `POST /api/webhooks/inbound` returns 503. Set it in `local.settings.json` before testing the webhook endpoint locally.
 
 ## Next Steps
 

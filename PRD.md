@@ -81,10 +81,10 @@ pip install -e .
 func start
 ```
 
-Open `http://localhost:7071/api/hello` and get:
+Open `http://localhost:7071/api/health` and get:
 
-```text
-Hello, World!
+```json
+{"status": "ok"}
 ```
 
 Every template (HTTP, timer, queue, blob, Service Bus) produces a project that runs

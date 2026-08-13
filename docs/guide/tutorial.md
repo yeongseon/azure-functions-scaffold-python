@@ -4,7 +4,7 @@ This guide provides end-to-end walkthroughs for each function template available
 
 ## HTTP API
 
-The default template generates a RESTful API endpoint with a clean separation between trigger logic and business services.
+The default template generates a RESTful API with two endpoints: a health check and a webhook receiver. Trigger logic and business services are cleanly separated.
 
 ### Generate the Project
 
@@ -18,43 +18,50 @@ make install
 
 ### Explore the Generated Code
 
-The generator creates a modular structure where the function entry point is separated from the business logic.
+The generator creates a modular structure where each function entry point is separated from its business logic.
 
 ```python
-# app/functions/http.py
+# app/functions/health.py
 from __future__ import annotations
+
+import json
+import logging
 
 import azure.functions as func
 
-from app.services.hello_service import build_greeting
+from app.services.health_service import check_health
 
-http_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
+health_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 
-@http_blueprint.route(
-    route="hello",
+@health_blueprint.route(
+    route="health",
     methods=["GET"],
     auth_level=func.AuthLevel.ANONYMOUS,
 )
-def hello(req: func.HttpRequest) -> func.HttpResponse:
-    name = req.params.get("name", "world")
-    message = build_greeting(name)
-    return func.HttpResponse(message, status_code=200)
+def health(req: func.HttpRequest) -> func.HttpResponse:
+    logging.info("Health check requested")
+    result = check_health()
+    return func.HttpResponse(
+        body=json.dumps(result),
+        mimetype="application/json",
+        status_code=200,
+    )
 ```
 
-The business logic resides in a dedicated service file:
+The health business logic lives in a dedicated service file:
 
 ```python
-# app/services/hello_service.py
+# app/services/health_service.py
 from __future__ import annotations
 
 
-def build_greeting(name: str) -> str:
-    clean_name = name.strip() or "world"
-    return f"Hello, {clean_name}!"
+def check_health() -> dict[str, str]:
+    """Return a simple health status dictionary."""
+    return {"status": "ok"}
 ```
 
-The `function_app.py` file registers the blueprint:
+The `function_app.py` file registers both blueprints:
 
 ```python
 # function_app.py
@@ -63,7 +70,8 @@ from __future__ import annotations
 import azure.functions as func
 
 from app.core.logging import configure_logging
-from app.functions.http import http_blueprint
+from app.functions.health import health_blueprint
+from app.functions.webhooks import webhooks_blueprint
 
 # azure-functions-scaffold: function imports
 
@@ -71,56 +79,29 @@ configure_logging()
 
 app = func.FunctionApp()
 # azure-functions-scaffold: function registrations
-app.register_functions(http_blueprint)
+app.register_functions(health_blueprint)
+app.register_functions(webhooks_blueprint)
 ```
 
 ### Customize the Logic
 
-To return a JSON response with a timestamp, update the service first:
+To enrich the health response with version or dependency info, update the service:
 
 ```python
-# app/services/hello_service.py
+# app/services/health_service.py
 from __future__ import annotations
-from datetime import datetime
+from datetime import datetime, timezone
 
 
-def build_greeting(name: str) -> dict[str, str]:
-    clean_name = name.strip() or "world"
+def check_health() -> dict[str, str]:
+    """Return a health status dictionary with a timestamp."""
     return {
-        "message": f"Hello, {clean_name}!",
-        "timestamp": datetime.utcnow().isoformat()
+        "status": "ok",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 ```
 
-Then update the function to return a JSON response:
-
-```python
-# app/functions/http.py
-from __future__ import annotations
-
-import json
-
-import azure.functions as func
-
-from app.services.hello_service import build_greeting
-
-http_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
-
-
-@http_blueprint.route(
-    route="hello",
-    methods=["GET"],
-    auth_level=func.AuthLevel.ANONYMOUS,
-)
-def hello(req: func.HttpRequest) -> func.HttpResponse:
-    name = req.params.get("name", "world")
-    data = build_greeting(name)
-    return func.HttpResponse(
-        body=json.dumps(data),
-        mimetype="application/json",
-        status_code=200,
-    )
-```
+The function module requires no changes — it already serialises whatever the service returns.
 
 ### Run the Tests
 
@@ -130,29 +111,32 @@ Verify your changes using the included test suite.
 make test
 ```
 
-The standard preset includes a unit test for the HTTP trigger:
+The standard preset includes a unit test for the health endpoint:
 
 ```python
-# tests/test_http.py
+# tests/test_health.py
 from __future__ import annotations
+
+import json
 
 import azure.functions as func
 
-from app.functions.http import hello
+from app.functions.health import health
 
 
-def test_hello_returns_named_greeting() -> None:
+def test_health_returns_ok_status() -> None:
     request = func.HttpRequest(
         method="GET",
-        url="http://localhost/api/hello",
-        params={"name": "Azure"},
+        url="http://localhost/api/health",
+        params={},
         body=b"",
     )
 
-    response = hello(request)
+    response = health(request)
 
     assert response.status_code == 200
-    assert response.get_body() == b"Hello, Azure!"
+    body = json.loads(response.get_body())
+    assert body == {"status": "ok"}
 ```
 
 ### Run Locally
@@ -166,13 +150,13 @@ func start
 In a separate terminal, send a request:
 
 ```bash
-curl "http://localhost:7071/api/hello?name=Azure"
+curl "http://localhost:7071/api/health"
 ```
 
 Expected output:
 
-```text
-Hello, Azure!
+```json
+{"status": "ok"}
 ```
 
 ### Expand with `add`

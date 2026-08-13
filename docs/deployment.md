@@ -13,7 +13,7 @@ Now you want to deploy it to Azure so it runs in the cloud. This guide assumes y
 `azure-functions-scaffold` generates ready-to-deploy Azure Functions projects from templates.
 This guide deploys two templates:
 
-- **`http` template** — An HTTP API with a `/api/hello` endpoint
+- **`http` template** — An HTTP API with a `/api/health` endpoint
 - **`timer` template** — A scheduled background job that runs every 5 minutes
 
 After following this guide, your scaffolded project will be running on Azure and reachable from the internet.
@@ -84,16 +84,20 @@ Files:
   - app/core/__init__.py
   - app/core/logging.py
   - app/functions/__init__.py
-  - app/functions/http.py
+  - app/functions/health.py
+  - app/functions/webhooks.py
   - app/schemas/__init__.py
-  - app/schemas/request_models.py
+  - app/schemas/health.py
+  - app/schemas/webhooks.py
   - app/services/__init__.py
-  - app/services/hello_service.py
+  - app/services/health_service.py
+  - app/services/webhook_service.py
   - function_app.py
   - host.json
   - local.settings.json.example
   - pyproject.toml
-  - tests/test_http.py
+  - tests/test_health.py
+  - tests/test_webhooks.py
 ```
 
 Now create the actual project:
@@ -124,13 +128,13 @@ func start
 In another terminal:
 
 ```bash
-curl http://localhost:7071/api/hello?name=Local
+curl http://localhost:7071/api/health
 ```
 
 Expected output:
 
-```text
-Hello, Local!
+```json
+{"status": "ok"}
 ```
 
 Stop the local server with `Ctrl+C` before deploying.
@@ -221,8 +225,8 @@ Performing remote build for functions project.
 ...
 Deployment completed successfully.
 Functions in func-scaffold-http:
-    hello - [httpTrigger]
-        Invoke url: https://func-scaffold-http.azurewebsites.net/api/hello
+    health - [httpTrigger]
+        Invoke url: https://func-scaffold-http.azurewebsites.net/api/health
 ```
 
 > ⚠️ **First deploy may take 1–3 minutes** because Azure installs your Python dependencies via remote build.
@@ -230,25 +234,13 @@ Functions in func-scaffold-http:
 ### Step 10 — Verify on Azure
 
 ```bash
-curl "https://$FUNCTIONAPP_NAME.azurewebsites.net/api/hello"
+curl "https://$FUNCTIONAPP_NAME.azurewebsites.net/api/health"
 ```
 
 Expected output:
 
-```text
-Hello, world!
-```
-
-Try with a name parameter:
-
-```bash
-curl "https://$FUNCTIONAPP_NAME.azurewebsites.net/api/hello?name=Azure"
-```
-
-Expected output:
-
-```text
-Hello, Azure!
+```json
+{"status": "ok"}
 ```
 
 ✅ **Your scaffolded HTTP API is now running on Azure!**
@@ -452,7 +444,7 @@ az functionapp create \
 
 | Symptom | Usually means | How to fix |
 |---|---|---|
-| HTTP 404 on `/api/hello` | Function not registered | Check `func azure functionapp publish` output — it should list `hello - [httpTrigger]` |
+| HTTP 404 on `/api/health` | Function not registered | Check `func azure functionapp publish` output — it should list `health - [httpTrigger]` |
 | Timer never fires | Schedule syntax or timezone issue | Timer uses NCRONTAB format in UTC. Check `function.json` or decorator schedule. |
 | `Internal Server Error` (500) | Python exception in your code | Check logs: `func azure functionapp logstream "$FUNCTIONAPP_NAME"` |
 

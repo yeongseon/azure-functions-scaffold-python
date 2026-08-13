@@ -69,12 +69,18 @@ Start runtime:
 func start
 ```
 
-Test validated hello endpoint:
+Test the health endpoint:
 
 ```bash
-curl -X POST "http://localhost:7071/api/hello" \
+curl "http://localhost:7071/api/health"
+```
+
+Test the webhook inbound endpoint (requires a valid `X-Signature` header in production; omit for local smoke-testing with a permissive secret):
+
+```bash
+curl -X POST "http://localhost:7071/api/webhooks/inbound" \
   -H "Content-Type: application/json" \
-  -d '{"name":"Commerce"}'
+  -d '{"event_type":"order.placed","source":"shop"}'
 ```
 
 Open docs:
@@ -188,8 +194,8 @@ func azure functionapp publish <APP_NAME>
 
 ## Troubleshooting Notes
 
-!!! warning "Validation route method mismatch"
-    With validation enabled, generated hello endpoint is `POST`, not `GET`.
+!!! warning "Webhook signature validation"
+    The `POST /api/webhooks/inbound` endpoint verifies an HMAC-SHA256 signature from the `X-Signature` header. Set `WEBHOOK_SECRET` in `local.settings.json` before testing locally; the endpoint returns 503 when the secret is missing.
 
 !!! warning "Doctor command missing"
     Confirm project was created with `--with-doctor` and re-run dependency
