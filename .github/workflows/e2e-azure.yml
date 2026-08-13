@@ -138,8 +138,8 @@ jobs:
           sleep 60
           echo "Probing app status:"
           for i in 1 2 3 4 5; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${APP_URL}/api/hello?name=probe" || echo "curl-failed")
-            echo "  attempt $i: ${APP_URL}/api/hello -> ${STATUS}"
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${APP_URL}/api/health" || echo "curl-failed")
+            echo "  attempt $i: ${APP_URL}/api/health -> ${STATUS}"
             [ "$STATUS" = "200" ] && break
             sleep 10
           done
