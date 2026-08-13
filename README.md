@@ -11,7 +11,7 @@
 [![Security Scans](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml)
 [![codecov](https://codecov.io/gh/yeongseon/azure-functions-scaffold-python/branch/main/graph/badge.svg)](https://codecov.io/gh/yeongseon/azure-functions-scaffold-python)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
-[![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-scaffold-python/)
+[![Docs](https://img.shields.io/badge/docs-yeongseon.dev-blue)](https://yeongseon.dev/azure-functions-python/scaffold/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Read this in: [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
@@ -274,7 +274,7 @@ Before publishing:
 
 ## Documentation
 
-- Full docs: [yeongseon.github.io/azure-functions-scaffold-python](https://yeongseon.github.io/azure-functions-scaffold-python/)
+- Full docs: [yeongseon.dev/azure-functions-python/scaffold](https://yeongseon.dev/azure-functions-python/scaffold/)
 - Python version support: [`docs/guide/configuration.md#python-version-support`](docs/guide/configuration.md#python-version-support)
 - Getting Started: [`docs/guide/getting-started.md`](docs/guide/getting-started.md)
 - CLI Reference: [`docs/reference/cli.md`](docs/reference/cli.md)
