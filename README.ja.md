@@ -13,6 +13,8 @@
 
 他の言語: [English](README.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
 
+> ℹ️ この翻訳はコミュニティによる参考用であり、最新の [English README](README.md) より古い場合があります。正確な最新情報は英語版を参照してください。
+
 プロダクションレベルの Azure Functions Python v2 プロジェクトのためのスキャフォールディング CLI.
 
 Python バージョンサポート: Azure Functions では 3.10-3.13 は GA、3.14 は **Preview** です。詳しくは [Python バージョンサポート](docs/guide/configuration.md#python-version-support) を参照してください。
