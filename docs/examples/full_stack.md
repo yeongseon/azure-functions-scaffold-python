@@ -75,12 +75,18 @@ Test the health endpoint:
 curl "http://localhost:7071/api/health"
 ```
 
-Test the webhook inbound endpoint (requires a valid `X-Signature` header in production; omit for local smoke-testing with a permissive secret):
+Test the webhook inbound endpoint. It requires `WEBHOOK_SECRET` to be set
+locally and a matching HMAC-SHA256 `X-Signature` header; without a valid
+signature it returns `401` (or `503` when the secret is unset):
 
 ```bash
+BODY='{"event_type":"order.placed","source":"shop"}'
+SIG="sha256=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" | awk '{print $2}')"
+
 curl -X POST "http://localhost:7071/api/webhooks/inbound" \
   -H "Content-Type: application/json" \
-  -d '{"event_type":"order.placed","source":"shop"}'
+  -H "X-Signature: $SIG" \
+  -d "$BODY"
 ```
 
 Open docs:
@@ -130,7 +136,7 @@ def list_products() -> list[dict[str, object]]:
     ]
 ```
 
-Example schema additions (`app/schemas/request_models.py`):
+Example schema additions (`app/schemas/order_status.py`):
 
 ```python
 from pydantic import BaseModel
