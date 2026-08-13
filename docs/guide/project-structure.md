@@ -16,13 +16,17 @@ my-api/
 │   ├── core/
 │   │   └── logging.py       # Structured JSON logging configuration
 │   ├── functions/
-│   │   └── http.py          # HTTP trigger handler (Blueprint)
+│   │   ├── health.py        # Health check HTTP trigger (Blueprint)
+│   │   └── webhooks.py      # Webhook HTTP trigger (Blueprint)
 │   ├── schemas/
-│   │   └── request_models.py  # Request/response models
+│   │   ├── health.py        # Health response model
+│   │   └── webhooks.py      # Webhook request/response models
 │   └── services/
-│       └── hello_service.py # Pure Python business logic
+│       ├── health_service.py   # Health check business logic
+│       └── webhook_service.py  # Webhook business logic
 └── tests/
-    └── test_http.py         # Pytest test suite
+    ├── test_health.py       # Pytest suite for health endpoint
+    └── test_webhooks.py     # Pytest suite for webhooks endpoint
 ```
 
 ### Layer Responsibilities
@@ -45,20 +49,26 @@ Traditional Azure Functions often mix trigger logic with business rules. By usin
 The trigger receives the request, calls a service, and returns the response. This pattern keeps the function logic minimal.
 
 ```python
-# app/functions/http.py (simplified)
+# app/functions/health.py (simplified)
 from __future__ import annotations
+
+import json
+import logging
 
 import azure.functions as func
 
-from app.services.hello_service import build_greeting
+from app.services.health_service import check_health
 
-http_blueprint = func.Blueprint()
+health_blueprint = func.Blueprint()
 
-@http_blueprint.route(route="hello", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
-def hello(req: func.HttpRequest) -> func.HttpResponse:
-    name = req.params.get("name", "world")
-    message = build_greeting(name)
-    return func.HttpResponse(message, status_code=200)
+@health_blueprint.route(route="health", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
+def health(req: func.HttpRequest) -> func.HttpResponse:
+    result = check_health()
+    return func.HttpResponse(
+        body=json.dumps(result),
+        mimetype="application/json",
+        status_code=200,
+    )
 ```
 
 ### Blueprint Registration
@@ -70,12 +80,14 @@ The main `function_app.py` acts as a coordinator. It imports and registers Bluep
 import azure.functions as func
 
 from app.core.logging import configure_logging
-from app.functions.http import http_blueprint
+from app.functions.health import health_blueprint
+from app.functions.webhooks import webhooks_blueprint
 
 configure_logging()
 
 app = func.FunctionApp()
-app.register_functions(http_blueprint)
+app.register_functions(health_blueprint)
+app.register_functions(webhooks_blueprint)
 ```
 
 ### What's Next?

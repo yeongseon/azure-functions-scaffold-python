@@ -59,13 +59,13 @@ func start
 Once the local runtime is ready, use `curl` to test the default HTTP trigger.
 
 ```bash
-curl "http://localhost:7071/api/hello?name=Azure"
+curl "http://localhost:7071/api/health"
 ```
 
 **Expected Output:**
 
-```text
-Hello, Azure!
+```json
+{"status": "ok"}
 ```
 
 ### What's Next?

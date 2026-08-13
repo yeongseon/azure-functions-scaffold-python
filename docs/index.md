@@ -99,7 +99,7 @@ func start
 Then hit the default route:
 
 ```text
-http://localhost:7071/api/hello
+http://localhost:7071/api/health
 ```
 
 ## Common Command Patterns
