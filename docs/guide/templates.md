@@ -109,7 +109,7 @@ afs advanced new --template durable --preset standard my-workflow
 ```
 
 *   **Generates**: `app/functions/durable.py`, `app/services/durable_service.py`, `tests/test_durable.py`.
-*   **Key points**: Uses `azure.functions.durable_functions`. Requires Azurite for state management.
+*   **Key points**: Uses `azure.durable_functions`. Requires Azurite for state management.
 
 ### AI Template
 

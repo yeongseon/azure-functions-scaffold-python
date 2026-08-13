@@ -181,7 +181,7 @@ users_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 @users_blueprint.route(
     route="users",
     methods=["GET"],
-    auth_level=func.AuthLevel.ANONYMOUS,
+    auth_level=func.AuthLevel.FUNCTION,
 )
 def users(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse(

@@ -40,7 +40,7 @@ The generated function exposes a `POST /api/chat` endpoint:
 @ai_blueprint.route(
     route="chat",
     methods=["POST"],
-    auth_level=func.AuthLevel.ANONYMOUS,
+    auth_level=func.AuthLevel.FUNCTION,
 )
 async def chat(req: func.HttpRequest) -> func.HttpResponse:
     try:

@@ -44,7 +44,7 @@ instance:
 @durable_blueprint.route(
     route="orchestrators/{functionName}",
     methods=["POST"],
-    auth_level=func.AuthLevel.ANONYMOUS,
+    auth_level=func.AuthLevel.FUNCTION,
 )
 @durable_blueprint.durable_client_input(client_name="client")
 async def http_start(
@@ -59,11 +59,13 @@ async def http_start(
 
 ```python
 @durable_blueprint.orchestration_trigger(context_name="context")
-def hello_orchestrator(context: df.DurableOrchestrationContext) -> list[str]:
+def hello_orchestrator(
+    context: df.DurableOrchestrationContext,
+) -> Generator[Any, Any, list[str]]:
     results: list[str] = []
-    results.append(yield context.call_activity("say_hello", "Tokyo"))
-    results.append(yield context.call_activity("say_hello", "Seattle"))
-    results.append(yield context.call_activity("say_hello", "London"))
+    results.append((yield context.call_activity("say_hello", "Tokyo")))
+    results.append((yield context.call_activity("say_hello", "Seattle")))
+    results.append((yield context.call_activity("say_hello", "London")))
     return results
 ```
 
@@ -76,7 +78,7 @@ def say_hello(city: str) -> str:
 ```
 
 !!! note "Durable Functions imports"
-    Durable uses `azure.functions.durable_functions` (imported as `df`)
+    Durable uses `azure.durable_functions` (imported as `df`)
     alongside the standard `azure.functions` package.
 
 ## 3) Generated Layout
@@ -172,8 +174,8 @@ def format_result(greeting: str) -> str:
 Update the orchestrator to call the new activity after each greeting:
 
 ```python
-results.append(yield context.call_activity("say_hello", "Tokyo"))
-results.append(yield context.call_activity("format_result", results[-1]))
+results.append((yield context.call_activity("say_hello", "Tokyo")))
+results.append((yield context.call_activity("format_result", results[-1])))
 ```
 
 ## 7) Testing Strategy

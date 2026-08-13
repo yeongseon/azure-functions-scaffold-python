@@ -40,11 +40,11 @@ The generated trigger function:
 ```python
 @cosmosdb_blueprint.cosmos_db_trigger_v3(
     arg_name="documents",
-    container_name="my-container",
+    collection_name="my-container",
     database_name="my-database",
-    connection="CosmosDBConnection",
-    lease_container_name="leases",
-    create_lease_container_if_not_exists=True,
+    connection_string_setting="CosmosDBConnection",
+    lease_collection_name="leases",
+    create_lease_collection_if_not_exists=True,
 )
 def process_cosmos_changes(documents: func.DocumentList) -> None:
     count = describe_documents(documents)
@@ -54,7 +54,7 @@ def process_cosmos_changes(documents: func.DocumentList) -> None:
 !!! note "Lease container"
     The lease container tracks which changes have been processed. It enables
     multiple instances to share the change feed without duplicating work. The
-    `create_lease_container_if_not_exists=True` flag creates it automatically.
+    `create_lease_collection_if_not_exists=True` flag creates it automatically.
 
 ## 3) Generated Layout
 
@@ -149,11 +149,11 @@ def process_cosmos_changes(documents: func.DocumentList) -> None:
 
 | Parameter | Description |
 | :--- | :--- |
-| `container_name` | Source container to watch for changes. |
+| `collection_name` | Source container to watch for changes. |
 | `database_name` | Database containing the source container. |
-| `connection` | App setting name for the CosmosDB connection string. |
-| `lease_container_name` | Container used to store change feed leases. |
-| `create_lease_container_if_not_exists` | Auto-create lease container on first run. |
+| `connection_string_setting` | App setting name for the CosmosDB connection string. |
+| `lease_collection_name` | Container used to store change feed leases. |
+| `create_lease_collection_if_not_exists` | Auto-create lease container on first run. |
 | `feed_poll_delay` | Delay in milliseconds between feed polls (optional). |
 
 ## 8) Testing Strategy
@@ -185,7 +185,7 @@ service layer.
 
 !!! warning "Lease conflicts"
     Multiple local instances sharing the same lease container can cause
-    processing conflicts. Use a unique `lease_container_name` per instance
+    processing conflicts. Use a unique `lease_collection_name` per instance
     during development.
 
 !!! warning "Emulator SSL errors"
