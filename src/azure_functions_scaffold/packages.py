@@ -27,6 +27,19 @@ SUPPORTED_PACKAGES: dict[str, str] = {
 def requirement(name: str) -> str:
     """Return the full PEP 508 requirement string for a supported package.
 
-    Example: ``requirement("azure-functions")`` -> ``"azure-functions>=1.23.0"``.
+    The returned value is a bare specifier with no surrounding quotes, e.g.
+    ``requirement("azure-functions")`` returns
+    ``azure-functions>=1.23.0,<2.0.0`` (not a quoted string).
+
+    Raises:
+        KeyError: If ``name`` is not a supported toolkit package. The message
+            names the unknown package and lists the valid keys.
     """
-    return f"{name}{SUPPORTED_PACKAGES[name]}"
+    try:
+        spec = SUPPORTED_PACKAGES[name]
+    except KeyError:
+        valid = ", ".join(sorted(SUPPORTED_PACKAGES))
+        raise KeyError(
+            f"Unknown package {name!r}; supported packages are: {valid}"
+        ) from None
+    return f"{name}{spec}"
