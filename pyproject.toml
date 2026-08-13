@@ -58,8 +58,8 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://yeongseon.github.io/azure-functions-scaffold-python/"
-Documentation = "https://yeongseon.github.io/azure-functions-scaffold-python/"
+Homepage = "https://yeongseon.dev/azure-functions-python/scaffold/"
+Documentation = "https://yeongseon.dev/azure-functions-python/scaffold/"
 Repository = "https://github.com/yeongseon/azure-functions-scaffold-python"
 Issues = "https://github.com/yeongseon/azure-functions-scaffold-python/issues"
 

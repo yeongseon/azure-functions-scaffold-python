@@ -8,7 +8,7 @@
 [![Security Scans](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml)
 [![codecov](https://codecov.io/gh/yeongseon/azure-functions-scaffold-python/branch/main/graph/badge.svg)](https://codecov.io/gh/yeongseon/azure-functions-scaffold-python)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com/)
-[![Docs](https://img.shields.io/badge/docs-gh--pages-blue)](https://yeongseon.github.io/azure-functions-scaffold-python/)
+[![Docs](https://img.shields.io/badge/docs-yeongseon.dev-blue)](https://yeongseon.dev/azure-functions-python/scaffold/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 他の言語: [English](README.md) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md)
@@ -241,7 +241,7 @@ func azure functionapp publish <APP_NAME>
 
 ## ドキュメント
 
-- 全文書: [yeongseon.github.io/azure-functions-scaffold-python](https://yeongseon.github.io/azure-functions-scaffold-python/)
+- 全文書: [yeongseon.dev/azure-functions-python/scaffold](https://yeongseon.dev/azure-functions-python/scaffold/)
 - Python バージョンサポート: [`docs/guide/configuration.md#python-version-support`](docs/guide/configuration.md#python-version-support)
 - はじめに: [`docs/guide/getting-started.md`](docs/guide/getting-started.md)
 - CLI リファレンス: [`docs/reference/cli.md`](docs/reference/cli.md)
