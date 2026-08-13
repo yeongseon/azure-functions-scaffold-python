@@ -90,3 +90,12 @@ def test_rendered_pyproject_uses_catalog_specs(
         assert requirement(name) in pyproject, (
             f"{template_name} pyproject missing catalog pin {requirement(name)}"
         )
+
+
+def test_requirement_unknown_name_raises_descriptive_error() -> None:
+    with pytest.raises(KeyError) as excinfo:
+        requirement("not-a-real-package")
+    message = str(excinfo.value)
+    assert "not-a-real-package" in message
+    # The error lists the valid keys so callers can self-correct.
+    assert "azure-functions" in message
