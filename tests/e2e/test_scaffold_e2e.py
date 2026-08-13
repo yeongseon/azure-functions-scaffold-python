@@ -33,13 +33,13 @@ def warmup() -> None:
     deadline = time.time() + 300
     while time.time() < deadline:
         try:
-            r = requests.get(f"{BASE_URL}/api/hello", timeout=10)
+            r = requests.get(f"{BASE_URL}/api/health", timeout=10)
             if r.status_code == 200:
                 return
         except requests.RequestException:
             pass
         time.sleep(3)
-    pytest.fail("Warmup failed: /api/hello did not respond within 300 s")
+    pytest.fail("Warmup failed: /api/health did not respond within 300 s")
 
 
 # ── Scaffold generation tests (no Azure needed) ────────────────────────────
@@ -75,7 +75,7 @@ def test_scaffolded_function_app_imports_cleanly() -> None:
 
 
 @pytest.mark.skipif(not BASE_URL, reason=SKIP_REASON)
-def test_hello_endpoint_returns_200() -> None:
-    r = requests.get(f"{BASE_URL}/api/hello", params={"name": "e2e"}, timeout=30)
+def test_health_endpoint_returns_200() -> None:
+    r = requests.get(f"{BASE_URL}/api/health", timeout=30)
     assert r.status_code == 200
-    assert "e2e" in r.text or "hello" in r.text.lower()
+    assert "ok" in r.text.lower()
