@@ -59,6 +59,10 @@ lint: ensure-hatch
 security: ensure-hatch
 	@$(HATCH) run security
 
+.PHONY: lint-workflows
+lint-workflows: ensure-hatch
+	@$(HATCH) run python tools/lint_workflow_pins.py
+
 .PHONY: check
 check: ensure-hatch
 	@$(MAKE) lint
@@ -68,6 +72,7 @@ check: ensure-hatch
 .PHONY: check-all
 check-all: ensure-hatch
 	@$(MAKE) check
+	@$(MAKE) lint-workflows
 	@$(MAKE) test
 	@$(MAKE) security
 	@echo "All checks passed including tests and security scan."
