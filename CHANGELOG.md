@@ -1,10 +1,42 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.6.5] - 2026-08-14
+
+### Bug Fixes
+
+- *(e2e)* Probe existing /api/health route instead of nonexistent /api/hello (#227) 
+
+### Documentation
+
+- Consolidate official documentation URL onto yeongseon.dev (#237) 
+- *(i18n)* Adopt best-effort translation policy with staleness banners (#230) 
+- Fix template drift in example and guide docs (#231) 
+- Align http-template docs with health+webhooks structure (#228) 
+- *(reference)* Document include_azd and fix deprecated afs add flow (#220) 
+
+### Features
+
+- *(packages)* Raise a descriptive error for unknown requirement() names (#238) 
+
+### Miscellaneous Tasks
+
+- Stop auto-deploying docs to GitHub Pages (#240) 
+- *(ci)* Normalize action version-comment labels (#235) 
+- Add workflow pin-hygiene lint (#233) 
+- Use ref-based OIDC subject for e2e-azure (#226) 
+- Gate PyPI publish behind lib-tests + real-Azure certification (#222) 
+- Ignore agent orchestration state (.omc/) (#224) 
+- Bump ruff to 0.16.2 and repair pre-commit hooks (#217) 
+
+### Other
+
+- Bump version to 0.6.5 
 ## [0.6.4] - 2026-08-11
 
 ### Documentation
 
+- Update changelog 
 - Add Branch Hygiene section to AGENTS.md 
 - Fix broken doc links to unblock strict mkdocs build 
 - *(release)* Require cookbook dogfood verification after publish 
