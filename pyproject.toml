@@ -39,7 +39,7 @@ dev = [
     "pre-commit",
     "pytest",
     "pytest-cov",
-    "ruff==0.16.4",
+    "ruff==0.16.5",
     "requests",
     "types-requests",
     # Smoke-test deps: generated project runtime packages needed by
