@@ -37,16 +37,18 @@ webhooks_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
     ),
     tags=["webhooks"],
 {%- if include_validation %}
-    request_model=WebhookEvent,
-    response_model=WebhookAcceptedResponse,
-    response={
-        202: {"description": "Webhook accepted for processing"},
+    requests=WebhookEvent,
+    responses={
+        202: {
+            "description": "Webhook accepted for processing",
+            "content": {"application/json": {"schema": WebhookAcceptedResponse}},
+        },
         400: {"description": "Invalid request payload"},
         401: {"description": "Invalid webhook signature"},
         422: {"description": "Request validation error"},
     },
 {%- else %}
-    response={
+    responses={
         202: {"description": "Webhook accepted for processing"},
         400: {"description": "Invalid request payload"},
         401: {"description": "Invalid webhook signature"},
