@@ -206,13 +206,18 @@ jobs:
         working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
         run: |
           if grep -Eq '^doctor:' Makefile; then
-            # Tolerate diagnostics findings (exit 1) but fail on a Doctor crash
-            # or usage error (exit 2+).
+            # Tolerate diagnostics findings but fail on a Doctor crash or
+            # usage error. NOTE: GNU make reports a recipe command's exit 1
+            # as its own exit 2, which would mask tolerable findings. Doctor
+            # prints a "Doctor summary" line whenever it ran to completion
+            # (findings included), so treat any make failure WITHOUT that
+            # summary as a genuine crash/usage error and fail on it.
             set +e
-            make doctor
+            out="$(make doctor 2>&1)"
             status=$?
             set -e
-            if [ "${status}" -gt 1 ]; then
+            printf '%s\n' "${out}"
+            if [ "${status}" -gt 1 ] && ! printf '%s' "${out}" | grep -q 'Doctor summary'; then
               echo "make doctor failed unexpectedly (exit ${status})"
               exit "${status}"
             fi
