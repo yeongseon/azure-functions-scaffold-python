@@ -492,6 +492,29 @@ def test_build_project_options_marks_custom_tooling() -> None:
     assert options.tooling == ("ruff", "mypy")
 
 
+def test_build_project_options_honors_empty_tooling_override() -> None:
+    options = build_project_options(
+        preset_name="standard",
+        python_version="3.11",
+        include_github_actions=False,
+        initialize_git=False,
+        tooling=(),
+    )
+
+    assert options.preset_name == "custom"
+    assert options.tooling == ()
+
+    default_options = build_project_options(
+        preset_name="standard",
+        python_version="3.11",
+        include_github_actions=False,
+        initialize_git=False,
+        tooling=None,
+    )
+    assert default_options.preset_name == "standard"
+    assert len(default_options.tooling) > 0
+
+
 def test_scaffold_project_can_initialize_git_repository(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
