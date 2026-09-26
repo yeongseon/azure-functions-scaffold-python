@@ -39,7 +39,5 @@ def requirement(name: str) -> str:
         spec = SUPPORTED_PACKAGES[name]
     except KeyError:
         valid = ", ".join(sorted(SUPPORTED_PACKAGES))
-        raise KeyError(
-            f"Unknown package {name!r}; supported packages are: {valid}"
-        ) from None
+        raise KeyError(f"Unknown package {name!r}; supported packages are: {valid}") from None
     return f"{name}{spec}"
