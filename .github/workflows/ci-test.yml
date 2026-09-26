@@ -10,30 +10,6 @@ permissions:
   contents: read
 
 jobs:
-  format:
-    name: Ruff format check (changed Python files)
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python 3.10
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.10"
-
-      - name: Install Ruff
-        run: python -m pip install 'ruff==0.16.8'
-
-      - name: Check changed Python files
-        env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: python tools/check_pr_format.py "$PR_BASE_SHA" "$PR_HEAD_SHA"
-
   # Lint, type-check and workflow hygiene run once on a single pinned
   # interpreter (Python 3.10). These checks are interpreter-agnostic, so
   # fanning them across the matrix would only duplicate work.
@@ -43,6 +19,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The changed-file format check below diffs against the PR merge-base,
+          # which a shallow clone does not contain.
+          fetch-depth: 0
 
       - name: Set up Python 3.10
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -65,6 +45,13 @@ jobs:
           ruff check src tests
           ruff format --check src tests
 
+      - name: Ruff format check (changed Python files)
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python tools/check_pr_format.py "$PR_BASE_SHA" "$PR_HEAD_SHA"
+
       - name: Type check (mypy)
         run: mypy src tests
 
@@ -77,11 +64,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # azure-functions is capped to <2.0.0 (the 1.x line), which is only
-        # installable on Python <3.13. Python 3.13/3.14 require the 2.x SDK and
-        # are tracked separately; advertising them here without a real 2.x lane
-        # would be a false signal.
-        python-version: ["3.10", "3.11", "3.12"]
+        # Mirrors the Python versions advertised in pyproject classifiers.
+        # azure-functions 1.25.0 declares Requires-Python >=3.10 with no upper
+        # cap, so the 1.x pin resolves on 3.13/3.14 and needs no separate 2.x
+        # lane here.
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         resolution: ["latest"]
         include:
           # Extra job: resolve to the minimum declared dependency floors on the
@@ -100,8 +87,8 @@ jobs:
 
       - name: Assert the runtime interpreter matches the matrix cell
         # Belt-and-braces: tests below run directly on this interpreter (raw
-        # pytest, NOT the Python-3.10-pinned hatch env), so 3.11/3.12 are
-        # genuinely exercised. This guard fails loudly if that ever drifts.
+        # pytest, NOT the Python-3.10-pinned hatch env), so every non-3.10 cell
+        # is genuinely exercised. This guard fails loudly if that ever drifts.
         env:
           EXPECTED: ${{ matrix.python-version }}
         run: |
