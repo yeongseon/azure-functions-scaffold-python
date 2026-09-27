@@ -145,7 +145,7 @@ def build_project_options(
 ) -> ProjectOptions:
     preset = get_preset(preset_name)
     validate_python_version(python_version)
-    resolved_tooling = validate_tooling(tooling or preset.tooling)
+    resolved_tooling = validate_tooling(preset.tooling if tooling is None else tooling)
     resolved_preset_name = preset.name if resolved_tooling == preset.tooling else "custom"
     return ProjectOptions(
         preset_name=resolved_preset_name,
