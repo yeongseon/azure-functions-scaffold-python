@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import ast
+from collections.abc import Callable
 import importlib
 import json
 import os
 from pathlib import Path
 import subprocess
 import sys
-from typing import Callable, cast
+from typing import cast
 
 import pytest
 
