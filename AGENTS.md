@@ -3,6 +3,14 @@
 ## Purpose
 `azure-functions-scaffold` is a CLI and library for scaffolding production-ready Azure Functions Python v2 projects.
 
+## Repository Identity
+
+- Project: `azure-functions-scaffold`
+- Project type: Python CLI
+- Runtime scope: Azure Functions Python v2 programming model
+- Minimum supported Python: `3.10`
+- Packaging: `pyproject.toml` with Hatch
+
 ## Read First
 - `README.md`
 - `CONTRIBUTING.md`
@@ -107,6 +115,47 @@ This repository is **issue-based, not milestone-based**. Track and group work us
    - Treat any new `RuntimeWarning`/`DeprecationWarning` surfaced by this library during the cookbook run as a release-blocking signal — decorator-order and API-drift problems are reported as warnings, so a clean run (zero warnings from this package) is part of the release gate.
    - If the cookbook pins a lower bound (`azure-functions-scaffold>=X.Y,<1`), bump it to the new minor in the same verification PR so examples are tested against the version they advertise.
    - A release is **not** considered done until the cookbook passes on the published version.
+
+## Golden Commands
+
+Use Makefile entry points only. Do not bypass the Makefile in CI or contributor guidance.
+
+| Purpose | Command |
+| --- | --- |
+| Environment setup | `make install` |
+| Format code | `make format` |
+| Check formatting (`src`, `tests`) | `make format-check` |
+| Lint | `make lint` |
+| Type check | `make typecheck` |
+| Tests | `make test` |
+| Coverage | `make cov` |
+| Full validation | `make check-all` |
+| Docs build | `make docs` |
+| Package build | `make build` |
+
+## Commit Rules
+
+Use Conventional Commits:
+
+```text
+<type>: <short imperative summary>
+```
+
+Allowed types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `ci`
+
+## Agent Rules
+
+When using AI-assisted development:
+
+- Prefer small, reviewable changes.
+- Do not guess about behavior that can be verified.
+- Keep repository structure aligned with sibling repositories.
+- Update docs, examples, and tests together when behavior changes.
+
+## Final Rule
+
+If it is not automated, it will drift.
+If it is not documented, it is not a stable rule.
 
 ## Branch Hygiene
 
