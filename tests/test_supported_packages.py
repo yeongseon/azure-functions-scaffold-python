@@ -161,8 +161,8 @@ def test_constraints_min_pins_are_at_or_above_declared_floors() -> None:
     pyproject = (_REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     constraints = (_REPO_ROOT / "constraints-min.txt").read_text(encoding="utf-8")
 
-    floors = {name: ver for name, ver in _SIBLING_FLOOR_RE.findall(pyproject)}
-    pins = {name: ver for name, ver in _CONSTRAINT_PIN_RE.findall(constraints)}
+    floors = dict(_SIBLING_FLOOR_RE.findall(pyproject))
+    pins = dict(_CONSTRAINT_PIN_RE.findall(constraints))
 
     for name, floor in floors.items():
         assert name in pins, (

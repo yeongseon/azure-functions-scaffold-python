@@ -27,6 +27,9 @@ jobs:
   deploy_and_test:
     name: Generate, Deploy & Test
     runs-on: ubuntu-latest
+    # Pins the OIDC subject to environment:azure-e2e regardless of the triggering
+    # ref, so one Azure federated credential covers tag pushes and dispatches.
+    environment: azure-e2e
     # OIDC subject must match the Azure AD federated credential behind AZURE_CLIENT_ID.
     # This workflow is dispatch-only, so GitHub mints a ref-based subject:
     #   repo:yeongseon/azure-functions-scaffold-python:ref:refs/heads/main
@@ -197,6 +200,9 @@ jobs:
   cleanup:
     name: Cleanup Azure Resources
     runs-on: ubuntu-latest
+    # Pins the OIDC subject to environment:azure-e2e regardless of the triggering
+    # ref, so one Azure federated credential covers tag pushes and dispatches.
+    environment: azure-e2e
     # Same ref-based OIDC subject as deploy_and_test; see docs/contributing/testing.md.
     needs: [deploy_and_test]
     if: always()
