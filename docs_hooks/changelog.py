@@ -1,7 +1,7 @@
 """MkDocs hook: render the changelog page from the canonical root ``CHANGELOG.md``.
 
 The docs site historically shipped a hand-maintained ``docs/changelog.md`` that drifted
-behind the canonical ``CHANGELOG.md`` (git-cliff generated) at the repository root. This hook
+behind the canonical ``CHANGELOG.md`` (Release Please generated) at the repository root. This hook
 overrides the source of the ``changelog.md`` page at build time so the published changelog is
 always the canonical one, eliminating the drift by construction.
 

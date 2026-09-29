@@ -120,12 +120,8 @@ When modifying templates:
 
 The package version is defined in `src/azure_functions_scaffold/__init__.py`. We follow Semantic Versioning (SemVer).
 
-To bump the version and prepare a release, use:
-- `make release-patch`: 0.0.x
-- `make release-minor`: 0.x.0
-- `make release-major`: x.0.0
-
-These commands update the version file and generate a changelog using git-cliff.
+Do not bump the version by hand. Release Please derives it from Conventional Commit messages and
+updates the version file and `CHANGELOG.md` in its Release PR. See [Release Process](../release_process.md).
 
 ## Building and Publishing
 
@@ -139,7 +135,4 @@ To test the distribution on TestPyPI:
 make publish-test
 ```
 
-To release to the official PyPI:
-```bash
-make publish-pypi
-```
+PyPI releases are published only by the gated `publish-pypi.yml` workflow, started by the release tag.
