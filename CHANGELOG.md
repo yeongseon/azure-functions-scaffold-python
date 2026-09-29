@@ -1,6 +1,65 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.6.6](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.6.5...v0.6.6) (2026-09-29)
+
+
+### Bug Fixes
+
+* **ci:** correct release wording, stale.yml inputs, and add issue templates ([#301](https://github.com/yeongseon/azure-functions-scaffold-python/issues/301)) ([e753ea4](https://github.com/yeongseon/azure-functions-scaffold-python/commit/e753ea47ac28033c1d99a608ae78503c6bbab87e))
+* **ci:** stop the format gate dropping type-changed Python paths ([#298](https://github.com/yeongseon/azure-functions-scaffold-python/issues/298)) ([f09d91c](https://github.com/yeongseon/azure-functions-scaffold-python/commit/f09d91ca5e694ee92c0be2646f3e0c1cd0851d5f))
+* **options:** honor an explicitly empty tooling override (fixes [#288](https://github.com/yeongseon/azure-functions-scaffold-python/issues/288)) ([#289](https://github.com/yeongseon/azure-functions-scaffold-python/issues/289)) ([148cab2](https://github.com/yeongseon/azure-functions-scaffold-python/commit/148cab2b71541684850bf59fb8d1f4580437a4b2))
+
+
+### Documentation
+
+* align the contributor contract with the actual configuration ([#299](https://github.com/yeongseon/azure-functions-scaffold-python/issues/299)) ([8616286](https://github.com/yeongseon/azure-functions-scaffold-python/commit/86162864b02f126deaff542956d675d1454a0cf1))
+* codify issue-based project management convention in AGENTS.md ([#267](https://github.com/yeongseon/azure-functions-scaffold-python/issues/267)) ([4a1049e](https://github.com/yeongseon/azure-functions-scaffold-python/commit/4a1049e43254db7f8c760ab511e8f1fb4d7dcdc4))
+
+
+### Testing
+
+* guard sibling-floor coverage of the minimum-resolution axis ([#257](https://github.com/yeongseon/azure-functions-scaffold-python/issues/257)) ([d27d1de](https://github.com/yeongseon/azure-functions-scaffold-python/commit/d27d1de49d2a3b8e1026286912eac72e0c1155ec)), closes [#256](https://github.com/yeongseon/azure-functions-scaffold-python/issues/256)
+
+
+### Miscellaneous Tasks
+
+* add hatch-matrix hygiene lint and guard ci-test matrix ([#273](https://github.com/yeongseon/azure-functions-scaffold-python/issues/273)) ([ec970bb](https://github.com/yeongseon/azure-functions-scaffold-python/commit/ec970bb39983d811a3eadc61289100feacf72e5a)), closes [#272](https://github.com/yeongseon/azure-functions-scaffold-python/issues/272)
+* adopt release-please and gate PyPI on in-chain Azure e2e ([#309](https://github.com/yeongseon/azure-functions-scaffold-python/issues/309)) ([d383b97](https://github.com/yeongseon/azure-functions-scaffold-python/commit/d383b97c5b944820924f32f4e0326c211e6a4dfc))
+* allow build/ branch prefix in branch-naming validation ([#279](https://github.com/yeongseon/azure-functions-scaffold-python/issues/279)) ([1424425](https://github.com/yeongseon/azure-functions-scaffold-python/commit/1424425f3985755ccff1df7f47bbc383b41b1752))
+* **ci:** group dependabot updates + auto-merge patch/minor ([#255](https://github.com/yeongseon/azure-functions-scaffold-python/issues/255)) ([d8d08b7](https://github.com/yeongseon/azure-functions-scaffold-python/commit/d8d08b764e685ccb251740ae1ae4313e4194e7c2))
+* **deps:** bump actions/download-artifact from 4.3.0 to 8.0.1 ([#241](https://github.com/yeongseon/azure-functions-scaffold-python/issues/241)) ([ea62e82](https://github.com/yeongseon/azure-functions-scaffold-python/commit/ea62e8242d007b5f20c5e5f1816dcb4c7bc1333a))
+* **deps:** bump actions/upload-artifact from 4.6.2 to 7.0.1 ([#248](https://github.com/yeongseon/azure-functions-scaffold-python/issues/248)) ([812b861](https://github.com/yeongseon/azure-functions-scaffold-python/commit/812b8612f588e47d65afbe5094aca3cd1891a702))
+* **deps:** bump anchore/sbom-action in the github-actions group ([#269](https://github.com/yeongseon/azure-functions-scaffold-python/issues/269)) ([4ffe6b7](https://github.com/yeongseon/azure-functions-scaffold-python/commit/4ffe6b75e83a89e2e0a948353e040c9dd8b1f32a))
+* **deps:** bump azure-functions-doctor from 0.19.0 to 0.19.2 ([#254](https://github.com/yeongseon/azure-functions-scaffold-python/issues/254)) ([00316bb](https://github.com/yeongseon/azure-functions-scaffold-python/commit/00316bbde576ea5ab481381b353476850de5f138))
+* **deps:** bump azure-functions-logging from 0.10.0 to 0.10.2 ([#253](https://github.com/yeongseon/azure-functions-scaffold-python/issues/253)) ([39b0c32](https://github.com/yeongseon/azure-functions-scaffold-python/commit/39b0c328082b34074bd7ff9e6201d336d97d2132))
+* **deps:** bump azure-functions-openapi ([#264](https://github.com/yeongseon/azure-functions-scaffold-python/issues/264)) ([d83c322](https://github.com/yeongseon/azure-functions-scaffold-python/commit/d83c322a05d74fe07adbc15ad7161eb30f11163f))
+* **deps:** bump azure-functions-openapi from 0.21.0 to 0.21.2 ([#250](https://github.com/yeongseon/azure-functions-scaffold-python/issues/250)) ([d516591](https://github.com/yeongseon/azure-functions-scaffold-python/commit/d5165911167aba225f5abe828c34d5d7d6715427))
+* **deps:** bump azure-functions-validation from 0.10.0 to 0.11.2 ([#249](https://github.com/yeongseon/azure-functions-scaffold-python/issues/249)) ([70796e0](https://github.com/yeongseon/azure-functions-scaffold-python/commit/70796e010ca73ca22e6343b19c7ae1219aebf9e8))
+* **deps:** bump codecov/codecov-action in the github-actions group ([#283](https://github.com/yeongseon/azure-functions-scaffold-python/issues/283)) ([070307f](https://github.com/yeongseon/azure-functions-scaffold-python/commit/070307f516f68eaa5da7f9aed0293cb58d765ae1))
+* **deps:** bump dependabot/fetch-metadata from 2.5.0 to 3.1.0 ([#260](https://github.com/yeongseon/azure-functions-scaffold-python/issues/260)) ([8af1a94](https://github.com/yeongseon/azure-functions-scaffold-python/commit/8af1a94f8baa05b6d88664fd0f6cccf4b81511f7))
+* **deps:** bump github/codeql-action/analyze from 4.37.6 to 4.37.7 ([#247](https://github.com/yeongseon/azure-functions-scaffold-python/issues/247)) ([98d9461](https://github.com/yeongseon/azure-functions-scaffold-python/commit/98d9461d33ea5da86c052e78fbcbc71145bbafe0))
+* **deps:** bump github/codeql-action/init from 4.37.6 to 4.37.7 ([#246](https://github.com/yeongseon/azure-functions-scaffold-python/issues/246)) ([03ef4a4](https://github.com/yeongseon/azure-functions-scaffold-python/commit/03ef4a4457a8c0060d9f55a009f730a55c5f1513))
+* **deps:** bump mypy from 2.3.0 to 2.3.1 ([#251](https://github.com/yeongseon/azure-functions-scaffold-python/issues/251)) ([4d97541](https://github.com/yeongseon/azure-functions-scaffold-python/commit/4d97541d40161483a8168d8a824c302e8bbe1ce1))
+* **deps:** bump ruff from 0.16.2 to 0.16.3 ([#252](https://github.com/yeongseon/azure-functions-scaffold-python/issues/252)) ([88345ea](https://github.com/yeongseon/azure-functions-scaffold-python/commit/88345ea68477530e334ca1171b3656149ab1af93))
+* **deps:** bump ruff in the python-dependencies group ([#282](https://github.com/yeongseon/azure-functions-scaffold-python/issues/282)) ([5b98121](https://github.com/yeongseon/azure-functions-scaffold-python/commit/5b98121a665f3b29b0121eff3d8586deb3ff204c))
+* **deps:** bump the github-actions group with 2 updates ([#259](https://github.com/yeongseon/azure-functions-scaffold-python/issues/259)) ([2b2ce4f](https://github.com/yeongseon/azure-functions-scaffold-python/commit/2b2ce4fb9c372cd3d0cff6b189c9a8798dcaa2c6))
+* **deps:** bump the github-actions group with 2 updates ([#296](https://github.com/yeongseon/azure-functions-scaffold-python/issues/296)) ([bfb81d3](https://github.com/yeongseon/azure-functions-scaffold-python/commit/bfb81d3efc373e1330aca93ae771e827402a1515))
+* **deps:** bump the github-actions group with 3 updates ([#281](https://github.com/yeongseon/azure-functions-scaffold-python/issues/281)) ([174b804](https://github.com/yeongseon/azure-functions-scaffold-python/commit/174b8047b5a757feb76b7cb9837427be361ebedf))
+* **deps:** bump the github-actions group with 4 updates ([#265](https://github.com/yeongseon/azure-functions-scaffold-python/issues/265)) ([a8a774b](https://github.com/yeongseon/azure-functions-scaffold-python/commit/a8a774b7c252728073decb2f3b2b3b685c5b41a5))
+* **deps:** bump the python-dependencies group with 3 updates ([#268](https://github.com/yeongseon/azure-functions-scaffold-python/issues/268)) ([c4012f8](https://github.com/yeongseon/azure-functions-scaffold-python/commit/c4012f898989b7969d0499627e142e2101f690e5))
+* **deps:** bump the python-dependencies group with 4 updates ([#280](https://github.com/yeongseon/azure-functions-scaffold-python/issues/280)) ([a13d1c1](https://github.com/yeongseon/azure-functions-scaffold-python/commit/a13d1c17896c8a33ce1173090b22bc16fd361e3b))
+* **deps:** bump the python-dependencies group with 5 updates ([#258](https://github.com/yeongseon/azure-functions-scaffold-python/issues/258)) ([4c986df](https://github.com/yeongseon/azure-functions-scaffold-python/commit/4c986df825840d546313e9290c1fce7107948617))
+* enforce Ruff formatting in PR quality checks ([#294](https://github.com/yeongseon/azure-functions-scaffold-python/issues/294)) ([aac3ecd](https://github.com/yeongseon/azure-functions-scaffold-python/commit/aac3ecd3f94393df64d8d6410243d9528c3696ea))
+* ignore uv.lock ([#305](https://github.com/yeongseon/azure-functions-scaffold-python/issues/305)) ([041a912](https://github.com/yeongseon/azure-functions-scaffold-python/commit/041a9122287c50859c4bcfd2ff8af2133fd96e27)), closes [#304](https://github.com/yeongseon/azure-functions-scaffold-python/issues/304)
+* modernize typing and pin ruff, complete AGENTS.md, unify Azure e2e auth ([#307](https://github.com/yeongseon/azure-functions-scaffold-python/issues/307)) ([457946d](https://github.com/yeongseon/azure-functions-scaffold-python/commit/457946de7a04d9efe5c442faef1e770031fad294))
+* run tests on the real matrix interpreter + fix webhook template for openapi 0.24 ([#276](https://github.com/yeongseon/azure-functions-scaffold-python/issues/276)) ([da78fbb](https://github.com/yeongseon/azure-functions-scaffold-python/commit/da78fbb1ab30b52d73734c3c9c76a3dcbdd8d07d)), closes [#278](https://github.com/yeongseon/azure-functions-scaffold-python/issues/278)
+
+
+### Other
+
+* **deps:** add Dependabot cooldown to age new releases ([#271](https://github.com/yeongseon/azure-functions-scaffold-python/issues/271)) ([3b6473f](https://github.com/yeongseon/azure-functions-scaffold-python/commit/3b6473f7ed0e34cf9772020b9ec17e5dd09c8995)), closes [#262](https://github.com/yeongseon/azure-functions-scaffold-python/issues/262)
+
 ## [0.6.5] - 2026-08-14
 
 ### Bug Fixes
