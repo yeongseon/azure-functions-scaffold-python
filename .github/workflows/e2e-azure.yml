@@ -1,5 +1,11 @@
 name: e2e-azure
 
+# Azure Release Certification: deploys to real Azure, runs the live e2e suite,
+# and records an azure-cert artifact for the exact commit + version.
+#
+# It runs as a GATE INSIDE publish-pypi.yml (workflow_call), so certification
+# always covers the exact commit being published and no cross-run matching is
+# needed. workflow_dispatch is kept for standalone verification and debugging.
 on:
   workflow_dispatch:
     inputs:
@@ -11,6 +17,23 @@ on:
         description: Expected package version (must match src __version__).
         required: false
         type: string
+  workflow_call:
+    inputs:
+      ref:
+        description: "Git ref (commit SHA) to certify. Defaults to the triggering ref."
+        required: false
+        type: string
+      version:
+        description: "Expected package version (must match src __version__)."
+        required: false
+        type: string
+    secrets:
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
 
 permissions:
   id-token: write
@@ -151,8 +174,8 @@ jobs:
         env:
           E2E_BASE_URL: https://${{ steps.names.outputs.app }}.azurewebsites.net
 
-      # Emit the release certification record consumed by publish-pypi.yml's
-      # verify-azure-certification gate. Written only after the live e2e HTTP
+      # Emit the release certification record: the audit trail of publish-pypi.yml's
+      # azure-e2e gate. Written only after the live e2e HTTP
       # tests above pass, so a green azure-cert proves this exact commit +
       # version booted and served on real Azure.
       - name: Record certification
