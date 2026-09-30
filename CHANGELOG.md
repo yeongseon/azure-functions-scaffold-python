@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.6.7](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.6.6...v0.6.7) (2026-09-30)
+
+
+### Miscellaneous Tasks
+
+* add a PR title check and unify the title convention ([#312](https://github.com/yeongseon/azure-functions-scaffold-python/issues/312)) ([7ad552d](https://github.com/yeongseon/azure-functions-scaffold-python/commit/7ad552d6e52c39bdeee97c4c4b269e873c288acb))
+
 ## [0.6.6](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.6.5...v0.6.6) (2026-09-29)
 
 
