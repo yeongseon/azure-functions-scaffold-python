@@ -5,7 +5,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold.svg)](https://pypi.org/project/azure-functions-scaffold/)
 [![Downloads](https://static.pepy.tech/badge/azure-functions-scaffold/month)](https://pepy.tech/project/azure-functions-scaffold)
-[![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
 [![CI](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/ci-test.yml)
 [![Publish to PyPI](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/publish-pypi.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/publish-pypi.yml)
 [![Security Scans](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml)
@@ -18,7 +18,9 @@ Read this in: [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中
 
 Scaffolding CLI for production-ready Azure Functions Python v2 projects.
 
-Python version support: 3.11-3.13 are GA on Azure Functions; 3.14 is accepted as **Preview**. See [Python version support](docs/guide/configuration.md#python-version-support).
+Python version support: 3.10-3.13 are GA on Azure Functions; 3.14 is accepted as **Preview**. See [Python version support](docs/guide/configuration.md#python-version-support).
+
+> **Python 3.10 is deprecated.** Support ends in the next minor release — Python 3.10 reaches end of life in October 2026. Importing the package on Python 3.10 emits a `FutureWarning`; upgrade to Python 3.11 or newer.
 
 ## Why `afs new` instead of `func init`?
 

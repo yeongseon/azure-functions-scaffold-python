@@ -8,7 +8,7 @@
 - Project: `azure-functions-scaffold`
 - Project type: Python CLI
 - Runtime scope: Azure Functions Python v2 programming model
-- Minimum supported Python: `3.11`
+- Minimum supported Python: `3.10`
 - Packaging: `pyproject.toml` with Hatch
 
 ## Read First
@@ -24,7 +24,7 @@
 - Keep repository-level engineering and planning docs at the repository root (`AGENTS.md`, `DESIGN.md`, `PRD.md`).
 - Keep `docs/` for user-facing documentation only.
 - Use Makefile entry points for contributor guidance and CI (`make install`, `make format`, `make lint`, `make typecheck`, `make test`, `make cov`, `make check-all`, `make docs`, `make build`).
-- Runtime code must remain compatible with Python 3.11+.
+- Runtime code must remain compatible with Python 3.10+.
 - Public APIs must be fully typed.
 - Avoid silent behavior changes; document and discuss breaking changes before release.
 - When changing CLI behaviour or generated template output, update docs, examples, and tests in the same change.

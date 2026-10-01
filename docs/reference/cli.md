@@ -53,7 +53,7 @@ accepts the same option set:
 | Flag | Default | Values | Description |
 | :--- | :--- | :--- | :--- |
 | `--destination`, `-d` | `.` | Path | Base directory where the project folder is created. |
-| `--python-version` | `3.10` | `3.11`, `3.12`, `3.13`, `3.14 (Preview)` | Target Python version. `3.14` emits a Preview warning. |
+| `--python-version` | `3.10` | `3.10`, `3.11`, `3.12`, `3.13`, `3.14 (Preview)` | Target Python version. `3.14` emits a Preview warning. |
 | `--github-actions` / `--no-github-actions` | `--no-github-actions` | Boolean | Include a basic GitHub Actions CI workflow. |
 | `--git` / `--no-git` | `--no-git` | Boolean | Initialize a git repository in the generated project. |
 | `--azd` / `--no-azd` | `--no-azd` | Boolean | Include Azure Developer CLI (`azd`) support files. |

@@ -49,12 +49,13 @@ afs advanced new [OPTIONS] PROJECT_NAME
 | `--destination`, `-d` | `.` | path | Parent directory where project folder is created. |
 | `--template`, `-t` | `http` | `http`, `timer`, `queue`, `blob`, `servicebus`, `eventhub`, `cosmosdb`, `durable`, `ai`, `langgraph` | Initial trigger template. |
 | `--preset` | `standard` | `minimal`, `standard`, `strict` | Quality tooling baseline. |
-| `--python-version` | `3.10` | `3.11`, `3.12`, `3.13`, `3.14 (Preview)` | Python version pin for generated metadata. |
+| `--python-version` | `3.10` | `3.10`, `3.11`, `3.12`, `3.13`, `3.14 (Preview)` | Python version pin for generated metadata. |
 
 ## Python version support
 
 | Version | Status on Azure Functions |
 |---------|--------------------------|
+| 3.10    | GA                        |
 | 3.11    | GA                        |
 | 3.12    | GA (recommended default)  |
 | 3.13    | GA                        |
