@@ -27,6 +27,7 @@ def _commit_pending_writes(writes: list[_PendingWrite]) -> None:
             write.path.write_text(write.new_content, encoding="utf-8")
             written.append(write)
     except Exception as exc:
+        rollback_failures: list[Path] = []
         for write in reversed(written):
             try:
                 if write.original_content is None:
@@ -41,7 +42,13 @@ def _commit_pending_writes(writes: list[_PendingWrite]) -> None:
                 else:
                     write.path.write_text(write.original_content, encoding="utf-8")
             except OSError:
+                rollback_failures.append(write.path)
                 logger.exception("Rollback failed for %s", write.path)
+        if rollback_failures:
+            failed_paths = ", ".join(str(path) for path in rollback_failures)
+            raise ScaffoldError(
+                f"Atomic write failed and rollback was incomplete; failed paths: {failed_paths}"
+            ) from exc
         raise ScaffoldError(
             f"Atomic write failed; rolled back {len(written)} file(s): {exc}"
         ) from exc
