@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess  # nosec B404
 import sys
+import tempfile
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 import typer
@@ -51,7 +52,6 @@ def scaffold_project(
             )
         _confirm_overwrite_or_raise(target_dir, yes=yes)
         logger.warning("Overwriting existing directory: %s", target_dir)
-        shutil.rmtree(target_dir)
 
     template_root = template.root
     environment = Environment(
@@ -64,43 +64,65 @@ def scaffold_project(
         keep_trailing_newline=True,
     )
 
-    target_dir.mkdir(parents=True, exist_ok=False)
+    target_dir.parent.mkdir(parents=True, exist_ok=True)
+    temporary_dir = Path(tempfile.mkdtemp(prefix=f".{target_dir.name}-", dir=target_dir.parent))
+    staging_dir = temporary_dir / target_dir.name
+    staging_dir.mkdir()
 
-    for template_path in _iter_template_files(template_root):
-        relative_path = template_path.relative_to(template_root)
-        if not _should_render_template(relative_path, context):
-            continue
-        rendered_path = _render_path(relative_path, context)
-        output_path = target_dir / rendered_path
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        for template_path in _iter_template_files(template_root):
+            relative_path = template_path.relative_to(template_root)
+            if not _should_render_template(relative_path, context):
+                continue
+            rendered_path = _render_path(relative_path, context)
+            output_path = staging_dir / rendered_path
+            output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        template_rel_name = relative_path.as_posix()
-        if relative_path.suffix != ".j2":
-            logger.debug("Copying template asset: %s -> %s", template_rel_name, output_path)
-            shutil.copyfile(template_path, output_path)
-            continue
-        rendered_content = environment.get_template(template_rel_name).render(
-            project_name=context.project_name,
-            project_slug=context.project_slug,
-            python_version=context.python_version,
-            is_preview_python=is_preview_python(context.python_version),
-            python_upper_bound=context.python_upper_bound,
-            preset_name=context.preset_name,
-            include_github_actions=context.include_github_actions,
-            include_ruff=context.include_ruff,
-            include_mypy=context.include_mypy,
-            include_pytest=context.include_pytest,
-            include_openapi=context.include_openapi,
-            include_validation=context.include_validation,
-            include_doctor=context.include_doctor,
-            include_azd=context.include_azd,
-            supported_packages=SUPPORTED_PACKAGES,
-        )
-        logger.debug("Rendering template: %s -> %s", template_rel_name, output_path)
-        output_path.write_text(rendered_content, encoding="utf-8")
+            template_rel_name = relative_path.as_posix()
+            if relative_path.suffix != ".j2":
+                logger.debug("Copying template asset: %s -> %s", template_rel_name, output_path)
+                shutil.copyfile(template_path, output_path)
+                continue
+            rendered_content = environment.get_template(template_rel_name).render(
+                project_name=context.project_name,
+                project_slug=context.project_slug,
+                python_version=context.python_version,
+                is_preview_python=is_preview_python(context.python_version),
+                python_upper_bound=context.python_upper_bound,
+                preset_name=context.preset_name,
+                include_github_actions=context.include_github_actions,
+                include_ruff=context.include_ruff,
+                include_mypy=context.include_mypy,
+                include_pytest=context.include_pytest,
+                include_openapi=context.include_openapi,
+                include_validation=context.include_validation,
+                include_doctor=context.include_doctor,
+                include_azd=context.include_azd,
+                supported_packages=SUPPORTED_PACKAGES,
+            )
+            logger.debug("Rendering template: %s -> %s", template_rel_name, output_path)
+            output_path.write_text(rendered_content, encoding="utf-8")
 
-    if context.initialize_git:
-        _initialize_git_repository(target_dir)
+        backup_dir = temporary_dir / "original"
+        if target_dir.exists():
+            target_dir.replace(backup_dir)
+            try:
+                staging_dir.replace(target_dir)
+            except OSError:
+                backup_dir.replace(target_dir)
+                raise
+        else:
+            staging_dir.replace(target_dir)
+        if context.initialize_git:
+            try:
+                _initialize_git_repository(target_dir)
+            except ScaffoldError:
+                shutil.rmtree(target_dir)
+                if backup_dir.exists():
+                    backup_dir.replace(target_dir)
+                raise
+    finally:
+        shutil.rmtree(temporary_dir, ignore_errors=True)
 
     logger.info("Project scaffolded successfully: %s", target_dir)
     return target_dir
