@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 
+from jinja2 import TemplateSyntaxError
 import pytest
 
 from azure_functions_scaffold.errors import ScaffoldError
@@ -187,6 +188,35 @@ def test_scaffold_project_can_overwrite_existing_target(tmp_path: Path) -> None:
     assert project_path == target_dir
     assert not stale_file.exists()
     assert (project_path / "function_app.py").exists()
+
+
+def test_scaffold_project_preserves_existing_target_when_overwrite_rendering_fails(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target_dir = tmp_path / "sample"
+    target_dir.mkdir()
+    keep_file = target_dir / "keep.txt"
+    keep_file.write_text("keep", encoding="utf-8")
+    template_root = tmp_path / "template"
+    template_root.mkdir()
+    (template_root / "partial.txt").write_text("partial", encoding="utf-8")
+    (template_root / "z-broken.j2").write_text("{{ broken", encoding="utf-8")
+    monkeypatch.setattr(
+        "azure_functions_scaffold.scaffolder.get_template",
+        lambda _: TemplateSpec(
+            name="timer",
+            description="Broken timer template.",
+            root=template_root,
+            allowed_features=frozenset({"doctor", "azd"}),
+        ),
+    )
+
+    with pytest.raises(TemplateSyntaxError):
+        scaffold_project("sample", tmp_path, template_name="timer", overwrite=True, yes=True)
+
+    assert keep_file.read_text(encoding="utf-8") == "keep"
+    assert not (target_dir / "partial.txt").exists()
 
 
 def test_overwrite_in_tty_with_yes_proceeds(
