@@ -509,6 +509,17 @@ def test_build_project_options_marks_custom_tooling() -> None:
     assert options.tooling == ("ruff", "mypy")
 
 
+def test_build_project_options_keeps_normalized_python_version() -> None:
+    options = build_project_options(
+        preset_name="standard",
+        python_version=" 3.11 ",
+        include_github_actions=False,
+        initialize_git=False,
+    )
+
+    assert options.python_version == "3.11"
+
+
 def test_build_project_options_honors_empty_tooling_override() -> None:
     options = build_project_options(
         preset_name="standard",
