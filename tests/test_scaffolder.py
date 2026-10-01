@@ -8,7 +8,7 @@ import sys
 import pytest
 
 from azure_functions_scaffold.errors import ScaffoldError
-from azure_functions_scaffold.models import TemplateContext
+from azure_functions_scaffold.models import TemplateContext, TemplateSpec
 from azure_functions_scaffold.scaffolder import (
     _initialize_git_repository,
     _iter_template_files,
@@ -345,6 +345,29 @@ def test_scaffold_project_rejects_unsupported_template_feature_before_writing(
         scaffold_project("sample", tmp_path, template_name="timer", options=options)
 
     assert not (tmp_path / "sample").exists()
+
+
+def test_scaffold_project_copies_non_template_files_byte_for_byte(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    template_root = tmp_path / "template"
+    template_root.mkdir()
+    binary_content = b"\xff\xfe\x00"
+    (template_root / "__project_name__.bin").write_bytes(binary_content)
+    monkeypatch.setattr(
+        "azure_functions_scaffold.scaffolder.get_template",
+        lambda _: TemplateSpec(
+            name="timer",
+            description="Timer test template.",
+            root=template_root,
+            allowed_features=frozenset({"doctor", "azd"}),
+        ),
+    )
+
+    project_path = scaffold_project("sample", tmp_path, template_name="timer")
+
+    assert (project_path / "sample.bin").read_bytes() == binary_content
 
 
 @pytest.mark.parametrize(
