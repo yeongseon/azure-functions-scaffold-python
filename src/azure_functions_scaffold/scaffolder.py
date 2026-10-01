@@ -74,6 +74,10 @@ def scaffold_project(
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         template_rel_name = relative_path.as_posix()
+        if relative_path.suffix != ".j2":
+            logger.debug("Copying template asset: %s -> %s", template_rel_name, output_path)
+            shutil.copyfile(template_path, output_path)
+            continue
         rendered_content = environment.get_template(template_rel_name).render(
             project_name=context.project_name,
             project_slug=context.project_slug,
