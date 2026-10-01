@@ -28,6 +28,7 @@ from azure_functions_scaffold.generator import (
     describe_add_resource,
     describe_add_route,
 )
+from azure_functions_scaffold.generator.writer import _commit_pending_writes, _PendingWrite
 from azure_functions_scaffold.scaffolder import scaffold_project
 from azure_functions_scaffold.template_registry import build_project_options, list_templates
 
@@ -181,6 +182,39 @@ def test_add_function_rolls_back_on_function_app_write_failure(
 
     assert not (project_root / "app/functions/bar.py").exists()
     assert not (project_root / "tests/test_bar.py").exists()
+
+
+def test_commit_pending_writes_reports_incomplete_rollback(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    first_path = tmp_path / "first.txt"
+    second_path = tmp_path / "second.txt"
+    first_path.write_text("original", encoding="utf-8")
+    original_write_text = Path.write_text
+    calls = 0
+
+    def failing_write_text(self: Path, data: str, *args: Any, **kwargs: Any) -> int:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise PermissionError("second write blocked")
+        if calls == 3:
+            raise PermissionError("rollback blocked")
+        return original_write_text(self, data, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "write_text", failing_write_text)
+
+    with pytest.raises(ScaffoldError, match=rf"rollback was incomplete.*{first_path}") as error:
+        _commit_pending_writes(
+            [
+                _PendingWrite(first_path, "updated", "original"),
+                _PendingWrite(second_path, "created", None),
+            ]
+        )
+
+    assert isinstance(error.value.__cause__, PermissionError)
+    assert str(error.value.__cause__) == "second write blocked"
 
 
 def test_describe_add_function_detects_malformed_host_json(tmp_path: Path) -> None:
