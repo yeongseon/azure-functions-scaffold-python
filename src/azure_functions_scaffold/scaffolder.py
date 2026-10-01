@@ -17,6 +17,7 @@ from azure_functions_scaffold.template_registry import (
     build_project_options,
     get_template,
     is_preview_python,
+    validate_template_features,
 )
 
 logger = logging.getLogger(__name__)
@@ -287,6 +288,7 @@ def _resolve_scaffold_inputs(
     context = build_template_context(project_name, resolved_options)
     target_dir = resolve_target_dir(destination=destination, project_name=context.project_name)
     template = get_template(template_name)
+    validate_template_features(template, resolved_options)
     return context, target_dir, template
 
 

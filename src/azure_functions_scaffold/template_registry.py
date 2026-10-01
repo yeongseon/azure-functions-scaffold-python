@@ -144,12 +144,12 @@ def build_project_options(
     include_azd: bool = False,
 ) -> ProjectOptions:
     preset = get_preset(preset_name)
-    validate_python_version(python_version)
+    normalized_python_version = validate_python_version(python_version)
     resolved_tooling = validate_tooling(preset.tooling if tooling is None else tooling)
     resolved_preset_name = preset.name if resolved_tooling == preset.tooling else "custom"
     return ProjectOptions(
         preset_name=resolved_preset_name,
-        python_version=python_version,
+        python_version=normalized_python_version,
         tooling=resolved_tooling,
         include_github_actions=include_github_actions,
         initialize_git=initialize_git,
@@ -158,6 +158,29 @@ def build_project_options(
         include_doctor=include_doctor,
         include_azd=include_azd,
     )
+
+
+def validate_template_features(template: TemplateSpec, options: ProjectOptions) -> None:
+    requested = {
+        "openapi": options.include_openapi,
+        "validation": options.include_validation,
+        "doctor": options.include_doctor,
+        "azd": options.include_azd,
+    }
+    invalid = sorted(
+        name
+        for name, is_enabled in requested.items()
+        if is_enabled and name not in template.allowed_features
+    )
+    if invalid:
+        flag_names = {
+            "openapi": "--with-openapi",
+            "validation": "--with-validation",
+            "doctor": "--with-doctor",
+            "azd": "--azd",
+        }
+        rejected = ", ".join(flag_names[name] for name in invalid)
+        raise ScaffoldError(f"Template '{template.name}' does not support {rejected}.")
 
 
 def validate_python_version(python_version: str) -> str:

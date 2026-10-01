@@ -23,56 +23,16 @@ from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.generator import ADDABLE_TRIGGERS
 from azure_functions_scaffold.template_registry import (
     build_project_options,
+    get_template,
     list_presets,
     list_templates,
+    validate_template_features,
 )
 
 advanced_app = typer.Typer(
     add_completion=False,
     help="Power-user project scaffolding with full option control.",
 )
-
-
-def _allowed_features_for_template(template: str) -> frozenset[str] | None:
-    # Normalize the same way template_registry.get_template() resolves names
-    # (case/whitespace-insensitive) so validation cannot be bypassed by passing
-    # e.g. "Timer" or " timer " alongside an unsupported feature flag.
-    normalized = template.strip().lower()
-    spec = next((t for t in list_templates() if t.name == normalized), None)
-    if spec is None:
-        return None
-    return spec.allowed_features
-
-
-def _validate_feature_flags_for_template(
-    template: str,
-    *,
-    with_openapi: bool,
-    with_validation: bool,
-    with_doctor: bool,
-    with_azd: bool,
-) -> None:
-    requested = {
-        "openapi": with_openapi,
-        "validation": with_validation,
-        "doctor": with_doctor,
-        "azd": with_azd,
-    }
-    enabled = {name for name, is_enabled in requested.items() if is_enabled}
-    allowed = _allowed_features_for_template(template)
-    if allowed is None:
-        return
-    invalid = sorted(enabled - allowed)
-    if not invalid:
-        return
-    flag_names = {
-        "openapi": "--with-openapi",
-        "validation": "--with-validation",
-        "doctor": "--with-doctor",
-        "azd": "--azd",
-    }
-    rejected = ", ".join(flag_names[name] for name in invalid)
-    raise ScaffoldError(f"Template '{template}' does not support {rejected}.")
 
 
 TemplateOption = Annotated[
@@ -148,13 +108,6 @@ def advanced_new(
 ) -> None:
     """Create a new project with full option control (power-user mode)."""
     try:
-        _validate_feature_flags_for_template(
-            template,
-            with_openapi=with_openapi,
-            with_validation=with_validation,
-            with_doctor=with_doctor,
-            with_azd=with_azd,
-        )
         options = build_project_options(
             preset_name=preset,
             python_version=python_version,
@@ -165,6 +118,7 @@ def advanced_new(
             include_doctor=with_doctor,
             include_azd=with_azd,
         )
+        validate_template_features(get_template(template), options)
     except ScaffoldError as exc:
         typer.secho(str(exc), fg=typer.colors.RED)
         raise typer.Exit(code=1) from exc
