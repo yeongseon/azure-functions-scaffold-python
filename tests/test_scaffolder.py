@@ -330,6 +330,23 @@ def test_scaffold_project_renders_template_option(tmp_path: Path) -> None:
     assert (project_path / "README.md").exists()
 
 
+def test_scaffold_project_rejects_unsupported_template_feature_before_writing(
+    tmp_path: Path,
+) -> None:
+    options = build_project_options(
+        preset_name="standard",
+        python_version="3.11",
+        include_github_actions=False,
+        initialize_git=False,
+        include_openapi=True,
+    )
+
+    with pytest.raises(ScaffoldError, match="does not support.*openapi"):
+        scaffold_project("sample", tmp_path, template_name="timer", options=options)
+
+    assert not (tmp_path / "sample").exists()
+
+
 @pytest.mark.parametrize(
     ("template_name", "expected_function", "expected_service"),
     [
