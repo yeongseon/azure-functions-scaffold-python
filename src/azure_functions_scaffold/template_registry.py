@@ -160,6 +160,29 @@ def build_project_options(
     )
 
 
+def validate_template_features(template: TemplateSpec, options: ProjectOptions) -> None:
+    requested = {
+        "openapi": options.include_openapi,
+        "validation": options.include_validation,
+        "doctor": options.include_doctor,
+        "azd": options.include_azd,
+    }
+    invalid = sorted(
+        name
+        for name, is_enabled in requested.items()
+        if is_enabled and name not in template.allowed_features
+    )
+    if invalid:
+        flag_names = {
+            "openapi": "--with-openapi",
+            "validation": "--with-validation",
+            "doctor": "--with-doctor",
+            "azd": "--azd",
+        }
+        rejected = ", ".join(flag_names[name] for name in invalid)
+        raise ScaffoldError(f"Template '{template.name}' does not support {rejected}.")
+
+
 def validate_python_version(python_version: str) -> str:
     normalized_version = python_version.strip()
     if normalized_version not in SUPPORTED_PYTHON_VERSIONS:

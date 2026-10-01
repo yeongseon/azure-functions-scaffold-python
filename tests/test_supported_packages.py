@@ -78,8 +78,8 @@ def test_rendered_pyproject_uses_catalog_specs(
         python_version="3.11",
         include_github_actions=False,
         initialize_git=False,
-        include_openapi=True,
-        include_validation=True,
+        include_openapi=template_name == "http",
+        include_validation=template_name == "http",
         include_doctor=True,
     )
     project_path = scaffold_project(
