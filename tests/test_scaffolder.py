@@ -342,6 +342,29 @@ def test_describe_scaffold_project_reports_expected_files(tmp_path: Path) -> Non
     assert "  - .github/workflows/ci.yml" in lines
 
 
+def test_describe_scaffold_project_raises_for_invalid_template(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    template_root = tmp_path / "template"
+    template_root.mkdir()
+    (template_root / "broken.j2").write_text("{{ broken", encoding="utf-8")
+    monkeypatch.setattr(
+        "azure_functions_scaffold.scaffolder.get_template",
+        lambda _: TemplateSpec(
+            name="timer",
+            description="Broken timer template.",
+            root=template_root,
+            allowed_features=frozenset({"doctor", "azd"}),
+        ),
+    )
+
+    with pytest.raises(TemplateSyntaxError):
+        describe_scaffold_project("sample", tmp_path, template_name="timer")
+
+    assert not (tmp_path / "sample").exists()
+
+
 def test_describe_scaffold_project_reports_overwrite_status(tmp_path: Path) -> None:
     target_dir = tmp_path / "sample"
     target_dir.mkdir()

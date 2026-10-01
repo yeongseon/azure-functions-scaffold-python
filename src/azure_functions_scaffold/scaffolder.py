@@ -83,23 +83,7 @@ def scaffold_project(
                 logger.debug("Copying template asset: %s -> %s", template_rel_name, output_path)
                 shutil.copyfile(template_path, output_path)
                 continue
-            rendered_content = environment.get_template(template_rel_name).render(
-                project_name=context.project_name,
-                project_slug=context.project_slug,
-                python_version=context.python_version,
-                is_preview_python=is_preview_python(context.python_version),
-                python_upper_bound=context.python_upper_bound,
-                preset_name=context.preset_name,
-                include_github_actions=context.include_github_actions,
-                include_ruff=context.include_ruff,
-                include_mypy=context.include_mypy,
-                include_pytest=context.include_pytest,
-                include_openapi=context.include_openapi,
-                include_validation=context.include_validation,
-                include_doctor=context.include_doctor,
-                include_azd=context.include_azd,
-                supported_packages=SUPPORTED_PACKAGES,
-            )
+            rendered_content = _render_template(environment, template_rel_name, context)
             logger.debug("Rendering template: %s -> %s", template_rel_name, output_path)
             output_path.write_text(rendered_content, encoding="utf-8")
 
@@ -168,12 +152,23 @@ def describe_scaffold_project(
         lines.append("Azure Developer CLI (azd): enabled")
 
     lines.append("Files:")
+    environment = Environment(
+        loader=FileSystemLoader(str(template.root)),
+        autoescape=select_autoescape(
+            enabled_extensions=("html", "xml"),
+            default_for_string=False,
+            default=False,
+        ),
+        keep_trailing_newline=True,
+    )
     for template_path in _iter_template_files(template.root):
         relative_path = template_path.relative_to(template.root)
         if not _should_render_template(relative_path, context):
             continue
         rendered_path = _render_path(relative_path, context)
         lines.append(f"  - {rendered_path.as_posix()}")
+        if relative_path.suffix == ".j2":
+            _render_template(environment, relative_path.as_posix(), context)
 
     return lines
 
@@ -275,6 +270,30 @@ def _render_path(relative_path: Path, context: TemplateContext) -> Path:
             rendered = rendered[:-3]
         rendered_parts.append(rendered)
     return Path(*rendered_parts)
+
+
+def _render_template(
+    environment: Environment,
+    template_name: str,
+    context: TemplateContext,
+) -> str:
+    return environment.get_template(template_name).render(
+        project_name=context.project_name,
+        project_slug=context.project_slug,
+        python_version=context.python_version,
+        is_preview_python=is_preview_python(context.python_version),
+        python_upper_bound=context.python_upper_bound,
+        preset_name=context.preset_name,
+        include_github_actions=context.include_github_actions,
+        include_ruff=context.include_ruff,
+        include_mypy=context.include_mypy,
+        include_pytest=context.include_pytest,
+        include_openapi=context.include_openapi,
+        include_validation=context.include_validation,
+        include_doctor=context.include_doctor,
+        include_azd=context.include_azd,
+        supported_packages=SUPPORTED_PACKAGES,
+    )
 
 
 def _slugify(value: str) -> str:
