@@ -6,7 +6,7 @@ on:
       - "src/azure_functions_scaffold/templates/**"
       - "src/azure_functions_scaffold/template_registry.py"
       - "src/azure_functions_scaffold/scaffolder.py"
-      - "src/azure_functions_scaffold/generator.py"
+      - "src/azure_functions_scaffold/generator/**"
       - ".github/workflows/templates-smoke.yml"
   push:
     branches:
@@ -15,7 +15,7 @@ on:
       - "src/azure_functions_scaffold/templates/**"
       - "src/azure_functions_scaffold/template_registry.py"
       - "src/azure_functions_scaffold/scaffolder.py"
-      - "src/azure_functions_scaffold/generator.py"
+      - "src/azure_functions_scaffold/generator/**"
       - ".github/workflows/templates-smoke.yml"
   workflow_dispatch:
   schedule:
