@@ -1,6 +1,24 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.0](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.6.6...v0.7.0) (2026-10-01)
+
+
+### Bug Fixes
+
+* **compat:** deprecate Python 3.10 ahead of its removal ([#322](https://github.com/yeongseon/azure-functions-scaffold-python/issues/322)) ([ca905ec](https://github.com/yeongseon/azure-functions-scaffold-python/commit/ca905ec7c4fa31a07dffed8da79610c7435cb08e))
+* **generator:** report incomplete rollback ([#327](https://github.com/yeongseon/azure-functions-scaffold-python/issues/327)) ([a0158f7](https://github.com/yeongseon/azure-functions-scaffold-python/commit/a0158f75614516689f6e01df0df7f7a9d17d129f))
+* **options:** keep the normalized Python version ([#325](https://github.com/yeongseon/azure-functions-scaffold-python/issues/325)) ([d4e61fc](https://github.com/yeongseon/azure-functions-scaffold-python/commit/d4e61fc191e53df1d689bc8c5fa9a92c420a1ee1))
+* **scaffolder:** copy non-template files byte-for-byte ([#324](https://github.com/yeongseon/azure-functions-scaffold-python/issues/324)) ([4e3a11b](https://github.com/yeongseon/azure-functions-scaffold-python/commit/4e3a11b35983697e71355a715fdd26784aaf35ab))
+* **scaffolder:** preserve existing project when overwrite generation fails ([#326](https://github.com/yeongseon/azure-functions-scaffold-python/issues/326)) ([251a9c9](https://github.com/yeongseon/azure-functions-scaffold-python/commit/251a9c9ea056c2bd72cf9ad1fbc3c814ca2c766a))
+* **scaffolder:** reject unsupported template features in the Python API ([#323](https://github.com/yeongseon/azure-functions-scaffold-python/issues/323)) ([70003f2](https://github.com/yeongseon/azure-functions-scaffold-python/commit/70003f242ad9a7e058fea360b8d0f92811a12c85))
+* **scaffold:** render planned templates during dry-run ([#328](https://github.com/yeongseon/azure-functions-scaffold-python/issues/328)) ([176f509](https://github.com/yeongseon/azure-functions-scaffold-python/commit/176f5092f32b9116ce44cb8b2d754839a04dd308))
+
+
+### Miscellaneous Tasks
+
+* release 0.7.0 ([5b6aef5](https://github.com/yeongseon/azure-functions-scaffold-python/commit/5b6aef5b8505fab991abca24fd8e251a766805b6))
+
 ## [0.6.6](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.6.5...v0.6.6) (2026-09-29)
 
 
