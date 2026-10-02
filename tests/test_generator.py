@@ -406,6 +406,30 @@ def test_describe_add_function_reports_expected_changes(tmp_path: Path) -> None:
     assert "  - local.settings.json.example ServiceBusConnection" in lines
 
 
+def test_describe_add_function_excludes_unchanged_configuration(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    host_path = project_root / "host.json"
+    host_config = json.loads(host_path.read_text(encoding="utf-8"))
+    host_config["extensionBundle"] = {
+        "id": "Microsoft.Azure.Functions.ExtensionBundle",
+        "version": "[4.*, 5.0.0)",
+    }
+    host_path.write_text(json.dumps(host_config), encoding="utf-8")
+    local_settings_path = project_root / "local.settings.json.example"
+    local_settings = json.loads(local_settings_path.read_text(encoding="utf-8"))
+    local_settings["Values"]["ServiceBusConnection"] = "user-owned"
+    local_settings_path.write_text(json.dumps(local_settings), encoding="utf-8")
+
+    lines = describe_add_function(
+        project_root=project_root,
+        trigger="servicebus",
+        function_name="process-events",
+    )
+
+    assert "  - host.json extensionBundle" not in lines
+    assert "  - local.settings.json.example ServiceBusConnection" not in lines
+
+
 def test_add_function_skips_test_file_when_already_exists(tmp_path: Path) -> None:
     """Test that add_function doesn't overwrite an existing test file (line 38->44)."""
     project_root = scaffold_project("sample", tmp_path)

@@ -206,12 +206,17 @@ def _describe_add_function_lines(
 ) -> list[str]:
     """Build the dry-run description lines for :func:`add_function`."""
     host_json_path = project_root / "host.json"
+    updated_host = None
     if host_json_path.exists() and normalized_trigger in HOST_JSON_TRIGGERS:
-        _compute_updated_host_json(host_json_path.read_text(encoding="utf-8"), normalized_trigger)
+        updated_host = _compute_updated_host_json(
+            host_json_path.read_text(encoding="utf-8"),
+            normalized_trigger,
+        )
 
     local_settings_path = project_root / "local.settings.json.example"
+    updated_local_settings = None
     if local_settings_path.exists():
-        _compute_updated_local_settings(
+        updated_local_settings = _compute_updated_local_settings(
             local_settings_path.read_text(encoding="utf-8"),
             normalized_trigger,
         )
@@ -233,14 +238,15 @@ def _describe_add_function_lines(
         ]
     )
 
-    if normalized_trigger in {"queue", "blob", "servicebus", "eventhub", "cosmosdb"}:
+    if updated_host is not None:
         lines.append("  - host.json extensionBundle")
-    if normalized_trigger == "servicebus":
-        lines.append("  - local.settings.json.example ServiceBusConnection")
-    if normalized_trigger == "eventhub":
-        lines.append("  - local.settings.json.example EventHubConnection")
-    if normalized_trigger == "cosmosdb":
-        lines.append("  - local.settings.json.example CosmosDBConnection")
+    if updated_local_settings is not None:
+        connection_key = {
+            "servicebus": "ServiceBusConnection",
+            "eventhub": "EventHubConnection",
+            "cosmosdb": "CosmosDBConnection",
+        }[normalized_trigger]
+        lines.append(f"  - local.settings.json.example {connection_key}")
 
     return lines
 
