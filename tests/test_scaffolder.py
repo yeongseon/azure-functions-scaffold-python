@@ -115,6 +115,14 @@ def test_resolve_target_dir_rejects_file_destination(tmp_path: Path) -> None:
         resolve_target_dir(file_path, "sample")
 
 
+def test_resolve_target_dir_rejects_dangling_symlink_destination(tmp_path: Path) -> None:
+    destination = tmp_path / "broken"
+    destination.symlink_to(tmp_path / "missing", target_is_directory=True)
+
+    with pytest.raises(ScaffoldError, match="symbolic link.*does not resolve"):
+        resolve_target_dir(destination, "sample")
+
+
 def test_iter_template_files_returns_template_files() -> None:
     template_root = get_template("http").root
 
