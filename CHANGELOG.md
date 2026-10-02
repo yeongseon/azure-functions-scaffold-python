@@ -1,6 +1,16 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.1](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.7.0...v0.7.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* **generator:** list configuration updates only when content changes ([#346](https://github.com/yeongseon/azure-functions-scaffold-python/issues/346)) ([821baad](https://github.com/yeongseon/azure-functions-scaffold-python/commit/821baada1b2e76ed25cae175d8ec9cee49cef101))
+* **generator:** report only files an add dry-run will create ([#343](https://github.com/yeongseon/azure-functions-scaffold-python/issues/343)) ([b49eb92](https://github.com/yeongseon/azure-functions-scaffold-python/commit/b49eb92513eb5a6ca1a776398426fb3f29da35c4))
+* **scaffold:** reject blocked targets during dry-run ([#340](https://github.com/yeongseon/azure-functions-scaffold-python/issues/340)) ([765b06a](https://github.com/yeongseon/azure-functions-scaffold-python/commit/765b06a31afe9cfdcd518cdfeb63d7ae251773e9))
+* **scaffold:** reject dangling destination symlinks ([#341](https://github.com/yeongseon/azure-functions-scaffold-python/issues/341)) ([108fa36](https://github.com/yeongseon/azure-functions-scaffold-python/commit/108fa36818a1047f966981e1d963c8e412820eca))
+
 ## [0.7.0](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.6.6...v0.7.0) (2026-10-01)
 
 
