@@ -476,6 +476,19 @@ def test_describe_add_function_excludes_test_line_when_no_tests_dir(tmp_path: Pa
     assert not any("test_sync_data.py" in line for line in lines)
 
 
+def test_describe_add_function_excludes_existing_test_file(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    (project_root / "tests/test_sync_data.py").write_text("# keep me", encoding="utf-8")
+
+    lines = describe_add_function(
+        project_root=project_root,
+        trigger="http",
+        function_name="sync-data",
+    )
+
+    assert "  - tests/test_sync_data.py" not in lines
+
+
 @pytest.mark.parametrize(
     ("trigger", "expected_host_json", "expected_local_settings"),
     [
@@ -1052,6 +1065,15 @@ def test_describe_add_resource_excludes_test_when_no_tests_dir(tmp_path: Path) -
     assert not any("test_products.py" in line for line in lines)
 
 
+def test_describe_add_resource_excludes_existing_test_file(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    (project_root / "tests/test_products.py").write_text("# keep me", encoding="utf-8")
+
+    lines = describe_add_resource(project_root=project_root, resource_name="products")
+
+    assert "  - tests/test_products.py" not in lines
+
+
 # ---------------------------------------------------------------------------
 # add_route
 # ---------------------------------------------------------------------------
@@ -1215,6 +1237,15 @@ def test_describe_add_route_excludes_test_when_no_tests_dir(tmp_path: Path) -> N
     lines = describe_add_route(project_root=project_root, route_name="status")
 
     assert not any("test_status.py" in line for line in lines)
+
+
+def test_describe_add_route_excludes_existing_test_file(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    (project_root / "tests/test_status.py").write_text("# keep me", encoding="utf-8")
+
+    lines = describe_add_route(project_root=project_root, route_name="status")
+
+    assert "  - tests/test_status.py" not in lines
 
 
 @pytest.mark.parametrize(
