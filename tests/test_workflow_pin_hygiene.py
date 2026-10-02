@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import re
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _LINT_PATH = _REPO_ROOT / "tools" / "lint_workflow_pins.py"
@@ -21,6 +22,29 @@ _spec.loader.exec_module(lint_mod)
 def test_repo_workflows_are_pin_clean() -> None:
     """Every committed workflow must satisfy pin-hygiene."""
     assert lint_mod.lint() == []
+
+
+def test_workflow_path_filters_reference_existing_paths() -> None:
+    # Given: all path-filter entries declared by committed workflows.
+    workflows = (_REPO_ROOT / ".github" / "workflows").glob("*.yml")
+    filters: list[tuple[Path, str]] = []
+    for workflow in workflows:
+        text = workflow.read_text(encoding="utf-8")
+        for block in re.findall(r"(?m)^\s+paths:\s*\n((?:\s+-\s+.+\n)+)", text):
+            filters.extend(
+                (workflow, line.split("-", 1)[1].strip().strip("\"'"))
+                for line in block.splitlines()
+            )
+
+    # When: each glob is reduced to its existing, non-pattern prefix.
+    missing = []
+    for workflow, path_filter in filters:
+        anchor = re.split(r"[*?[]", path_filter.lstrip("!"), maxsplit=1)[0].rstrip("/")
+        if not (_REPO_ROOT / anchor).exists():
+            missing.append(f"{workflow.name}: {path_filter}")
+
+    # Then: no filter is anchored to a removed path.
+    assert missing == []
 
 
 def test_sha_with_comment_passes() -> None:
