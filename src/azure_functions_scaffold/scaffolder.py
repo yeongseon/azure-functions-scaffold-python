@@ -238,6 +238,10 @@ def validate_project_name(project_name: str) -> str:
 
 
 def resolve_target_dir(destination: Path, project_name: str) -> Path:
+    if destination.is_symlink() and not destination.exists():
+        raise ScaffoldError(
+            f"Destination symbolic link does not resolve to a directory: {destination}"
+        )
     if destination.exists() and not destination.is_dir():
         raise ScaffoldError(f"Destination must be a directory: {destination}")
     return destination / project_name
