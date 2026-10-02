@@ -137,7 +137,9 @@ def describe_scaffold_project(
         if overwrite:
             lines.append("Overwrite: enabled")
         else:
-            lines.append("Overwrite: blocked (target already exists)")
+            raise ScaffoldError(
+                f"Target directory already exists: {target_dir}. Use --overwrite to replace it."
+            )
     if context.include_github_actions:
         lines.append("GitHub Actions: enabled")
     if context.initialize_git:
