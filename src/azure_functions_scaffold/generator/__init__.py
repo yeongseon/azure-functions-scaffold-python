@@ -153,17 +153,16 @@ def add_function(
         ),
     ]
 
-    if (project_root / "tests").is_dir():
-        test_path = project_root / "tests" / f"test_{normalized_name}.py"
-        if not test_path.exists():
-            writes.insert(
-                1,
-                _PendingWrite(
-                    path=test_path,
-                    new_content=_render_function_test(normalized_trigger, normalized_name),
-                    original_content=None,
-                ),
-            )
+    test_path = _test_path_to_create(project_root, normalized_name)
+    if test_path is not None:
+        writes.insert(
+            1,
+            _PendingWrite(
+                path=test_path,
+                new_content=_render_function_test(normalized_trigger, normalized_name),
+                original_content=None,
+            ),
+        )
 
     host_json_path = project_root / "host.json"
     if host_json_path.exists() and normalized_trigger in HOST_JSON_TRIGGERS:
@@ -223,7 +222,7 @@ def _describe_add_function_lines(
         f"  - app/functions/{normalized_name}.py",
     ]
 
-    if (project_root / "tests").is_dir():
+    if _test_path_to_create(project_root, normalized_name) is not None:
         lines.append(f"  - tests/test_{normalized_name}.py")
 
     lines.extend(
@@ -258,6 +257,13 @@ def describe_add_function(
         function_name=function_name,
         dry_run=True,
     )
+
+
+def _test_path_to_create(project_root: Path, normalized_name: str) -> Path | None:
+    test_path = project_root / "tests" / f"test_{normalized_name}.py"
+    if test_path.parent.is_dir() and not test_path.exists():
+        return test_path
+    return None
 
 
 def _normalize_trigger(trigger: str) -> str:
@@ -531,17 +537,16 @@ def add_resource(
 
     created = [blueprint_path, service_path, schema_path]
 
-    if (project_root / "tests").is_dir():
-        test_path = project_root / "tests" / f"test_{normalized}.py"
-        if not test_path.exists():
-            writes.append(
-                _PendingWrite(
-                    path=test_path,
-                    new_content=_render_partial("resource_test.py.j2", names),
-                    original_content=None,
-                )
+    test_path = _test_path_to_create(project_root, normalized)
+    if test_path is not None:
+        writes.append(
+            _PendingWrite(
+                path=test_path,
+                new_content=_render_partial("resource_test.py.j2", names),
+                original_content=None,
             )
-            created.append(test_path)
+        )
+        created.append(test_path)
 
     writes.append(
         _PendingWrite(
@@ -567,7 +572,7 @@ def _describe_add_resource_lines(project_root: Path, normalized: str) -> list[st
         f"  - app/schemas/{normalized}.py",
     ]
 
-    if (project_root / "tests").is_dir():
+    if _test_path_to_create(project_root, normalized) is not None:
         lines.append(f"  - tests/test_{normalized}.py")
 
     lines.extend(
@@ -674,16 +679,15 @@ def add_route(
         )
     ]
 
-    if (project_root / "tests").is_dir():
-        test_path = project_root / "tests" / f"test_{normalized}.py"
-        if not test_path.exists():
-            writes.append(
-                _PendingWrite(
-                    path=test_path,
-                    new_content=_render_partial("route_test.py.j2", names),
-                    original_content=None,
-                )
+    test_path = _test_path_to_create(project_root, normalized)
+    if test_path is not None:
+        writes.append(
+            _PendingWrite(
+                path=test_path,
+                new_content=_render_partial("route_test.py.j2", names),
+                original_content=None,
             )
+        )
 
     writes.append(
         _PendingWrite(
@@ -707,7 +711,7 @@ def _describe_add_route_lines(project_root: Path, normalized: str) -> list[str]:
         f"  - app/functions/{normalized}.py",
     ]
 
-    if (project_root / "tests").is_dir():
+    if _test_path_to_create(project_root, normalized) is not None:
         lines.append(f"  - tests/test_{normalized}.py")
 
     lines.extend(
