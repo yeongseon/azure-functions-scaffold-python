@@ -369,11 +369,18 @@ def test_describe_scaffold_project_reports_overwrite_status(tmp_path: Path) -> N
     target_dir = tmp_path / "sample"
     target_dir.mkdir()
 
-    blocked_lines = describe_scaffold_project("sample", tmp_path)
     overwrite_lines = describe_scaffold_project("sample", tmp_path, overwrite=True)
 
-    assert "Overwrite: blocked (target already exists)" in blocked_lines
     assert "Overwrite: enabled" in overwrite_lines
+
+
+def test_describe_scaffold_project_rejects_existing_target_without_overwrite(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "sample").mkdir()
+
+    with pytest.raises(ScaffoldError, match="Use --overwrite to replace it"):
+        describe_scaffold_project("sample", tmp_path)
 
 
 def test_scaffold_project_renders_template_option(tmp_path: Path) -> None:
