@@ -47,7 +47,7 @@ Maintain high quality by following these rules:
 - **Style:** Code must pass `make lint` and `make format`.
 - **Types:** All public functions and complex logic must have type hints that pass `make lint` (mypy strict mode).
 - **Security:** Avoid insecure patterns. `make security` must pass.
-- **Coverage:** New code must maintain or improve the overall test coverage. A minimum of **90% coverage** is required.
+- **Coverage:** New code must maintain or improve the overall test coverage. A minimum of **95% coverage** is required.
 - **Language:** All code, comments, and documentation must be written in English.
 
 ## Template Change Guidelines

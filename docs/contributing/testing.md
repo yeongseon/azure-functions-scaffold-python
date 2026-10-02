@@ -1,6 +1,6 @@
 # Testing Guide
 
-All changes to azure-functions-scaffold-python must include tests. We aim for high reliability and 90% or greater test coverage.
+All changes to azure-functions-scaffold-python must include tests. We aim for high reliability and 95% or greater test coverage.
 
 ## Running Tests
 
@@ -72,7 +72,7 @@ The project is configured to track:
 - Branch coverage for conditional logic.
 - Exclusions for boilerplate code that does not require testing.
 
-A minimum coverage of **90%** is required. PRs that drop the coverage below this threshold will fail CI checks.
+A minimum coverage of **95%** is required. PRs that drop the coverage below this threshold will fail CI checks.
 
 ## Writing New Tests
 
