@@ -25,8 +25,7 @@ readme = "README.md"
 requires-python = ">={{ python_version }},<{{ python_upper_bound }}"
 dependencies = [
   "azure-functions{{ supported_packages['azure-functions'] }}",
-  # "azure-functions-langgraph{{ supported_packages['azure-functions-langgraph'] }}",
-  # Uncomment after azure-functions-langgraph is published on PyPI.
+  "azure-functions-langgraph{{ supported_packages['azure-functions-langgraph'] }}",
   "langgraph>=0.2.0",
   "orjson>=3.10.0",
 ]
