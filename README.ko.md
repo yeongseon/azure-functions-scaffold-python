@@ -27,7 +27,7 @@ Python 버전 지원: Azure Functions에서 3.10-3.13은 GA이며, 3.14는 **Pre
 |---|---|---|
 | 유지관리 | Microsoft | 커뮤니티 |
 | 범위 | 최소한의 Functions 스켈레톤 | 의견이 반영된 프로덕션 지향 스타터 |
-| 프로젝트 레이아웃 | 기본적인 `function_app.py` + `host.json` | 계층화된 구조: `api/`, `domain/`, `infra/`, 테스트, CI |
+| 프로젝트 레이아웃 | 기본적인 `function_app.py` + `host.json` | 계층화된 구조: `app/functions/`, `app/services/`, `app/schemas/`, 테스트, CI |
 | 기본 인증 | `AuthLevel.ANONYMOUS` | `AuthLevel.ANONYMOUS` (웹훅 HMAC 검증 코드 포함) |
 | 로깅 | `logging` 표준 라이브러리 | `azure-functions-logging` 구조화된 JSON 로깅 포함 |
 | 관측성 | 없음 | 선택적 `azure-functions-doctor` 상태 확인 |
@@ -187,6 +187,7 @@ my-api/
 - `--with-openapi` - Swagger UI + OpenAPI 사양 엔드포인트
 - `--with-validation` - Pydantic 요청/응답 검증
 - `--with-doctor` - 상태 확인 진단
+- `--azd` - `azure.yaml` 서비스 구성을 생성합니다. `infra/`의 프로비저닝 파일은 사용자가 제공합니다.
 - `--with-db` - 데이터베이스 바인딩 (SQLAlchemy) *(계획 — CLI에서 아직 사용 불가)*
 - `--preset minimal|standard|strict` - 도구 구성 수준
 
