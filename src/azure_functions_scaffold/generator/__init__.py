@@ -37,10 +37,12 @@ from azure_functions_scaffold.generator.json_mutators import (
     _compute_updated_host_json,
     _compute_updated_local_settings,
 )
+from azure_functions_scaffold.generator.pyproject import _compute_updated_pyproject_dependency
 from azure_functions_scaffold.generator.writer import (
     _commit_pending_writes,
     _PendingWrite,
 )
+from azure_functions_scaffold.packages import requirement
 from azure_functions_scaffold.template_registry import list_templates
 
 __all__ = [
@@ -153,6 +155,22 @@ def add_function(
         ),
     ]
 
+    if normalized_trigger == "durable":
+        pyproject_path = project_root / "pyproject.toml"
+        pyproject_content = pyproject_path.read_text(encoding="utf-8")
+        updated_pyproject = _compute_updated_pyproject_dependency(
+            pyproject_content,
+            requirement("azure-functions-durable"),
+        )
+        if updated_pyproject is not None:
+            writes.append(
+                _PendingWrite(
+                    path=pyproject_path,
+                    new_content=updated_pyproject,
+                    original_content=pyproject_content,
+                )
+            )
+
     test_path = _test_path_to_create(project_root, normalized_name)
     if test_path is not None:
         writes.insert(
@@ -246,6 +264,16 @@ def _describe_add_function_lines(
             "cosmosdb": "CosmosDBConnection",
         }[normalized_trigger]
         lines.append(f"  - local.settings.json.example {connection_key}")
+    if normalized_trigger == "durable":
+        pyproject_content = (project_root / "pyproject.toml").read_text(encoding="utf-8")
+        if (
+            _compute_updated_pyproject_dependency(
+                pyproject_content,
+                requirement("azure-functions-durable"),
+            )
+            is not None
+        ):
+            lines.append("  - pyproject.toml azure-functions-durable dependency")
 
     return lines
 
