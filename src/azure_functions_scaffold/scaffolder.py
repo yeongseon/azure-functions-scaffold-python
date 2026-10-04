@@ -229,10 +229,10 @@ def validate_project_name(project_name: str) -> str:
     if not normalized_name:
         raise ScaffoldError("Project name must not be empty.")
 
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]*", normalized_name):
+    if not re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9_-]*[A-Za-z0-9])?", normalized_name):
         raise ScaffoldError(
-            "Project name must start with a letter or number and contain only letters, "
-            "numbers, hyphens, or underscores."
+            "Project name must start and end with a letter or number and contain only "
+            "letters, numbers, hyphens, or underscores."
         )
 
     return normalized_name
