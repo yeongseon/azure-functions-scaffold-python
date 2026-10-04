@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.3](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.7.2...v0.7.3) (2026-10-04)
+
+
+### Bug Fixes
+
+* **templates:** preserve worker indexing through logging decorators ([#366](https://github.com/yeongseon/azure-functions-scaffold-python/issues/366)) ([84ad182](https://github.com/yeongseon/azure-functions-scaffold-python/commit/84ad18255108c8fdc5df3481c87aed2b042915f1))
+
 ## [0.7.2](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.7.1...v0.7.2) (2026-10-04)
 
 
