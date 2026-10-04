@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 
 import azure.functions as func
 
@@ -10,7 +9,7 @@ import azure.functions as func
 
 
 @{{ function_name }}_blueprint.route(
-    route="chat",
+    route="{{ route_name }}",
     methods=["POST"],
     auth_level=func.AuthLevel.FUNCTION,
 )
