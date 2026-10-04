@@ -1,6 +1,18 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.2](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.7.1...v0.7.2) (2026-10-04)
+
+
+### Bug Fixes
+
+* **scaffold:** reject project names ending in a separator ([#363](https://github.com/yeongseon/azure-functions-scaffold-python/issues/363)) ([72e2211](https://github.com/yeongseon/azure-functions-scaffold-python/commit/72e221107a2f3c2c0b3357d814e7d33ff177ae13))
+* **templates:** allow newer Python versions in generated projects ([#360](https://github.com/yeongseon/azure-functions-scaffold-python/issues/360)) ([f242924](https://github.com/yeongseon/azure-functions-scaffold-python/commit/f242924e5e0157847e99036d4f931585e21394a8))
+* **templates:** declare the langgraph runtime dependency ([#359](https://github.com/yeongseon/azure-functions-scaffold-python/issues/359)) ([45bd74e](https://github.com/yeongseon/azure-functions-scaffold-python/commit/45bd74e7dbfc04f3f0dccfabd7cc6ae8c7d92bb9))
+* **templates:** emit structured logs from generated projects ([#362](https://github.com/yeongseon/azure-functions-scaffold-python/issues/362)) ([a4025c2](https://github.com/yeongseon/azure-functions-scaffold-python/commit/a4025c218e76d27c7d0dd3a11c520633d862528b))
+* **templates:** generate a valid durable function ([#357](https://github.com/yeongseon/azure-functions-scaffold-python/issues/357)) ([3ce04c7](https://github.com/yeongseon/azure-functions-scaffold-python/commit/3ce04c7c5863d59e40b448be9085958ef33dab36))
+* **templates:** give each ai function its own route ([#361](https://github.com/yeongseon/azure-functions-scaffold-python/issues/361)) ([657a472](https://github.com/yeongseon/azure-functions-scaffold-python/commit/657a472150aade400efb30361ec0dce9fa96a08d))
+
 ## [0.7.1](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.7.0...v0.7.1) (2026-10-02)
 
 
