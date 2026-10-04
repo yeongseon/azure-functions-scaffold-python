@@ -15,7 +15,7 @@ def test_langgraph_project_installs_and_imports_function_app(tmp_path: Path) -> 
         tmp_path,
         template_name="langgraph",
         options=build_project_options(
-            preset_name="standard",
+            preset_name="strict",
             python_version=python_version,
             include_github_actions=False,
             initialize_git=False,
@@ -36,5 +36,13 @@ def test_langgraph_project_installs_and_imports_function_app(tmp_path: Path) -> 
         text=True,
         check=False,
     )
+    typecheck = subprocess.run(
+        [str(project_root / ".venv" / "bin" / "python"), "-m", "mypy", "."],
+        cwd=project_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
 
     assert result.returncode == 0, result.stderr
+    assert typecheck.returncode == 0, typecheck.stdout + typecheck.stderr
