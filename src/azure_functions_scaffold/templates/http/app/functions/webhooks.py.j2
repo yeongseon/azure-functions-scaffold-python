@@ -4,6 +4,7 @@ import json
 import logging
 
 import azure.functions as func
+from azure_functions_logging import with_context
 {%- if include_openapi %}
 from azure_functions_openapi.decorator import openapi
 {%- endif %}
@@ -56,7 +57,11 @@ webhooks_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 {%- endif %}
 )
 {% endif -%}
-def receive_webhook(req: func.HttpRequest) -> func.HttpResponse:
+@with_context(strict=True)
+def receive_webhook(
+    req: func.HttpRequest,
+    context: func.Context | None = None,
+) -> func.HttpResponse:
     # --- Signature verification (must run before body parsing) ---
     try:
         secret = get_webhook_secret()
