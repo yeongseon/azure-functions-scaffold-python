@@ -27,7 +27,7 @@ Python バージョンサポート: Azure Functions では 3.10-3.13 は GA、3.
 |---|---|---|
 | メンテナンス | Microsoft | コミュニティ |
 | スコープ | 最小限の Functions スケルトン | 意見を反映した、プロダクション志向のスターター |
-| プロジェクト構成 | 基本的な `function_app.py` + `host.json` | 階層型: `api/`, `domain/`, `infra/`, テスト, CI |
+| プロジェクト構成 | 基本的な `function_app.py` + `host.json` | 階層型: `app/functions/`, `app/services/`, `app/schemas/`, テスト, CI |
 | 認証の既定値 | `AuthLevel.ANONYMOUS` | `AuthLevel.ANONYMOUS` (Webhook 用の HMAC 検証コードを含む) |
 | ロギング | `logging` 標準ライブラリ | `azure-functions-logging` 構造化 JSON ロギング設定済み |
 | 可観測性 | なし | オプションの `azure-functions-doctor` ヘルスチェック |
@@ -187,6 +187,7 @@ my-api/
 - `--with-openapi` - Swagger UI + OpenAPI 仕様エンドポイント
 - `--with-validation` - Pydantic リクエスト/レスポンス検証
 - `--with-doctor` - ヘルスチェック診断
+- `--azd` - `azure.yaml` のサービス構成を生成します。`infra/` のプロビジョニングファイルはユーザーが用意します。
 - `--with-db` - データベースバインディング (SQLAlchemy) *(計画 — CLIでは未対応)*
 - `--preset minimal|standard|strict` - ツーリングレベル
 
