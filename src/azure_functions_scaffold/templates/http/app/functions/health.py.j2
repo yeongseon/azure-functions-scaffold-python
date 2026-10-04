@@ -4,6 +4,7 @@ import json
 import logging
 
 import azure.functions as func
+from azure_functions_logging import with_context
 {%- if include_openapi %}
 from azure_functions_openapi.decorator import openapi
 {%- endif %}
@@ -25,7 +26,8 @@ health_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
     tags=["health"],
     )
 {% endif -%}
-def health(req: func.HttpRequest) -> func.HttpResponse:
+@with_context(strict=True)
+def health(req: func.HttpRequest, context: func.Context | None = None) -> func.HttpResponse:
     logging.info("Health check requested")
     result = check_health()
     return func.HttpResponse(
