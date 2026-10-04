@@ -94,7 +94,7 @@ class TestApiNew:
         )
         assert result.exit_code == 0
         pyproject_text = (tmp_path / "py312-api" / "pyproject.toml").read_text(encoding="utf-8")
-        assert 'requires-python = ">=3.12,<3.13"' in pyproject_text
+        assert 'requires-python = ">=3.12,<3.15"' in pyproject_text
 
 
 # ---------------------------------------------------------------------------
@@ -176,7 +176,7 @@ class TestNew:
         )
         assert result.exit_code == 0
         pyproject_text = (tmp_path / "py312-api" / "pyproject.toml").read_text(encoding="utf-8")
-        assert 'requires-python = ">=3.12,<3.13"' in pyproject_text
+        assert 'requires-python = ">=3.12,<3.15"' in pyproject_text
 
     def test_produces_same_output_as_api_new(self, tmp_path: Path) -> None:
         """Verify `afs new` and `afs api new` generate identical project structures."""

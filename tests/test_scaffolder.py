@@ -93,7 +93,7 @@ def test_build_template_context_creates_slug() -> None:
         project_name="My_API",
         project_slug="my-api",
         python_version="3.10",
-        python_upper_bound="3.11",
+        python_upper_bound="3.15",
         preset_name="standard",
         include_github_actions=False,
         initialize_git=False,
@@ -480,7 +480,7 @@ def test_scaffold_project_generates_expected_project_contract(
     assert (project_path / ".github/workflows/ci.yml").exists()
     assert (project_path / expected_function).exists()
     assert (project_path / expected_service).exists()
-    assert 'requires-python = ">=3.12,<3.13"' in pyproject_text
+    assert 'requires-python = ">=3.12,<3.15"' in pyproject_text
     assert "ruff>=0.11.0" in pyproject_text
     assert "mypy>=1.17.1" in pyproject_text
     assert "pytest>=8.3.5" in pyproject_text
