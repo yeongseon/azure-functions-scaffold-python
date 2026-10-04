@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import logging
 
@@ -27,7 +25,10 @@ health_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
     )
 {% endif -%}
 @with_context(strict=True)
-def health(req: func.HttpRequest, context: func.Context | None = None) -> func.HttpResponse:
+def health(
+    req: func.HttpRequest,
+    context: func.Context = None,  # type: ignore[assignment]
+) -> func.HttpResponse:
     logging.info("Health check requested")
     result = check_health()
     return func.HttpResponse(
