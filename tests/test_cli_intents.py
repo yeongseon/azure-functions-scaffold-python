@@ -403,8 +403,7 @@ class TestAiAgent:
         pyproject_text = (project_dir / "pyproject.toml").read_text(encoding="utf-8")
         assert (project_dir / "app/graphs/echo_agent.py").exists()
         assert "LangGraphApp" in function_app_text
-        assert '# "azure-functions-langgraph>=0.5.1",' in pyproject_text
-        assert "Uncomment after azure-functions-langgraph is published on PyPI." in pyproject_text
+        assert '"azure-functions-langgraph>=0.5.1",' in pyproject_text
 
     def test_function_app_imports_have_no_blank_lines_within_third_party_section(
         self, tmp_path: Path
