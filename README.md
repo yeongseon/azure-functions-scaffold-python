@@ -30,7 +30,7 @@ Python version support: 3.10-3.13 are GA on Azure Functions; 3.14 is accepted as
 |---|---|---|
 | Maintained by | Microsoft | Community |
 | Scope | Minimal Functions skeleton | Opinionated, production-leaning starter |
-| Project layout | Bare `function_app.py` + `host.json` | Layered: `api/`, `domain/`, `infra/`, tests, CI |
+| Project layout | Bare `function_app.py` + `host.json` | Layered: `app/functions/`, `app/services/`, `app/schemas/`, tests, CI |
 | Auth defaults | `AuthLevel.ANONYMOUS` | `AuthLevel.ANONYMOUS` (pre-wired for HMAC verification in webhooks) |
 | Logging | `logging` stdlib | `azure-functions-logging` structured JSON, pre-wired |
 | Observability | None pre-wired | Optional `azure-functions-doctor` health checks |
@@ -209,6 +209,7 @@ Use `afs advanced new <name>` when you need direct control over feature flags:
 - `--with-openapi` - Swagger UI + OpenAPI spec endpoints
 - `--with-validation` - Pydantic request/response validation
 - `--with-doctor` - Health check diagnostics
+- `--azd` - Generate `azure.yaml` service configuration. Provisioning files under `infra/` are user-provided.
 - `--with-db` - Database bindings (SQLAlchemy) *(planned — not yet available in CLI)*
 - `--preset minimal|standard|strict` - Tooling level
 

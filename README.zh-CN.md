@@ -27,7 +27,7 @@ Python 版本支持: Azure Functions 上 3.10-3.13 为 GA，3.14 为 **Preview**
 |---|---|---|
 | 维护者 | Microsoft | 社区 |
 | 范围 | 最小化 Functions 骨架 | 生产导向的、带最佳实践的启动模板 |
-| 项目布局 | 仅 `function_app.py` + `host.json` | 分层结构：`api/`, `domain/`, `infra/`, 测试, CI |
+| 项目布局 | 仅 `function_app.py` + `host.json` | 分层结构：`app/functions/`, `app/services/`, `app/schemas/`, 测试, CI |
 | 默认身份验证 | `AuthLevel.ANONYMOUS` | `AuthLevel.ANONYMOUS` (预置 Webhook HMAC 签名验证) |
 | 日志 | `logging` 标准库 | `azure-functions-logging` 结构化 JSON 日志，预置 |
 | 可观测性 | 无 | 可选 `azure-functions-doctor` 健康检查 |
@@ -187,6 +187,7 @@ my-api/
 - `--with-openapi` - Swagger UI + OpenAPI 规范端点
 - `--with-validation` - Pydantic 请求/响应校验
 - `--with-doctor` - 健康检查诊断
+- `--azd` - 生成 `azure.yaml` 服务配置。`infra/` 中的预配文件由用户提供。
 - `--with-db` - 数据库绑定 (SQLAlchemy) *(计划中 — CLI中尚未可用)*
 - `--preset minimal|standard|strict` - 工具配置等级
 
