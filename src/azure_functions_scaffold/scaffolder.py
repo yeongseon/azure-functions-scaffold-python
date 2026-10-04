@@ -15,6 +15,7 @@ from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import ProjectOptions, TemplateContext, TemplateSpec
 from azure_functions_scaffold.packages import SUPPORTED_PACKAGES
 from azure_functions_scaffold.template_registry import (
+    SUPPORTED_PYTHON_VERSIONS,
     build_project_options,
     get_template,
     is_preview_python,
@@ -209,7 +210,7 @@ def build_template_context(project_name: str, options: ProjectOptions) -> Templa
         project_name=normalized_name,
         project_slug=_slugify(normalized_name),
         python_version=python_version,
-        python_upper_bound=_next_python_minor(python_version),
+        python_upper_bound=_next_python_minor(SUPPORTED_PYTHON_VERSIONS[-1]),
         preset_name=options.preset_name,
         include_github_actions=options.include_github_actions,
         initialize_git=options.initialize_git,
