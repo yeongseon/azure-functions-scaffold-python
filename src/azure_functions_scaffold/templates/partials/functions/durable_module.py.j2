@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Generator
+from typing import Any
 
+import azure.durable_functions as df  # type: ignore[import-untyped]
 import azure.functions as func
-import azure.functions.durable_functions as df
 
 {{ function_name }}_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
@@ -23,11 +25,13 @@ async def {{ function_name }}_http_start(
 
 
 @{{ function_name }}_blueprint.orchestration_trigger(context_name="context")
-def {{ function_name }}_orchestrator(context: df.DurableOrchestrationContext) -> list[str]:
+def {{ function_name }}_orchestrator(
+    context: df.DurableOrchestrationContext,
+) -> Generator[Any, Any, list[str]]:
     results: list[str] = []
-    results.append(yield context.call_activity("{{ function_name }}_activity", "Tokyo"))
-    results.append(yield context.call_activity("{{ function_name }}_activity", "Seattle"))
-    results.append(yield context.call_activity("{{ function_name }}_activity", "London"))
+    results.append((yield context.call_activity("{{ function_name }}_activity", "Tokyo")))
+    results.append((yield context.call_activity("{{ function_name }}_activity", "Seattle")))
+    results.append((yield context.call_activity("{{ function_name }}_activity", "London")))
     return results
 
 
