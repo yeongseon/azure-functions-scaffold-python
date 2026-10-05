@@ -89,12 +89,14 @@ def scaffold_project(
             logger.debug("Rendering template: %s -> %s", template_rel_name, output_path)
             output_path.write_text(rendered_content, encoding="utf-8")
 
-        metadata = tomli.loads((staging_dir / "pyproject.toml").read_text(encoding="utf-8"))
-        dependencies = metadata["project"]["dependencies"]
-        (staging_dir / "requirements.txt").write_text(
-            "".join(f"{dependency}\n" for dependency in sorted(dependencies, key=str.casefold)),
-            encoding="utf-8",
-        )
+        pyproject_path = staging_dir / "pyproject.toml"
+        if pyproject_path.is_file():
+            metadata = tomli.loads(pyproject_path.read_text(encoding="utf-8"))
+            dependencies = metadata["project"]["dependencies"]
+            (staging_dir / "requirements.txt").write_text(
+                "".join(f"{dependency}\n" for dependency in sorted(dependencies, key=str.casefold)),
+                encoding="utf-8",
+            )
 
         backup_dir = temporary_dir / "original"
         if target_dir.exists():
