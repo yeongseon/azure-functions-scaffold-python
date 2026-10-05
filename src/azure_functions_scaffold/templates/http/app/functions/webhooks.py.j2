@@ -58,7 +58,7 @@ webhooks_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 @with_context(strict=True)
 def receive_webhook(
     req: func.HttpRequest,
-    context: func.Context = None,  # type: ignore[assignment]
+    context: func.Context,
 ) -> func.HttpResponse:
     # --- Signature verification (must run before body parsing) ---
     try:

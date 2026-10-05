@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import inspect
 from pathlib import Path
 import sys
 import typing
+
+import azure.functions as func
 
 from azure_functions_scaffold.scaffolder import scaffold_project
 from azure_functions_scaffold.template_registry import build_project_options
@@ -45,3 +48,9 @@ def test_generated_http_functions_expose_resolvable_worker_type_hints(tmp_path: 
     # Then: all five handlers produce serialized input and return metadata.
     assert len(hints) == 5
     assert all("return" in function_hints for function_hints in hints)
+    assert all(
+        function_hints.get("context") is not func.Context
+        or inspect.signature(function.get_user_function()).parameters["context"].default
+        is inspect.Parameter.empty
+        for function, function_hints in zip(functions, hints, strict=True)
+    )

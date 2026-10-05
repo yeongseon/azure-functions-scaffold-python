@@ -27,7 +27,7 @@ health_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 @with_context(strict=True)
 def health(
     req: func.HttpRequest,
-    context: func.Context = None,  # type: ignore[assignment]
+    context: func.Context,
 ) -> func.HttpResponse:
     logging.info("Health check requested")
     result = check_health()
