@@ -1,6 +1,18 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.8.0](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.7.3...v0.8.0) (2026-10-05)
+
+
+### Features
+
+* **templates:** emit requirements.txt in generated projects ([#374](https://github.com/yeongseon/azure-functions-scaffold-python/issues/374)) ([1f46475](https://github.com/yeongseon/azure-functions-scaffold-python/commit/1f4647567db3a4007963ebef6d25906e8a0f53cd))
+
+
+### Bug Fixes
+
+* **templates:** keep generated HTTP handlers indexable ([#372](https://github.com/yeongseon/azure-functions-scaffold-python/issues/372)) ([c650df7](https://github.com/yeongseon/azure-functions-scaffold-python/commit/c650df7666b1f0b279c7dfb7c3b8159d57e10534))
+
 ## [0.7.3](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.7.2...v0.7.3) (2026-10-04)
 
 
