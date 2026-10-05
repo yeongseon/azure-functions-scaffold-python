@@ -273,6 +273,8 @@ def test_rendered_http_webhook_returns_503_when_secret_missing(tmp_path: Path) -
 
     sys.path.insert(0, str(project_root))
     try:
+        from unittest.mock import Mock
+
         from app.functions.webhooks import receive_webhook
         import azure.functions as func
 
@@ -287,7 +289,7 @@ def test_rendered_http_webhook_returns_503_when_secret_missing(tmp_path: Path) -
 
         original_secret = os.environ.pop("WEBHOOK_SECRET", None)
         try:
-            response = receive_webhook(request)
+            response = receive_webhook(request, Mock(spec=func.Context))
         finally:
             if original_secret is not None:
                 os.environ["WEBHOOK_SECRET"] = original_secret
@@ -322,6 +324,8 @@ def test_rendered_http_webhook_returns_401_for_unsigned_payload_when_secret_set(
 
     sys.path.insert(0, str(project_root))
     try:
+        from unittest.mock import Mock
+
         from app.functions.webhooks import receive_webhook
         import azure.functions as func
 
@@ -338,7 +342,7 @@ def test_rendered_http_webhook_returns_401_for_unsigned_payload_when_secret_set(
         original_secret = os.environ.get("WEBHOOK_SECRET")
         os.environ["WEBHOOK_SECRET"] = "test-secret-key"
         try:
-            response = receive_webhook(request)
+            response = receive_webhook(request, Mock(spec=func.Context))
         finally:
             if original_secret is None:
                 del os.environ["WEBHOOK_SECRET"]
