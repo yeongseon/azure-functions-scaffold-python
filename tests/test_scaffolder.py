@@ -7,6 +7,7 @@ import sys
 
 from jinja2 import TemplateSyntaxError
 import pytest
+import tomllib
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import TemplateContext, TemplateSpec
@@ -49,6 +50,54 @@ def test_list_templates_returns_http_template() -> None:
         "langgraph",
     ]
     assert all(template.root.is_dir() for template in templates)
+
+
+@pytest.mark.parametrize("template", [template.name for template in list_templates()])
+def test_generated_requirements_match_project_dependencies(
+    tmp_path: Path,
+    template: str,
+) -> None:
+    project_root = scaffold_project(
+        project_name=f"{template}-requirements",
+        destination=tmp_path,
+        template_name=template,
+        options=build_project_options(
+            preset_name="minimal",
+            python_version="3.12",
+            include_github_actions=False,
+            initialize_git=False,
+        ),
+    )
+
+    metadata = tomllib.loads((project_root / "pyproject.toml").read_text(encoding="utf-8"))
+    dependencies = metadata["project"]["dependencies"]
+    requirements = (project_root / "requirements.txt").read_text(encoding="utf-8").splitlines()
+
+    assert requirements == sorted(dependencies, key=str.casefold)
+
+
+def test_generated_requirements_pass_doctor_check(tmp_path: Path) -> None:
+    project_root = scaffold_project(
+        project_name="doctor-requirements",
+        destination=tmp_path,
+        template_name="http",
+        options=build_project_options(
+            preset_name="minimal",
+            python_version="3.12",
+            include_github_actions=False,
+            initialize_git=False,
+        ),
+    )
+
+    result = subprocess.run(
+        [sys.executable, "-m", "azure_functions_doctor.cli", "doctor", "--path", project_root],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "requirements.txt" in result.stdout
 
 
 def test_get_template_rejects_unknown_name() -> None:
