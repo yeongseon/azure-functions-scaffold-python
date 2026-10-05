@@ -7,7 +7,7 @@ import sys
 
 from jinja2 import TemplateSyntaxError
 import pytest
-import tomllib
+import tomli
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import TemplateContext, TemplateSpec
@@ -69,7 +69,7 @@ def test_generated_requirements_match_project_dependencies(
         ),
     )
 
-    metadata = tomllib.loads((project_root / "pyproject.toml").read_text(encoding="utf-8"))
+    metadata = tomli.loads((project_root / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = metadata["project"]["dependencies"]
     requirements = (project_root / "requirements.txt").read_text(encoding="utf-8").splitlines()
 
