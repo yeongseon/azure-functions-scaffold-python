@@ -66,7 +66,7 @@ class TestReceiveWebhook:
                     "X-Signature": signature,
                 },
             )
-        response = receive_webhook(request, CONTEXT)
+            response = receive_webhook(request, CONTEXT)
 
         assert response.status_code == 202
         body = json.loads(response.get_body())
