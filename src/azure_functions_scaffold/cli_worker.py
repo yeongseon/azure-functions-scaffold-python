@@ -43,7 +43,7 @@ def _make_worker_command(intent: str) -> Callable[..., None]:
     def command(
         project_name: str = typer.Argument(..., help="Directory name for the new project."),
         destination: DestinationOption = Path("."),
-        python_version: PythonVersionOption = "3.10",
+        python_version: PythonVersionOption = "3.12",
         include_github_actions: GithubActionsOption = False,
         initialize_git: GitOption = False,
         include_azd: AzdOption = False,

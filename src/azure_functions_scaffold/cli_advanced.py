@@ -65,7 +65,7 @@ def advanced_new(
             "--python-version",
             help=PYTHON_VERSION_HELP,
         ),
-    ] = "3.10",
+    ] = "3.12",
     include_github_actions: Annotated[
         bool,
         typer.Option(
