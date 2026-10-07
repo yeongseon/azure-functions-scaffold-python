@@ -46,8 +46,8 @@ afs [GROUP] [COMMAND] [OPTIONS]                    # Short alias
 ### Common options (project creation commands)
 
 - `--destination`, `-d` — Base directory where project folder is created
-- `--python-version` — Target Python version (`3.11`, `3.12`, `3.13`, `3.14 (Preview)`; default `3.12`)
-- Python 3.14 is Preview on Azure Functions; default to 3.12 unless Preview support is verified.
+- `--python-version` — Target Python version (`3.11`, `3.12`, `3.13`, `3.14`; default `3.12`)
+- Python 3.11 through 3.14 are GA on Azure Functions.
 - `--github-actions/--no-github-actions` — Include or skip GitHub Actions workflow
 - `--git/--no-git` — Initialize or skip git repository
 - `--azd/--no-azd` — Include or skip Azure Developer CLI support files

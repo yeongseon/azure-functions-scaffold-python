@@ -53,7 +53,7 @@ accepts the same option set:
 | Flag | Default | Values | Description |
 | :--- | :--- | :--- | :--- |
 | `--destination`, `-d` | `.` | Path | Base directory where the project folder is created. |
-| `--python-version` | `3.12` | `3.11`, `3.12`, `3.13`, `3.14 (Preview)` | Target Python version. `3.14` emits a Preview warning. |
+| `--python-version` | `3.12` | `3.11`, `3.12`, `3.13`, `3.14` | Target Python version. |
 | `--github-actions` / `--no-github-actions` | `--no-github-actions` | Boolean | Include a basic GitHub Actions CI workflow. |
 | `--git` / `--no-git` | `--no-git` | Boolean | Initialize a git repository in the generated project. |
 | `--azd` / `--no-azd` | `--no-azd` | Boolean | Include Azure Developer CLI (`azd`) support files. |
@@ -160,7 +160,7 @@ Create a new project with full option control, including template and preset sel
 | `--destination`, `-d` | `.` | Path | Base directory for the project. |
 | `--template`, `-t` | `http` | `http`, `timer`, `queue`, `blob`, `servicebus`, `eventhub`, `cosmosdb`, `durable`, `ai`, `langgraph` | Template to render. |
 | `--preset` | `standard` | `minimal`, `standard`, `strict` | Project preset (tooling configuration). |
-| `--python-version` | `3.12` | `3.11`–`3.14 (Preview)` | Target Python version. |
+| `--python-version` | `3.12` | `3.11`–`3.14` | Target Python version. |
 | `--github-actions` / `--no-github-actions` | `--no-github-actions` | Boolean | Include a GitHub Actions CI workflow. |
 | `--git` / `--no-git` | `--no-git` | Boolean | Initialize a git repository. |
 | `--with-openapi` / `--no-openapi` | `--no-openapi` | Boolean | Include OpenAPI support (HTTP template only). |
