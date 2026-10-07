@@ -19,7 +19,6 @@ from azure_functions_scaffold.template_registry import (
     SUPPORTED_PYTHON_VERSIONS,
     build_project_options,
     get_template,
-    is_preview_python,
     validate_template_features,
 )
 
@@ -298,7 +297,6 @@ def _render_template(
         project_name=context.project_name,
         project_slug=context.project_slug,
         python_version=context.python_version,
-        is_preview_python=is_preview_python(context.python_version),
         python_upper_bound=context.python_upper_bound,
         preset_name=context.preset_name,
         include_github_actions=context.include_github_actions,
