@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import ast
-from collections.abc import Callable
-import importlib
 import json
 import os
 from pathlib import Path
 import subprocess
 import sys
+import tomllib
 from typing import cast
 
 import pytest
@@ -17,16 +16,8 @@ from azure_functions_scaffold.template_registry import build_project_options
 
 
 def _load_pyproject(project_root: Path) -> dict[str, object]:
-    parsed = _toml_loads((project_root / "pyproject.toml").read_text(encoding="utf-8"))
+    parsed = tomllib.loads((project_root / "pyproject.toml").read_text(encoding="utf-8"))
     return _as_string_key_dict(parsed)
-
-
-def _toml_loads(content: str) -> object:
-    version_info = sys.version_info
-    module_name = "tomllib" if version_info >= (3, 11) else "tomli"
-    module = importlib.import_module(module_name)
-    loads = cast(Callable[[str], object], getattr(module, "loads"))
-    return loads(content)
 
 
 def _as_string_key_dict(value: object) -> dict[str, object]:
@@ -88,7 +79,7 @@ def test_scaffolded_templates_produce_parseable_python_and_toml(
     )
     options = build_project_options(
         preset_name=preset_name,
-        python_version="3.10",
+        python_version="3.11",
         include_github_actions=False,
         initialize_git=False,
         include_openapi=include_openapi,
@@ -140,7 +131,7 @@ def test_scaffolded_pyproject_sdist_includes_do_not_use_leading_slashes(
     )
     options = build_project_options(
         preset_name=preset_name,
-        python_version="3.10",
+        python_version="3.11",
         include_github_actions=False,
         initialize_git=False,
         include_openapi=include_openapi,
@@ -205,7 +196,7 @@ def test_rendered_strict_http_project_tests_pass(tmp_path: Path) -> None:
     """Scaffold a strict HTTP project and run its generated tests."""
     options = build_project_options(
         preset_name="strict",
-        python_version="3.10",
+        python_version="3.12",
         include_github_actions=False,
         initialize_git=False,
         include_openapi=True,
@@ -232,7 +223,7 @@ def test_rendered_standard_http_project_tests_pass(tmp_path: Path) -> None:
     """Scaffold a standard HTTP project (no openapi/validation) and run its generated tests."""
     options = build_project_options(
         preset_name="standard",
-        python_version="3.10",
+        python_version="3.12",
         include_github_actions=False,
         initialize_git=False,
         include_openapi=False,
@@ -257,7 +248,7 @@ def test_rendered_standard_http_project_tests_pass(tmp_path: Path) -> None:
 def test_rendered_http_webhook_returns_503_when_secret_missing(tmp_path: Path) -> None:
     options = build_project_options(
         preset_name="standard",
-        python_version="3.10",
+        python_version="3.12",
         include_github_actions=False,
         initialize_git=False,
         include_openapi=False,
@@ -313,7 +304,7 @@ def test_rendered_http_webhook_returns_401_for_unsigned_payload_when_secret_set(
 ) -> None:
     options = build_project_options(
         preset_name="standard",
-        python_version="3.10",
+        python_version="3.12",
         include_github_actions=False,
         initialize_git=False,
         include_openapi=False,

@@ -7,9 +7,9 @@ import shutil
 import subprocess  # nosec B404
 import sys
 import tempfile
+import tomllib
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-import tomli
 import typer
 
 from azure_functions_scaffold.errors import ScaffoldError
@@ -91,7 +91,7 @@ def scaffold_project(
 
         pyproject_path = staging_dir / "pyproject.toml"
         if pyproject_path.is_file():
-            metadata = tomli.loads(pyproject_path.read_text(encoding="utf-8"))
+            metadata = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
             dependencies = metadata["project"]["dependencies"]
             (staging_dir / "requirements.txt").write_text(
                 "".join(f"{dependency}\n" for dependency in sorted(dependencies, key=str.casefold)),
@@ -339,7 +339,7 @@ def _resolve_scaffold_inputs(
 ) -> tuple[TemplateContext, Path, TemplateSpec]:
     resolved_options = options or build_project_options(
         preset_name="standard",
-        python_version="3.10",
+        python_version="3.12",
         include_github_actions=False,
         initialize_git=False,
     )

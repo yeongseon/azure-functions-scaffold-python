@@ -4,10 +4,10 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import tomllib
 
 from jinja2 import TemplateSyntaxError
 import pytest
-import tomli
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import TemplateContext, TemplateSpec
@@ -69,7 +69,7 @@ def test_generated_requirements_match_project_dependencies(
         ),
     )
 
-    metadata = tomli.loads((project_root / "pyproject.toml").read_text(encoding="utf-8"))
+    metadata = tomllib.loads((project_root / "pyproject.toml").read_text(encoding="utf-8"))
     dependencies = metadata["project"]["dependencies"]
     requirements = (project_root / "requirements.txt").read_text(encoding="utf-8").splitlines()
 
@@ -144,7 +144,7 @@ def test_validate_project_name_rejects_invalid_values(project_name: str) -> None
 def test_build_template_context_creates_slug() -> None:
     options = build_project_options(
         preset_name="standard",
-        python_version="3.10",
+        python_version="3.11",
         include_github_actions=False,
         initialize_git=False,
     )
@@ -153,7 +153,7 @@ def test_build_template_context_creates_slug() -> None:
     assert context == TemplateContext(
         project_name="My_API",
         project_slug="my-api",
-        python_version="3.10",
+        python_version="3.11",
         python_upper_bound="3.15",
         preset_name="standard",
         include_github_actions=False,
@@ -197,7 +197,7 @@ def test_render_path_strips_jinja_suffix_and_replaces_placeholders() -> None:
     context = TemplateContext(
         project_name="Sample API",
         project_slug="sample-api",
-        python_version="3.10",
+        python_version="3.11",
         python_upper_bound="3.11",
         preset_name="standard",
         include_github_actions=False,
@@ -546,7 +546,7 @@ def test_scaffold_project_generates_expected_project_contract(
     assert "mypy>=1.17.1" in pyproject_text
     assert "pytest>=8.3.5" in pyproject_text
     assert "Preset: `strict`" in readme_text
-    assert "azure-functions-logging>=0.10.0" in pyproject_text
+    assert "azure-functions-logging>=0.14.0" in pyproject_text
 
 
 def test_durable_template_uses_correct_durable_module_path(tmp_path: Path) -> None:
@@ -638,9 +638,12 @@ def test_get_preset_rejects_unknown_name() -> None:
         get_preset("custom")
 
 
-def test_validate_python_version_rejects_unsupported_version() -> None:
-    with pytest.raises(ScaffoldError, match="Unsupported Python version"):
-        validate_python_version("3.9")
+def test_validate_python_version_rejects_python_310_with_supported_versions() -> None:
+    with pytest.raises(
+        ScaffoldError,
+        match=r"Unsupported Python version '3\.10'.*3\.11, 3\.12, 3\.13, 3\.14",
+    ):
+        validate_python_version("3.10")
 
 
 def test_validate_tooling_rejects_unknown_tool() -> None:
@@ -723,7 +726,7 @@ def test_scaffold_project_can_initialize_git_repository(
         tmp_path,
         options=build_project_options(
             preset_name="standard",
-            python_version="3.10",
+            python_version="3.12",
             include_github_actions=False,
             initialize_git=True,
         ),
@@ -852,7 +855,7 @@ def test_scaffold_project_with_azd_generates_azure_yaml(tmp_path: Path) -> None:
         template_name="http",
         options=build_project_options(
             preset_name="standard",
-            python_version="3.10",
+            python_version="3.12",
             include_github_actions=False,
             initialize_git=False,
             include_azd=True,
@@ -874,7 +877,7 @@ def test_scaffold_project_without_azd_excludes_azure_yaml(tmp_path: Path) -> Non
         template_name="http",
         options=build_project_options(
             preset_name="standard",
-            python_version="3.10",
+            python_version="3.12",
             include_github_actions=False,
             initialize_git=False,
             include_azd=False,
@@ -891,7 +894,7 @@ def test_describe_scaffold_project_reports_azd_when_enabled(tmp_path: Path) -> N
         template_name="http",
         options=build_project_options(
             preset_name="standard",
-            python_version="3.10",
+            python_version="3.12",
             include_github_actions=False,
             initialize_git=False,
             include_azd=True,
@@ -909,7 +912,7 @@ def test_describe_scaffold_project_excludes_azd_when_disabled(tmp_path: Path) ->
         template_name="http",
         options=build_project_options(
             preset_name="standard",
-            python_version="3.10",
+            python_version="3.12",
             include_github_actions=False,
             initialize_git=False,
             include_azd=False,
@@ -927,7 +930,7 @@ def test_scaffold_project_renders_langgraph_template(tmp_path: Path) -> None:
         template_name="langgraph",
         options=build_project_options(
             preset_name="standard",
-            python_version="3.10",
+            python_version="3.12",
             include_github_actions=False,
             initialize_git=False,
         ),
@@ -942,5 +945,5 @@ def test_scaffold_project_renders_langgraph_template(tmp_path: Path) -> None:
     assert "LangGraphApp" in function_app_text
     assert "lg_app.register" in function_app_text
     pyproject_text = (project_path / "pyproject.toml").read_text(encoding="utf-8")
-    assert '"azure-functions-langgraph>=0.5.1",' in pyproject_text
+    assert '"azure-functions-langgraph>=0.10.0",' in pyproject_text
     assert "langgraph>=0.2.0" in pyproject_text
