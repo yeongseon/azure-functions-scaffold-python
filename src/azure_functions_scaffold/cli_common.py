@@ -19,25 +19,11 @@ from azure_functions_scaffold.generator import (
 )
 from azure_functions_scaffold.models import ProjectOptions
 from azure_functions_scaffold.scaffolder import describe_scaffold_project, scaffold_project
-from azure_functions_scaffold.template_registry import (
-    INTENT_SPECS,
-    PREVIEW_PYTHON_VERSIONS,
-    build_project_options,
-    is_preview_python,
-)
+from azure_functions_scaffold.template_registry import INTENT_SPECS, build_project_options
 
 logger = logging.getLogger(__name__)
 
-PREVIEW_PYTHON_VERSIONS_LABEL = "/".join(sorted(PREVIEW_PYTHON_VERSIONS))
-PYTHON_VERSION_HELP = (
-    f"Python version target. {PREVIEW_PYTHON_VERSIONS_LABEL} is PREVIEW on Azure Functions "
-    "(limited regional/plan support)."
-)
-PREVIEW_PYTHON_WARNING = (
-    "GA support is limited; Flex Consumption remote build may be unavailable in your region. "
-    "See https://learn.microsoft.com/azure/azure-functions/supported-languages for the "
-    "current support matrix."
-)
+PYTHON_VERSION_HELP = "Python version target."
 
 # ---------------------------------------------------------------------------
 # Reusable Typer option types
@@ -124,7 +110,7 @@ def run_intent(
     project_name: str,
     *,
     destination: Path = Path("."),
-    python_version: str = "3.10",
+    python_version: str = "3.12",
     include_github_actions: bool = False,
     initialize_git: bool = False,
     include_azd: bool = False,
@@ -187,8 +173,6 @@ def run_scaffold(
         dry_run,
     )
 
-    _emit_preview_python_warning(options.python_version)
-
     try:
         if dry_run:
             for line in describe_scaffold_project(
@@ -214,17 +198,6 @@ def run_scaffold(
         raise typer.Exit(code=1) from exc
 
     _print_success_message(project_path, template_name, options)
-
-
-def _emit_preview_python_warning(version: str) -> None:
-    if not is_preview_python(version):
-        return
-
-    typer.secho(
-        f"Warning: Python {version} is Preview on Azure Functions. {PREVIEW_PYTHON_WARNING}",
-        fg=typer.colors.YELLOW,
-        err=True,
-    )
 
 
 def _print_success_message(

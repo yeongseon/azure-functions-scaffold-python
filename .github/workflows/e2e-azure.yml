@@ -79,13 +79,33 @@ jobs:
           echo "app=${APP}" >> "$GITHUB_OUTPUT"
           echo "st=${ST}"   >> "$GITHUB_OUTPUT"
 
-      - name: Set up Python 3.10
+      - name: Set up Python 3.12
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
-      - name: Install scaffold from source
-        run: pip install -e ".[dev]" && pip install requests pytest pytest-html
+      - name: Build and install candidate wheel
+        run: |
+          python -m pip install build==1.2.2.post1 requests pytest pytest-html
+          python -m build --wheel
+          python -m pip install dist/*.whl
+
+      - name: Verify candidate wheel is imported outside checkout
+        working-directory: /tmp
+        env:
+          CHECKOUT: ${{ github.workspace }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          import azure_functions_scaffold
+
+          module_path = Path(azure_functions_scaffold.__file__).resolve()
+          checkout = Path(os.environ["CHECKOUT"]).resolve()
+          print(f"imported module: {module_path}")
+          assert not module_path.is_relative_to(checkout)
+          PY
 
       - name: Generate project with scaffold CLI
         run: |

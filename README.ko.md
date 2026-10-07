@@ -2,7 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold.svg)](https://pypi.org/project/azure-functions-scaffold/)
 [![Downloads](https://static.pepy.tech/badge/azure-functions-scaffold/month)](https://pepy.tech/project/azure-functions-scaffold)
-[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
+[![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
 [![CI](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/ci-test.yml)
 [![Publish to PyPI](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/publish-pypi.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/publish-pypi.yml)
 [![Security Scans](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml)
@@ -17,7 +17,7 @@
 
 프로덕션 수준의 Azure Functions Python v2 프로젝트를 위한 스캐폴딩 CLI.
 
-Python 버전 지원: Azure Functions에서 3.10-3.13은 GA이며, 3.14는 **Preview**입니다. 자세한 내용은 [Python 버전 지원](docs/guide/configuration.md#python-version-support)을 참고하세요.
+Python 버전 지원: Azure Functions에서 3.11-3.14는 GA입니다. 자세한 내용은 [Python 버전 지원](docs/guide/configuration.md#python-version-support)을 참고하세요.
 
 ## 왜 `func init` 대신 `afs new`를 사용해야 할까?
 

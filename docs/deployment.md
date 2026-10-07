@@ -44,7 +44,7 @@ After following this guide, your scaffolded project will be running on Azure and
 | Azure account | [portal.azure.com](https://portal.azure.com) | [Create free account](https://azure.microsoft.com/free/) |
 | Azure CLI | `az --version` | [Install Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) |
 | Azure Functions Core Tools v4 | `func --version` | [Install Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local#install-the-azure-functions-core-tools) |
-| Python 3.10–3.13 | `python --version` | [python.org](https://www.python.org/downloads/) |
+| Python 3.11–3.14 | `python --version` | [python.org](https://www.python.org/downloads/) |
 | `afs` CLI installed | `afs --version` | `pip install azure-functions-scaffold` |
 | Local project working | `func start` → responds to `curl` | See [README Quick Start](https://github.com/yeongseon/azure-functions-scaffold-python/blob/main/README.md) |
 
@@ -74,7 +74,7 @@ This shows what files will be created **without writing anything**:
 Dry run: create project at <CURRENT_DIR>/my-http-api
 Template: http
 Preset: standard
-Python: 3.10
+Python: 3.12
 Files:
   - .funcignore
   - .gitignore
@@ -114,7 +114,7 @@ Azure Functions expects a `requirements.txt` file in the project root:
 ```bash
 cat > requirements.txt << 'EOF'
 azure-functions>=1.23.0
-azure-functions-logging>=0.2.0
+azure-functions-logging>=0.14.0
 EOF
 ```
 
@@ -261,7 +261,7 @@ Output:
 Dry run: create project at <CURRENT_DIR>/my-timer-job
 Template: timer
 Preset: standard
-Python: 3.10
+Python: 3.12
 Files:
   - .funcignore
   - .gitignore
@@ -293,7 +293,7 @@ cd my-timer-job
 ```bash
 cat > requirements.txt << 'EOF'
 azure-functions>=1.23.0
-azure-functions-logging>=0.2.0
+azure-functions-logging>=0.14.0
 EOF
 ```
 

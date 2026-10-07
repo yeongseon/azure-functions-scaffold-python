@@ -2,7 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold.svg)](https://pypi.org/project/azure-functions-scaffold/)
 [![Downloads](https://static.pepy.tech/badge/azure-functions-scaffold/month)](https://pepy.tech/project/azure-functions-scaffold)
-[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
+[![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
 [![CI](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/ci-test.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/ci-test.yml)
 [![Publish to PyPI](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/publish-pypi.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/publish-pypi.yml)
 [![Security Scans](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml/badge.svg)](https://github.com/yeongseon/azure-functions-scaffold-python/actions/workflows/security.yml)
@@ -17,7 +17,7 @@
 
 用于生产级 Azure Functions Python v2 项目的脚手架 CLI.
 
-Python 版本支持: Azure Functions 上 3.10-3.13 为 GA，3.14 为 **Preview**。详情请参阅 [Python 版本支持](docs/guide/configuration.md#python-version-support)。
+Python 版本支持: Azure Functions 上 3.11-3.14 均为 GA。详情请参阅 [Python 版本支持](docs/guide/configuration.md#python-version-support)。
 
 ## 为什么使用 `afs new` 而不是 `func init`？
 

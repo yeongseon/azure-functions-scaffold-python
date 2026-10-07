@@ -7,9 +7,9 @@ import shutil
 import subprocess  # nosec B404
 import sys
 import tempfile
+import tomllib
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-import tomli
 import typer
 
 from azure_functions_scaffold.errors import ScaffoldError
@@ -19,7 +19,6 @@ from azure_functions_scaffold.template_registry import (
     SUPPORTED_PYTHON_VERSIONS,
     build_project_options,
     get_template,
-    is_preview_python,
     validate_template_features,
 )
 
@@ -91,7 +90,7 @@ def scaffold_project(
 
         pyproject_path = staging_dir / "pyproject.toml"
         if pyproject_path.is_file():
-            metadata = tomli.loads(pyproject_path.read_text(encoding="utf-8"))
+            metadata = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
             dependencies = metadata["project"]["dependencies"]
             (staging_dir / "requirements.txt").write_text(
                 "".join(f"{dependency}\n" for dependency in sorted(dependencies, key=str.casefold)),
@@ -298,7 +297,6 @@ def _render_template(
         project_name=context.project_name,
         project_slug=context.project_slug,
         python_version=context.python_version,
-        is_preview_python=is_preview_python(context.python_version),
         python_upper_bound=context.python_upper_bound,
         preset_name=context.preset_name,
         include_github_actions=context.include_github_actions,
@@ -339,7 +337,7 @@ def _resolve_scaffold_inputs(
 ) -> tuple[TemplateContext, Path, TemplateSpec]:
     resolved_options = options or build_project_options(
         preset_name="standard",
-        python_version="3.10",
+        python_version="3.12",
         include_github_actions=False,
         initialize_git=False,
     )

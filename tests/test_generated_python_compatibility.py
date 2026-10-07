@@ -8,13 +8,13 @@ from azure_functions_scaffold.scaffolder import scaffold_project
 from azure_functions_scaffold.template_registry import build_project_options
 
 
-def test_python_310_project_installs_on_newer_supported_python(tmp_path: Path) -> None:
+def test_python_311_project_installs_on_newer_supported_python(tmp_path: Path) -> None:
     project_root = scaffold_project(
         "python-compatible",
         tmp_path,
         options=build_project_options(
             preset_name="standard",
-            python_version="3.10",
+            python_version="3.11",
             include_github_actions=False,
             initialize_git=False,
         ),

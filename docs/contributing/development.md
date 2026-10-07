@@ -6,7 +6,7 @@ This guide explains how to set up your local environment for developing azure-fu
 
 Ensure you have the following installed on your system:
 
-- Python 3.10 or higher
+- Python 3.11 or higher
 - Git
 - GNU Make
 - Hatch (installed automatically via `make install`)

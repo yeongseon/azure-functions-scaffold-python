@@ -6,8 +6,7 @@ from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import IntentSpec, PresetSpec, ProjectOptions, TemplateSpec
 
 TEMPLATE_ROOT = Path(__file__).parent / "templates"
-SUPPORTED_PYTHON_VERSIONS = ("3.10", "3.11", "3.12", "3.13", "3.14")
-PREVIEW_PYTHON_VERSIONS: frozenset[str] = frozenset({"3.14"})
+SUPPORTED_PYTHON_VERSIONS = ("3.11", "3.12", "3.13", "3.14")
 SUPPORTED_TOOLING = ("ruff", "mypy", "pytest")
 TEMPLATE_SPECS = (
     TemplateSpec(
@@ -191,11 +190,6 @@ def validate_python_version(python_version: str) -> str:
             f"Unsupported Python version '{python_version}'. Supported versions: {available}"
         )
     return normalized_version
-
-
-def is_preview_python(version: str) -> bool:
-    """Return True if the given Python version is Preview on Azure Functions."""
-    return version in PREVIEW_PYTHON_VERSIONS
 
 
 def validate_tooling(tooling: tuple[str, ...]) -> tuple[str, ...]:
