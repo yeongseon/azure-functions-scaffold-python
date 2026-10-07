@@ -1,6 +1,19 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.9.0](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.8.0...v0.9.0) (2026-10-07)
+
+
+### Features
+
+* **python:** require Python 3.11 or newer ([#376](https://github.com/yeongseon/azure-functions-scaffold-python/issues/376)) ([94a9135](https://github.com/yeongseon/azure-functions-scaffold-python/commit/94a913558c1bf9589f128340b9e3f9634e7be723))
+
+
+### Bug Fixes
+
+* **deps:** raise generated toolkit dependency floors ([94a9135](https://github.com/yeongseon/azure-functions-scaffold-python/commit/94a913558c1bf9589f128340b9e3f9634e7be723))
+* **python:** treat Python 3.14 as generally available ([94a9135](https://github.com/yeongseon/azure-functions-scaffold-python/commit/94a913558c1bf9589f128340b9e3f9634e7be723)), closes [#375](https://github.com/yeongseon/azure-functions-scaffold-python/issues/375) [#377](https://github.com/yeongseon/azure-functions-scaffold-python/issues/377)
+
 ## [0.8.0](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.7.3...v0.8.0) (2026-10-05)
 
 
