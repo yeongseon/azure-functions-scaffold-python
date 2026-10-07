@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.9.1](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.9.0...v0.9.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* **ci:** ignore coverage addopts in release e2e tests ([#380](https://github.com/yeongseon/azure-functions-scaffold-python/issues/380)) ([938d82f](https://github.com/yeongseon/azure-functions-scaffold-python/commit/938d82fd9876839c13c3c1f558d63682ba63346a)), closes [#379](https://github.com/yeongseon/azure-functions-scaffold-python/issues/379)
+
 ## [0.9.0](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.8.0...v0.9.0) (2026-10-07)
 
 
