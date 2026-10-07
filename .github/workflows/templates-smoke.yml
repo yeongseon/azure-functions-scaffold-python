@@ -287,9 +287,8 @@ jobs:
             exit "${status}"
           fi
 
-  preview-python:
+  python-314:
     runs-on: ubuntu-latest
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -313,13 +312,13 @@ jobs:
       - name: Install scaffold CLI
         run: pip install -e .[dev]
 
-      - name: Scaffold preview template project
+      - name: Scaffold Python 3.14 template project
         env:
           TEMPLATE: ${{ matrix.template }}
           PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
-          workdir="${RUNNER_TEMP}/scaffold-preview"
-          project_name="preview_${TEMPLATE}"
+          workdir="${RUNNER_TEMP}/scaffold-python-314"
+          project_name="python_314_${TEMPLATE}"
           rm -rf "${workdir}"
           mkdir -p "${workdir}"
           afs advanced new "${project_name}" \
@@ -329,23 +328,23 @@ jobs:
             --python-version "${PYTHON_VERSION}"
 
       - name: Install generated project dependencies
-        working-directory: ${{ runner.temp }}/scaffold-preview/preview_${{ matrix.template }}
+        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
         run: pip install -e .[dev]
 
       - name: Compile generated project
-        working-directory: ${{ runner.temp }}/scaffold-preview/preview_${{ matrix.template }}
+        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
         run: python -m compileall -q .
 
       - name: Lint generated project
-        working-directory: ${{ runner.temp }}/scaffold-preview/preview_${{ matrix.template }}
+        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
         run: ruff check .
 
       - name: Type-check generated project
-        working-directory: ${{ runner.temp }}/scaffold-preview/preview_${{ matrix.template }}
+        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
         run: mypy .
 
       - name: Test generated project
-        working-directory: ${{ runner.temp }}/scaffold-preview/preview_${{ matrix.template }}
+        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
         run: |
           set +e
           pytest -q
