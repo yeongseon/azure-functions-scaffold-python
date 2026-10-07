@@ -124,7 +124,7 @@ def run_intent(
     project_name: str,
     *,
     destination: Path = Path("."),
-    python_version: str = "3.10",
+    python_version: str = "3.12",
     include_github_actions: bool = False,
     initialize_git: bool = False,
     include_azd: bool = False,

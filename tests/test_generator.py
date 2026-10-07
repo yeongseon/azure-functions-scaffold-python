@@ -269,7 +269,7 @@ def test_add_function_can_skip_test_generation_for_minimal_preset(tmp_path: Path
         tmp_path,
         options=build_project_options(
             preset_name="minimal",
-            python_version="3.10",
+            python_version="3.11",
             include_github_actions=False,
             initialize_git=False,
         ),
@@ -484,7 +484,7 @@ def test_describe_add_function_excludes_test_line_when_no_tests_dir(tmp_path: Pa
         tmp_path,
         options=build_project_options(
             preset_name="minimal",
-            python_version="3.10",
+            python_version="3.11",
             include_github_actions=False,
             initialize_git=False,
         ),
@@ -1011,7 +1011,7 @@ def test_add_resource_skips_test_when_no_tests_dir(tmp_path: Path) -> None:
         tmp_path,
         options=build_project_options(
             preset_name="minimal",
-            python_version="3.10",
+            python_version="3.12",
             include_github_actions=False,
             initialize_git=False,
         ),
@@ -1078,7 +1078,7 @@ def test_describe_add_resource_excludes_test_when_no_tests_dir(tmp_path: Path) -
         tmp_path,
         options=build_project_options(
             preset_name="minimal",
-            python_version="3.10",
+            python_version="3.12",
             include_github_actions=False,
             initialize_git=False,
         ),
@@ -1199,7 +1199,7 @@ def test_add_route_skips_test_when_no_tests_dir(tmp_path: Path) -> None:
         tmp_path,
         options=build_project_options(
             preset_name="minimal",
-            python_version="3.10",
+            python_version="3.12",
             include_github_actions=False,
             initialize_git=False,
         ),
@@ -1252,7 +1252,7 @@ def test_describe_add_route_excludes_test_when_no_tests_dir(tmp_path: Path) -> N
         tmp_path,
         options=build_project_options(
             preset_name="minimal",
-            python_version="3.10",
+            python_version="3.12",
             include_github_actions=False,
             initialize_git=False,
         ),

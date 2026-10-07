@@ -6,7 +6,7 @@ from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import IntentSpec, PresetSpec, ProjectOptions, TemplateSpec
 
 TEMPLATE_ROOT = Path(__file__).parent / "templates"
-SUPPORTED_PYTHON_VERSIONS = ("3.10", "3.11", "3.12", "3.13", "3.14")
+SUPPORTED_PYTHON_VERSIONS = ("3.11", "3.12", "3.13", "3.14")
 PREVIEW_PYTHON_VERSIONS: frozenset[str] = frozenset({"3.14"})
 SUPPORTED_TOOLING = ("ruff", "mypy", "pytest")
 TEMPLATE_SPECS = (

@@ -19,7 +19,7 @@ def test_generated_http_functions_expose_resolvable_worker_type_hints(tmp_path: 
         template_name="http",
         options=build_project_options(
             preset_name="strict",
-            python_version="3.10",
+            python_version="3.11",
             include_github_actions=False,
             initialize_git=False,
             include_openapi=True,
