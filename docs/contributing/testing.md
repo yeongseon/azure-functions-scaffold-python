@@ -86,7 +86,7 @@ A minimum coverage of **95%** is required. PRs that drop the coverage below this
 Each pull request is tested against a matrix of environments to ensure broad compatibility:
 
 - **OS:** `ubuntu-latest`
-- **Python versions:** 3.11, 3.12, 3.13, 3.14 (Preview - allowed to fail)
+- **Python versions:** 3.11, 3.12, 3.13, 3.14 (all required)
 
 ## Generated-project smoke tests
 
