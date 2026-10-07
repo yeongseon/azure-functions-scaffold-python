@@ -117,7 +117,7 @@ jobs:
           echo "E2E_SCAFFOLDED_DIR=$SCAFFOLDED/e2e-http-app" >> "$GITHUB_ENV"
 
       - name: Run scaffold structure tests (no Azure)
-        run: pytest tests/e2e -v -k "scaffolded" --no-cov
+        run: pytest tests/e2e -o addopts= -o "pythonpath=." -v -k "scaffolded"
         env:
           E2E_SCAFFOLDED_DIR: ${{ env.E2E_SCAFFOLDED_DIR }}
 
@@ -190,7 +190,7 @@ jobs:
             sleep 10
           done
       - name: Run e2e HTTP tests
-        run: pytest tests/e2e -v -k "not scaffolded" --no-cov --html=e2e-report/report.html --self-contained-html
+        run: pytest tests/e2e -o addopts= -o "pythonpath=." -v -k "not scaffolded" --html=e2e-report/report.html --self-contained-html
         env:
           E2E_BASE_URL: https://${{ steps.names.outputs.app }}.azurewebsites.net
 
