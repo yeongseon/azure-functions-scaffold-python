@@ -6,7 +6,7 @@ This guide explains how to set up your local environment for developing azure-fu
 
 Ensure you have the following installed on your system:
 
-- Python 3.11 or higher
+- Python 3.11 or newer (the project supports `>=3.11,<3.15`)
 - Git
 - GNU Make
 - Hatch (installed automatically via `make install`)
@@ -15,7 +15,7 @@ Ensure you have the following installed on your system:
 
 1. Fork and clone the repository:
    ```bash
-   git clone https://github.com/your-username/azure-functions-scaffold-python.git
+   git clone https://github.com/<your-github-username>/azure-functions-scaffold-python.git
    cd azure-functions-scaffold-python
    ```
 
@@ -43,7 +43,7 @@ Use these commands to manage your development workflow:
 | Target | Description |
 | :--- | :--- |
 | `make install` | Initial setup (venv, hatch, pre-commit hooks) |
-| `make format` | Format code using Ruff and Black |
+| `make format` | Format code using Ruff |
 | `make lint` | Run style checks and type analysis |
 | `make test` | Run the full test suite |
 | `make cov` | Run tests and generate a coverage report |
@@ -100,11 +100,13 @@ The project uses several tools to maintain high standards:
 
 | Tool | Version | Purpose |
 | :--- | :--- | :--- |
-| Ruff | 0.15.5 | Fast linter and formatter (line-length 100) |
-| Black | 26.3.0 | Deterministic code formatter (line-length 100) |
-| Mypy | 1.19.1 | Static type checker (strict mode) |
-| Bandit | 1.9.4 | Security vulnerability scanner |
-| Pre-commit | Latest | Runs checks automatically before every commit |
+| Ruff | see `pyproject.toml` | Fast linter and formatter (line-length 100); replaces Black |
+| Mypy | see `pyproject.toml` | Static type checker (strict mode) |
+| Bandit | see `pyproject.toml` | Security vulnerability scanner |
+| Pre-commit | see `.pre-commit-config.yaml` | Runs checks automatically before every commit |
+
+Exact pinned versions live in the `[tool.hatch.envs.default]` dependency list in `pyproject.toml` and in
+`.pre-commit-config.yaml`. Black is not used: `ruff format` is the only formatter.
 
 ## Working with Templates
 

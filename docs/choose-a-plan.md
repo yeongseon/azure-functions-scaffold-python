@@ -75,7 +75,17 @@ Azure Functions offers several hosting plans. These docs cover three:
 - **Cost**: Fixed monthly cost regardless of usage. Cheapest SKU (B1) starts around $13/month.
 - **Avoid if**: You want scale-to-zero or automatic scaling
 
-> **Note**: Older Azure documentation may reference "Consumption" plan (classic). Flex Consumption is its successor and is recommended for new projects.
+### Linux Consumption (classic) — retiring, do not start here
+
+- **Status**: Retires on **30 September 2028**. Azure is no longer adding language versions to it.
+- **Python ceiling**: **3.12 is the last Python version supported on Linux Consumption.** Python 3.13 and
+  3.14 are not and will not be available on this plan.
+- **Action**: New projects should use Flex Consumption. Existing Linux Consumption apps should plan a
+  migration to Flex Consumption before the retirement date.
+
+> **Note**: Older Azure documentation may reference the classic "Consumption" plan. Flex Consumption is
+> its successor, is recommended for all new projects, and is the only Consumption-family plan that will
+> receive new Python versions.
 
 ## Quick recommendation
 
@@ -234,6 +244,8 @@ Plan choice is not permanent. Common triggers to revisit:
 | LLM calls are timing out on Flex | Premium |
 | Your team already manages App Service | Dedicated |
 | You need VNet integration | Premium or Dedicated |
+| You are on Linux Consumption (retires 30 Sep 2028) | Flex Consumption |
+| You need Python 3.13 or 3.14 but are on Linux Consumption | Flex Consumption, Premium, or Dedicated |
 
 Switching plans does not require code changes — only infrastructure commands.
 
@@ -258,6 +270,8 @@ Most `azure-functions-*` repos default to **Flex Consumption** because:
 - [Azure Functions Python developer guide](https://learn.microsoft.com/azure/azure-functions/functions-reference-python) — Python-specific reference
 - [Flex Consumption plan](https://learn.microsoft.com/azure/azure-functions/flex-consumption-plan) — Flex Consumption details
 - [Azure Functions Premium plan](https://learn.microsoft.com/azure/azure-functions/functions-premium-plan) — Premium plan details
+- [Supported languages and version support](https://learn.microsoft.com/azure/azure-functions/supported-languages) — Which Python versions each plan supports, and their end-of-support dates
+- [Azure Functions hosting plan comparison](https://learn.microsoft.com/azure/azure-functions/functions-scale) — Plan-by-plan feature and retirement details
 
 ## See Also
 

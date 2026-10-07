@@ -35,6 +35,10 @@ nav:
       - HTTP API: examples/http_api.md
       - Timer Job: examples/timer_job.md
       - Full Stack: examples/full_stack.md
+      - Worker Triggers: examples/worker_triggers.md
+      - Durable Workflow: examples/durable_workflow.md
+      - CosmosDB Change Feed: examples/cosmosdb_change_feed.md
+      - AI Agents: examples/ai_agents.md
   - API Reference: reference/api.md
   - Reference:
       - CLI Reference: reference/cli.md
@@ -43,9 +47,14 @@ nav:
   - Contributing:
       - Development: contributing/development.md
       - Testing: contributing/testing.md
+      - Test Suite Guide: testing.md
       - Guidelines: contributing/guidelines.md
+      - Release Process: release_process.md
+      - Agent Playbook: agent-playbook.md
   - Troubleshooting: guide/troubleshooting.md
   - FAQ: faq.md
+  - Migration:
+      - 0.5.0 to 0.6.0: migration/0.6.0.md
   - Changelog: changelog.md
 
 markdown_extensions:
