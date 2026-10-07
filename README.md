@@ -18,7 +18,7 @@ Read this in: [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中
 
 Scaffolding CLI for production-ready Azure Functions Python v2 projects.
 
-Python version support: 3.11-3.13 are GA on Azure Functions; 3.14 is accepted as **Preview**. See [Python version support](docs/guide/configuration.md#python-version-support).
+Python version support: 3.11-3.14 are GA on Azure Functions. See [Python version support](docs/guide/configuration.md#python-version-support).
 
 ## Why `afs new` instead of `func init`?
 
