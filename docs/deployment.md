@@ -368,7 +368,15 @@ Press `Ctrl+C` to stop the log stream.
 
 ## If you need a different plan
 
-The examples above use **Flex Consumption**. If you need a different plan, only the Function App creation command changes — everything else stays the same.
+The examples above use **Flex Consumption**, which is the recommended plan for new Azure Functions apps.
+
+> **Avoid Linux Consumption (classic).** It retires on **30 September 2028** and receives no new language
+> versions: **Python 3.12 is the last version it supports**. If you need Python 3.13 or 3.14, or you want a
+> plan with a future, use Flex Consumption. See
+> [Supported languages](https://learn.microsoft.com/azure/azure-functions/supported-languages) and the
+> [Flex Consumption plan guide](https://learn.microsoft.com/azure/azure-functions/flex-consumption-plan).
+
+If you need a different plan, only the Function App creation command changes — everything else stays the same.
 
 See [Choose an Azure Functions Hosting Plan](choose-a-plan.md) for complete per-plan commands with copy-paste blocks.
 

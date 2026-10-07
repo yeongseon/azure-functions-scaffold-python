@@ -5,7 +5,7 @@
 ## Package Info
 
 - PyPI: `pip install azure-functions-scaffold`
-- Version: 0.5.0
+- Version: see PyPI package metadata or run `afs --version`
 - Python: >=3.11, <3.15
 - License: MIT
 - Docs: https://yeongseon.dev/azure-functions-python/scaffold/
@@ -34,7 +34,7 @@ afs [GROUP] [COMMAND] [OPTIONS]
 
 Root options:
 - `--version` — Show installed version and exit
-- `-h`, `--help` — Show help
+- `--help` — Show help
 
 Top-level utility commands:
 - `afs new <project_name>` — **Shortcut** to create an API project (delegates to `afs api new`)
@@ -80,6 +80,7 @@ Options:
 - `--azd/--no-azd` (default: `--no-azd`)
 - `--dry-run` (default: `False`)
 - `--overwrite` (default: `False`)
+- `-y, --yes` (default: `False`) — skip confirmation prompts (required when `--overwrite` runs in a non-TTY session or against a directory containing `.git`)
 
 #### `afs api add <function_name>`
 
@@ -143,6 +144,7 @@ Shared options for all worker commands:
 - `--azd/--no-azd` (default: `--no-azd`)
 - `--dry-run` (default: `False`)
 - `--overwrite` (default: `False`)
+- `-y, --yes` (default: `False`) — skip confirmation prompts (required when `--overwrite` runs in a non-TTY session or against a directory containing `.git`)
 
 Worker commands:
 - `afs worker timer <project_name>` — timer trigger, preset `standard`
@@ -176,6 +178,7 @@ Options:
 - `--azd/--no-azd` (default: `--no-azd`)
 - `--dry-run` (default: `False`)
 - `--overwrite` (default: `False`)
+- `-y, --yes` (default: `False`) — skip confirmation prompts (required when `--overwrite` runs in a non-TTY session or against a directory containing `.git`)
 
 ### Subcommand Group: `advanced`
 
@@ -206,6 +209,7 @@ Options (full set):
 - `--azd/--no-azd` (default: `--no-azd`)
 - `--dry-run` (default: `False`)
 - `--overwrite` (default: `False`)
+- `-y, --yes` (default: `False`) — skip confirmation prompts (required when `--overwrite` runs in a non-TTY session or against a directory containing `.git`)
 
 #### `afs advanced add <trigger> <function_name>`
 
@@ -224,7 +228,10 @@ Options:
 - `--dry-run` (default: `False`)
 
 Supported trigger values for `advanced add`:
-- `http`, `timer`, `queue`, `blob`, `servicebus`, `eventhub`, `cosmosdb`, `durable`, `ai`, `langgraph`
+- `http`, `timer`, `queue`, `blob`, `servicebus`, `eventhub`, `cosmosdb`, `durable`, `ai`
+
+`langgraph` is a project template, not an `advanced add` trigger. Use `afs ai agent <name>`
+or `afs advanced new <name> --template langgraph` to create a LangGraph project.
 
 #### `afs advanced templates`
 
@@ -288,7 +295,6 @@ func start
 The top-level `afs new` is the fastest way to start. Equivalent to `afs api new`.
 
 ### Workflow 2: Worker project by trigger intent
-### Workflow 3: Worker project by trigger intent
 
 ```bash
 afs worker timer my-scheduler
@@ -298,7 +304,7 @@ afs worker eventhub my-stream-worker
 
 Use trigger-specific worker intents instead of manually selecting templates.
 
-### Workflow 4: Expand an existing project
+### Workflow 3: Expand an existing project
 
 ```bash
 cd my-api
@@ -315,7 +321,7 @@ afs advanced add servicebus process_events
 
 Use `api add-route` for simple endpoints, `api add-resource` for full CRUD, and `advanced add` for non-HTTP triggers.
 
-### Workflow 5: Dry run preview
+### Workflow 4: Dry run preview
 
 ```bash
 afs new my-api --dry-run
