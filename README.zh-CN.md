@@ -17,7 +17,7 @@
 
 用于生产级 Azure Functions Python v2 项目的脚手架 CLI.
 
-Python 版本支持: Azure Functions 上 3.11-3.13 为 GA，3.14 为 **Preview**。详情请参阅 [Python 版本支持](docs/guide/configuration.md#python-version-support)。
+Python 版本支持: Azure Functions 上 3.11-3.14 均为 GA。详情请参阅 [Python 版本支持](docs/guide/configuration.md#python-version-support)。
 
 ## 为什么使用 `afs new` 而不是 `func init`？
 

@@ -17,7 +17,7 @@
 
 프로덕션 수준의 Azure Functions Python v2 프로젝트를 위한 스캐폴딩 CLI.
 
-Python 버전 지원: Azure Functions에서 3.11-3.13은 GA이며, 3.14는 **Preview**입니다. 자세한 내용은 [Python 버전 지원](docs/guide/configuration.md#python-version-support)을 참고하세요.
+Python 버전 지원: Azure Functions에서 3.11-3.14는 GA입니다. 자세한 내용은 [Python 버전 지원](docs/guide/configuration.md#python-version-support)을 참고하세요.
 
 ## 왜 `func init` 대신 `afs new`를 사용해야 할까?
 

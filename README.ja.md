@@ -17,7 +17,7 @@
 
 プロダクションレベルの Azure Functions Python v2 プロジェクトのためのスキャフォールディング CLI.
 
-Python バージョンサポート: Azure Functions では 3.11-3.13 は GA、3.14 は **Preview** です。詳しくは [Python バージョンサポート](docs/guide/configuration.md#python-version-support) を参照してください。
+Python バージョンサポート: Azure Functions では 3.11-3.14 が GA です。詳しくは [Python バージョンサポート](docs/guide/configuration.md#python-version-support) を参照してください。
 
 ## なぜ `func init` ではなく `afs new` を使うのか？
 
