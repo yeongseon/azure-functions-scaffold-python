@@ -160,7 +160,7 @@ jobs:
               "azure-functions-openapi": "0.29.0",
               "azure-functions-validation": "0.14.0",
               "azure-functions-doctor": "0.22.0",
-              "pydantic": "2.0.0",
+              "pydantic": "2.0",
           }
           resolved = {name: version(name) for name in expected}
           print(f"resolved dependencies={resolved}")
@@ -300,7 +300,10 @@ jobs:
       - name: Generate and install the HTTP project
         run: |
           cd "${RUNNER_TEMP}"
-          azure-functions-scaffold new host-smoke --no-git --no-github-actions
+          azure-functions-scaffold new host-smoke \
+            --python-version "${{ matrix.python-version }}" \
+            --no-git \
+            --no-github-actions
           cd host-smoke
           python -m venv .venv
           .venv/bin/python -m pip install --upgrade pip
