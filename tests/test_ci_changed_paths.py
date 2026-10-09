@@ -7,6 +7,7 @@ import subprocess
 SCRIPT = Path(__file__).resolve().parents[1] / "tools" / "ci_changed_paths.sh"
 
 
+
 def git(repository: Path, *arguments: str) -> str:
     completed = subprocess.run(
         ["git", *arguments],
