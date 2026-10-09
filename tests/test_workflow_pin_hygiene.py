@@ -53,9 +53,7 @@ def test_workflow_path_filters_reference_existing_paths() -> None:
 
 def test_template_smoke_workflow_covers_inputs_and_registry() -> None:
     workflow = yaml.safe_load(
-        (_REPO_ROOT / ".github" / "workflows" / "templates-smoke.yml").read_text(
-            encoding="utf-8"
-        )
+        (_REPO_ROOT / ".github" / "workflows" / "templates-smoke.yml").read_text(encoding="utf-8")
     )
     required_filters = (
         "src/azure_functions_scaffold/templates/**",
