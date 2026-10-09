@@ -76,6 +76,9 @@ def test_non_documentation_changes_run_the_full_matrix(files: list[str]) -> None
         [".github/workflows/docs.yml"],
         ["tools/ci_changed_paths.sh"],
         ["tools/ci_classify_changes.sh"],
+        ["tests/test_docs_cli_examples.py"],
+        ["tests/test_readme_layout.py"],
+        ["tests/test_readme_triggers.py"],
     ],
 )
 def test_docs_build_inputs_run_the_matrix_and_docs_build(files: list[str]) -> None:

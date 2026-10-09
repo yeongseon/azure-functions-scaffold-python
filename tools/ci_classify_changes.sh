@@ -30,7 +30,8 @@ while IFS= read -r f || [ -n "$f" ]; do
       docs_only=false
       docs_changed=true
       ;;
-    tools/ci_changed_paths.sh | tools/ci_classify_changes.sh)
+    tools/ci_changed_paths.sh | tools/ci_classify_changes.sh | \
+    tests/test_docs_cli_examples.py | tests/test_readme_layout.py | tests/test_readme_triggers.py)
       docs_only=false
       docs_changed=true
       ;;
