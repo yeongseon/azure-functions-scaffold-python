@@ -72,6 +72,10 @@ def test_non_documentation_changes_run_the_full_matrix(files: list[str]) -> None
         ["src/azure_functions_scaffold/cli.py"],
         ["docs/hooks.py"],
         ["docs/extra.css"],
+        [".github/workflows/ci-test.yml"],
+        [".github/workflows/docs.yml"],
+        ["tools/ci_changed_paths.sh"],
+        ["tools/ci_classify_changes.sh"],
     ],
 )
 def test_docs_build_inputs_run_the_matrix_and_docs_build(files: list[str]) -> None:

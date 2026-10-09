@@ -24,8 +24,13 @@ while IFS= read -r f || [ -n "$f" ]; do
   [ -z "$f" ] && continue
   count=$((count + 1))
   case "$f" in
-    mkdocs.yml | pyproject.toml | docs_hooks/* | src/* | docs/*.py | docs/*.yml | \
+    mkdocs.yml | pyproject.toml | docs_hooks/* | src/* | .github/workflows/ci-test.yml | \
+    .github/workflows/docs.yml | docs/*.py | docs/*.yml | \
     docs/*.yaml | docs/*.json | docs/*.toml | docs/*.js | docs/*.css | docs/*.html | docs/*.txt)
+      docs_only=false
+      docs_changed=true
+      ;;
+    tools/ci_changed_paths.sh | tools/ci_classify_changes.sh)
       docs_only=false
       docs_changed=true
       ;;
