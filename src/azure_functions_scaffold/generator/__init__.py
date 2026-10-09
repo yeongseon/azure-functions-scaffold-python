@@ -64,7 +64,7 @@ __all__ = [
     "describe_add_route",
 ]
 
-SUPPORTED_TRIGGERS = tuple(template.name for template in list_templates())
+SUPPORTED_TRIGGERS = tuple(spec.name for spec in list_templates())
 ADDABLE_TRIGGERS: tuple[str, ...] = (
     "http",
     "timer",
