@@ -7,6 +7,8 @@ on:
       - "src/azure_functions_scaffold/template_registry.py"
       - "src/azure_functions_scaffold/scaffolder.py"
       - "src/azure_functions_scaffold/generator/**"
+      - "pyproject.toml"
+      - "*.lock"
       - ".github/workflows/templates-smoke.yml"
   push:
     branches:
@@ -16,6 +18,8 @@ on:
       - "src/azure_functions_scaffold/template_registry.py"
       - "src/azure_functions_scaffold/scaffolder.py"
       - "src/azure_functions_scaffold/generator/**"
+      - "pyproject.toml"
+      - "*.lock"
       - ".github/workflows/templates-smoke.yml"
   workflow_dispatch:
   schedule:

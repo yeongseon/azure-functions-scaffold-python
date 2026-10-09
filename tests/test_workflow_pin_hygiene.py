@@ -10,6 +10,8 @@ import importlib.util
 from pathlib import Path
 import re
 
+from azure_functions_scaffold.template_registry import TEMPLATE_SPECS
+
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _LINT_PATH = _REPO_ROOT / "tools" / "lint_workflow_pins.py"
 
@@ -45,6 +47,32 @@ def test_workflow_path_filters_reference_existing_paths() -> None:
 
     # Then: no filter is anchored to a removed path.
     assert missing == []
+
+
+def test_template_smoke_workflow_covers_inputs_and_registry() -> None:
+    workflow = (_REPO_ROOT / ".github" / "workflows" / "templates-smoke.yml").read_text(
+        encoding="utf-8"
+    )
+    required_filters = (
+        "src/azure_functions_scaffold/templates/**",
+        "src/azure_functions_scaffold/template_registry.py",
+        "src/azure_functions_scaffold/scaffolder.py",
+        "src/azure_functions_scaffold/generator/**",
+        "pyproject.toml",
+        "*.lock",
+        ".github/workflows/templates-smoke.yml",
+    )
+    assert all(workflow.count(f'      - "{path}"') == 2 for path in required_filters)
+
+    matrix_block = workflow.split("        template:\n", 1)[1].split("        python-version:", 1)[
+        0
+    ]
+    matrix_templates = {
+        line.removeprefix("          - ").strip()
+        for line in matrix_block.splitlines()
+        if line.strip().startswith("-")
+    }
+    assert matrix_templates == {template.name for template in TEMPLATE_SPECS}
 
 
 def test_sha_with_comment_passes() -> None:
