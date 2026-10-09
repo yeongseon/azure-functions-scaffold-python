@@ -30,7 +30,7 @@ Python version support: 3.11-3.14 are GA on Azure Functions. See [Python version
 |---|---|---|
 | Maintained by | Microsoft | Community |
 | Scope | Minimal Functions skeleton | Opinionated, production-leaning starter |
-| Project layout | Bare `function_app.py` + `host.json` | Layered: `app/functions/`, `app/services/`, `app/schemas/`, tests, CI |
+| Project layout | Bare `function_app.py` + `host.json` | Layered: `app/functions/`, `app/services/`, tests, CI |
 | Auth defaults | `AuthLevel.ANONYMOUS` | `AuthLevel.ANONYMOUS` (pre-wired for HMAC verification in webhooks) |
 | Logging | `logging` stdlib | `azure-functions-logging` structured JSON, pre-wired |
 | Observability | None pre-wired | Optional `azure-functions-doctor` health checks |

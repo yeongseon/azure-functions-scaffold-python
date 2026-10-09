@@ -12,7 +12,7 @@ README_FILES = ("README.md", "README.ko.md", "README.ja.md", "README.zh-CN.md")
 def test_readme_comparison_names_generated_layout(readme_name: str) -> None:
     content = (REPO_ROOT / readme_name).read_text(encoding="utf-8")
 
-    assert "INTENTIONALLY-MISSING-CI-SCENARIO" in content
+    assert "`app/functions/`, `app/services/`, `app/schemas/`" in content
     assert "`api/`, `domain/`, `infra/`" not in content
 
 
