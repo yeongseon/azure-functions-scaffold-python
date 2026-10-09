@@ -1,4 +1,4 @@
-"""azure-functions-scaffold package."""
+"""azure-functions-scaffold package (CI mixed-change scenario)."""
 
 __all__ = ["__version__"]
 

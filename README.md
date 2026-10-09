@@ -1,5 +1,7 @@
 # Azure Functions Scaffold
 
+<!-- CI scenario: documentation plus source. -->
+
 > Part of the **Azure Functions Python DX Toolkit** — dogfood-tested by [azure-functions-cookbook-python](https://github.com/yeongseon/azure-functions-cookbook-python).
 
 
