@@ -14,7 +14,7 @@ def git(repository: Path, *arguments: str) -> str:
         capture_output=True,
         check=True,
     )
-    return completed.stdout.rstrip()
+    return completed.stdout.strip()
 
 
 def commit_file(repository: Path, name: str, content: str) -> str:
