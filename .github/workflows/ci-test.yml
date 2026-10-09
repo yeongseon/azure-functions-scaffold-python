@@ -43,25 +43,17 @@ jobs:
           fail_safe() {
             printf 'docs_only=false\ndocs_changed=true\nfull_required=true\n' >> "$GITHUB_OUTPUT"
           }
+          fail_safe
           paths="${RUNNER_TEMP}/changed-paths.txt"
           if [ "$EVENT_NAME" = "pull_request" ]; then
             if [ "$HEAD_REPOSITORY" != "$REPOSITORY" ]; then
-              git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/merge:refs/remotes/origin/pr-merge" || {
-                fail_safe
-                exit 0
-              }
-              HEAD_SHA=$(git rev-parse refs/remotes/origin/pr-merge^2) || {
-                fail_safe
-                exit 0
-              }
+              git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/merge:refs/remotes/origin/pr-merge" || exit 0
+              HEAD_SHA=$(git rev-parse refs/remotes/origin/pr-merge^2) || exit 0
             fi
           fi
           tools/ci_changed_paths.sh \
-            "$EVENT_NAME" "$BASE_SHA" "$HEAD_SHA" "$BEFORE_SHA" "$SHA" > "$paths" || {
-            fail_safe
-            exit 0
-          }
-          tools/ci_classify_changes.sh < "$paths" >> "$GITHUB_OUTPUT" || fail_safe
+            "$EVENT_NAME" "$BASE_SHA" "$HEAD_SHA" "$BEFORE_SHA" "$SHA" > "$paths" || exit 0
+          tools/ci_classify_changes.sh < "$paths" >> "$GITHUB_OUTPUT" || exit 0
 
   # Lint, type-check and workflow hygiene run once on a single pinned
   # interpreter (Python 3.11). These checks are interpreter-agnostic, so
