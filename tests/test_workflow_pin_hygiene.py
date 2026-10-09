@@ -10,6 +10,8 @@ import importlib.util
 from pathlib import Path
 import re
 
+import yaml
+
 from azure_functions_scaffold.template_registry import TEMPLATE_SPECS
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -50,8 +52,10 @@ def test_workflow_path_filters_reference_existing_paths() -> None:
 
 
 def test_template_smoke_workflow_covers_inputs_and_registry() -> None:
-    workflow = (_REPO_ROOT / ".github" / "workflows" / "templates-smoke.yml").read_text(
-        encoding="utf-8"
+    workflow = yaml.safe_load(
+        (_REPO_ROOT / ".github" / "workflows" / "templates-smoke.yml").read_text(
+            encoding="utf-8"
+        )
     )
     required_filters = (
         "src/azure_functions_scaffold/templates/**",
@@ -62,17 +66,12 @@ def test_template_smoke_workflow_covers_inputs_and_registry() -> None:
         "*.lock",
         ".github/workflows/templates-smoke.yml",
     )
-    assert all(workflow.count(f'      - "{path}"') == 2 for path in required_filters)
-
-    matrix_block = workflow.split("        template:\n", 1)[1].split("        python-version:", 1)[
-        0
-    ]
-    matrix_templates = {
-        line.removeprefix("          - ").strip()
-        for line in matrix_block.splitlines()
-        if line.strip().startswith("-")
+    triggers = workflow[True]
+    assert tuple(triggers["pull_request"]["paths"]) == required_filters
+    assert tuple(triggers["push"]["paths"]) == required_filters
+    assert set(workflow["jobs"]["scaffold-and-validate"]["strategy"]["matrix"]["template"]) == {
+        template.name for template in TEMPLATE_SPECS
     }
-    assert matrix_templates == {template.name for template in TEMPLATE_SPECS}
 
 
 def test_sha_with_comment_passes() -> None:
