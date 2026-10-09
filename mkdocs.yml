@@ -13,6 +13,7 @@ theme:
     - content.code.copy
 
 nav:
+  - Missing: docs/missing-evidence-page.md
   - Home: index.md
   - Getting Started:
       - Introduction: guide/index.md
