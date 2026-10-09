@@ -20,14 +20,30 @@ MATRIX_JOBS = (
 )
 
 
+def parse_boolean(value: str, name: str) -> bool:
+    match value:
+        case "true":
+            return True
+        case "false":
+            return False
+        case _:
+            print(f"::error::{name} must be exactly 'true' or 'false'", file=sys.stderr)
+            raise SystemExit(1)
+
+
 def main() -> int:
-    full_required = sys.argv[1] == "true"
-    docs_changed = sys.argv[2] == "true"
+    full_required = parse_boolean(sys.argv[1], "full_required")
+    docs_changed = parse_boolean(sys.argv[2], "docs_changed")
     results: dict[str, JobResult] = json.load(sys.stdin)
     for job, data in sorted(results.items()):
         print(f"{job}: {data['result']}")
 
-    expected = dict.fromkeys(MATRIX_JOBS, "success" if full_required else "skipped")
+    if not full_required and not docs_changed:
+        print("::error::Classifier disabled both full CI and docs CI", file=sys.stderr)
+        return 1
+
+    expected = dict.fromkeys(results, "success")
+    expected.update(dict.fromkeys(MATRIX_JOBS, "success" if full_required else "skipped"))
     expected["changes"] = "success"
     expected["docs-check"] = "success" if docs_changed else "skipped"
     failed = sorted(job for job, wanted in expected.items() if results[job]["result"] != wanted)
