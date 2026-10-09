@@ -207,7 +207,7 @@ Use `afs advanced new <name>` when you need direct control over feature flags:
 - `--with-openapi` - Swagger UI + OpenAPI spec endpoints
 - `--with-validation` - Pydantic request/response validation
 - `--with-doctor` - Health check diagnostics
-- `--azd` - Generate `azure.yaml` service configuration. Provisioning files under `infra/` are user-provided.
+- Generate `azure.yaml` service configuration. Provisioning files under `infra/` are user-provided.
 - `--with-db` - Database bindings (SQLAlchemy) *(planned — not yet available in CLI)*
 - `--preset minimal|standard|strict` - Tooling level
 
