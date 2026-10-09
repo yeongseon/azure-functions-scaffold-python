@@ -28,16 +28,16 @@ def evaluate(
     docs_changed: bool | str,
     overrides: dict[str, str] | None = None,
 ) -> int:
-    full_required_arg = str(full_required).lower() if isinstance(full_required, bool) else full_required
+    full_required_arg = (
+        str(full_required).lower() if isinstance(full_required, bool) else full_required
+    )
     docs_changed_arg = str(docs_changed).lower() if isinstance(docs_changed, bool) else docs_changed
     results = {
         job: {"result": "success" if full_required_arg == "true" else "skipped"}
         for job in ci_required_needs()
     }
     results["changes"] = {"result": "success"}
-    results["docs-check"] = {
-        "result": "success" if docs_changed_arg == "true" else "skipped"
-    }
+    results["docs-check"] = {"result": "success" if docs_changed_arg == "true" else "skipped"}
     for job, result in (overrides or {}).items():
         results[job] = {"result": result}
     completed = subprocess.run(
