@@ -3,7 +3,6 @@ from __future__ import annotations
 from pathlib import Path
 import subprocess
 
-
 SCRIPT = Path(__file__).resolve().parents[1] / "tools" / "ci_changed_paths.sh"
 
 
