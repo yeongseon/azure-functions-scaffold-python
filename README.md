@@ -1,6 +1,7 @@
 # Azure Functions Scaffold
 
 <!-- CI scenario: documentation-only change. -->
+<!-- CI scenario: first concurrency push. -->
 
 > Part of the **Azure Functions Python DX Toolkit** — dogfood-tested by [azure-functions-cookbook-python](https://github.com/yeongseon/azure-functions-cookbook-python).
 
