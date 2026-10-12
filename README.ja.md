@@ -1,5 +1,8 @@
 # Azure Functions Scaffold
 
+> [!NOTE]
+> このドキュメントは[英語の原文](README.md)の翻訳であり、コミュニティが維持管理しています。英語の原文が更新された後は、内容が少し遅れることがあります。
+
 [![PyPI](https://img.shields.io/pypi/v/azure-functions-scaffold.svg)](https://pypi.org/project/azure-functions-scaffold/)
 [![Downloads](https://static.pepy.tech/badge/azure-functions-scaffold/month)](https://pepy.tech/project/azure-functions-scaffold)
 [![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13%20%7C%203.14-blue)](https://pypi.org/project/azure-functions-scaffold/)
