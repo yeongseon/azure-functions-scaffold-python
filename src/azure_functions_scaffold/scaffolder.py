@@ -14,7 +14,7 @@ import typer
 
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.models import ProjectOptions, TemplateContext, TemplateSpec
-from azure_functions_scaffold.packages import SUPPORTED_PACKAGES
+from azure_functions_scaffold.packages import AZURE_FUNCTIONS_SPECS, SUPPORTED_PACKAGES
 from azure_functions_scaffold.template_registry import (
     SUPPORTED_PYTHON_VERSIONS,
     build_project_options,
@@ -308,6 +308,7 @@ def _render_template(
         include_doctor=context.include_doctor,
         include_azd=context.include_azd,
         supported_packages=SUPPORTED_PACKAGES,
+        azure_functions_specs=AZURE_FUNCTIONS_SPECS,
     )
 
 

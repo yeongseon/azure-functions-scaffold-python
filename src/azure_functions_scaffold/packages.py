@@ -12,15 +12,18 @@ from __future__ import annotations
 # Keep this in sync with the smoke-test dependency floors in the root
 # ``pyproject.toml``; ``tests/test_supported_packages.py`` fails CI on drift.
 SUPPORTED_PACKAGES: dict[str, str] = {
-    # Upper bound <2.0.0: azure-functions v2 may change worker function-indexing
-    # behavior the toolkit relies on; generated projects inherit this cap. See dx#8.
-    "azure-functions": ">=1.23.0,<2.0.0",
+    "azure-functions": ">=1.21.0,<2.0.0",
     "azure-functions-logging": ">=0.14.0",
     "azure-functions-openapi": ">=0.29.0",
     "azure-functions-validation": ">=0.14.0",
     "azure-functions-doctor": ">=0.22.0",
     "azure-functions-durable": ">=1.2.9",
     "azure-functions-langgraph": ">=0.10.0",
+}
+
+AZURE_FUNCTIONS_SPECS: dict[str, str] = {
+    "legacy": ">=1.21.0,<2.0.0",
+    "modern": ">=1.21.0,<3.0.0",
 }
 
 
