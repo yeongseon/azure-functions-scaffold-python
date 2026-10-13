@@ -32,7 +32,7 @@ def requirement(name: str) -> str:
 
     The returned value is a bare specifier with no surrounding quotes, e.g.
     ``requirement("azure-functions")`` returns
-    ``azure-functions>=1.23.0,<2.0.0`` (not a quoted string).
+    ``azure-functions>=1.21.0,<2.0.0`` (not a quoted string).
 
     Raises:
         KeyError: If ``name`` is not a supported toolkit package. The message

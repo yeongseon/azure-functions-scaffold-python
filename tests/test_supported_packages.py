@@ -4,10 +4,15 @@ from __future__ import annotations
 
 from pathlib import Path
 import re
+import tomllib
 
 import pytest
 
-from azure_functions_scaffold.packages import SUPPORTED_PACKAGES, requirement
+from azure_functions_scaffold.packages import (
+    AZURE_FUNCTIONS_SPECS,
+    SUPPORTED_PACKAGES,
+    requirement,
+)
 from azure_functions_scaffold.scaffolder import scaffold_project
 from azure_functions_scaffold.template_registry import build_project_options
 
@@ -53,6 +58,16 @@ def test_templates_reference_catalog() -> None:
 
 def test_root_pyproject_floors_match_catalog() -> None:
     root_pyproject = (_REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    root_dependencies = tomllib.loads(root_pyproject)["project"]["optional-dependencies"]["dev"]
+    azure_functions_dependencies = {
+        dependency.split(";", maxsplit=1)[0].strip()
+        for dependency in root_dependencies
+        if dependency.startswith("azure-functions>=")
+    }
+    assert azure_functions_dependencies == {
+        f"azure-functions{AZURE_FUNCTIONS_SPECS['legacy']}",
+        f"azure-functions{AZURE_FUNCTIONS_SPECS['modern']}",
+    }
     for name, spec in SUPPORTED_PACKAGES.items():
         if name == "azure-functions":
             continue
