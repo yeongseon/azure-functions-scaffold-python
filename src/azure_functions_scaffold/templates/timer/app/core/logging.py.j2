@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from azure_functions_logging import get_logger, setup_logging
 
+# How invocation_id and correlation context propagate:
+# https://yeongseon.dev/azure-functions-python/platform/how-correlation-works/
+
 
 def configure_logging() -> None:
     """Configure structured logging for the Azure Functions application."""
