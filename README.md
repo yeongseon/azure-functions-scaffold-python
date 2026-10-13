@@ -104,6 +104,9 @@ pip install azure-functions-scaffold
 
 Use this 4-step flow to create and run a local HTTP function:
 
+Prerequisites: Python 3.11 through 3.14 and
+[Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local).
+
 1. Install the CLI.
 2. Generate a new project.
 3. Install project dependencies.
