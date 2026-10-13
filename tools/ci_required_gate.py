@@ -17,6 +17,7 @@ MATRIX_JOBS = (
     "artifact-python310-negative",
     "artifact-python311",
     "generated-host-smoke",
+    "azure-functions-2x",
 )
 
 

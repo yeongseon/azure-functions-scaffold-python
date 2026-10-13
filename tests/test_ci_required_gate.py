@@ -71,6 +71,7 @@ def test_expected_results_pass(full_required: bool, docs_changed: bool) -> None:
         (True, False, {"test": "failure"}),
         (True, False, {"changes": "failure"}),
         (True, False, {"generated-host-smoke": "cancelled"}),
+        (True, False, {"azure-functions-2x": "failure"}),
     ],
 )
 def test_unexpected_results_fail(
