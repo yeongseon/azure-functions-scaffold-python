@@ -42,7 +42,10 @@ dev = [
     "types-requests",
     # Smoke-test deps: generated project runtime packages needed by
     # test_template_smoke.py to run the scaffolded project's own test suite.
-    "azure-functions>=1.23.0,<2.0.0",
+    # azure-functions 2.x requires Python >=3.13. Keep 1.x on older runtimes,
+    # permit the CI-certified 2.x line on 3.13+, and retain a 3.x safety cap.
+    "azure-functions>=1.21.0,<2.0.0; python_version < '3.13'",
+    "azure-functions>=1.21.0,<3.0.0; python_version >= '3.13'",
     "azure-functions-logging>=0.14.0",
     "azure-functions-openapi>=0.29.0",
     "azure-functions-validation>=0.14.0",
