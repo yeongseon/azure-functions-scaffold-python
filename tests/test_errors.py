@@ -9,9 +9,12 @@ def test_scaffold_error_preserves_message_when_raised() -> None:
     # Given
     message = "destination already exists"
 
-    # When / Then
-    with pytest.raises(ScaffoldError, match="^destination already exists$"):
+    # When
+    with pytest.raises(ScaffoldError) as exc_info:
         raise ScaffoldError(message)
+
+    # Then
+    assert str(exc_info.value) == message
 
 
 def test_scaffold_error_is_a_runtime_error() -> None:
