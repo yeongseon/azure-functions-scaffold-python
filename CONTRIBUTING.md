@@ -2,6 +2,30 @@
 
 We welcome contributions to the `azure-functions-scaffold` project.
 
+## Local development quickstart
+
+Local development requires Python 3.11 through 3.14, matching the
+`requires-python = ">=3.11,<3.15"` range in `pyproject.toml`. No Azure account,
+Azure Functions Core Tools, Azurite, or Docker is required for the standard
+repository checks.
+
+From a clone of this repository, bootstrap the `.venv` and Hatch environment:
+
+```bash
+make install
+```
+
+The `install` target creates the local virtual environment, installs Hatch,
+creates the Hatch environment, and installs the pre-commit hook. Then run the
+standard verification commands:
+
+```bash
+make test
+make lint
+make typecheck
+make build
+```
+
 ## Branch Strategy
 
 Use GitHub Flow and branch from `main`.
