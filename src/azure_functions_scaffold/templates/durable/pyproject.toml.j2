@@ -24,7 +24,7 @@ description = "Azure Functions Python v2 app scaffolded by azure-functions-scaff
 readme = "README.md"
 requires-python = ">={{ python_version }},<{{ python_upper_bound }}"
 dependencies = [
-  "azure-functions{{ supported_packages['azure-functions'] }}",
+  "azure-functions{{ azure_functions_specs['modern' if python_version in ['3.13', '3.14'] else 'legacy'] }}",
   "azure-functions-logging{{ supported_packages['azure-functions-logging'] }}",
   "azure-functions-durable{{ supported_packages['azure-functions-durable'] }}",
   "orjson>=3.10.0",
