@@ -45,6 +45,7 @@ def warmup() -> None:
 # ── Scaffold generation tests (no Azure needed) ────────────────────────────
 
 
+@pytest.mark.e2e
 @pytest.mark.skipif(not SCAFFOLDED_DIR, reason=SKIP_SCAFFOLD_REASON)
 def test_scaffolded_project_has_required_files() -> None:
     """Verify the scaffold CLI generated the expected file structure."""
@@ -57,6 +58,7 @@ def test_scaffolded_project_has_required_files() -> None:
     assert (root / "app" / "functions").is_dir(), "app/functions/ missing"
 
 
+@pytest.mark.e2e
 @pytest.mark.skipif(not SCAFFOLDED_DIR, reason=SKIP_SCAFFOLD_REASON)
 def test_scaffolded_function_app_imports_cleanly() -> None:
     """Verify generated function_app.py is importable (syntax valid)."""
@@ -74,6 +76,7 @@ def test_scaffolded_function_app_imports_cleanly() -> None:
 # ── Deployed app HTTP tests ────────────────────────────────────────────────
 
 
+@pytest.mark.e2e
 @pytest.mark.skipif(not BASE_URL, reason=SKIP_REASON)
 def test_health_endpoint_returns_200() -> None:
     r = requests.get(f"{BASE_URL}/api/health", timeout=30)
