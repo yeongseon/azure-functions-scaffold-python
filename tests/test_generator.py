@@ -796,25 +796,70 @@ app.register_functions(my_blueprint)"""
     assert "app = FunctionApp()\nnew_line_here" in result
 
 
-def test_render_cosmosdb_module_uses_v3_trigger_param_names() -> None:
-    """The generator's cosmosdb path must emit legacy v3 Cosmos DB param names.
-
-    ``cosmos_db_trigger_v3`` requires the legacy ``collection_name`` /
-    ``connection_string_setting`` / ``lease_collection_name`` /
-    ``create_lease_collection_if_not_exists`` names, not the newer
-    ``container_name`` / ``connection`` names used by non-v3 ``cosmos_db_trigger``.
-    """
+def test_render_cosmosdb_module_uses_v4_trigger_param_names() -> None:
+    """Regression (#417): the generator's cosmosdb path emitted
+    `cosmos_db_trigger_v3` (bundles 2.x/3.x only) while host.json selects
+    extension bundle 4.x, which requires the non-v3 `cosmos_db_trigger`
+    decorator and its v4 field names instead."""
     module = _render_function_module(trigger="cosmosdb", function_name="on_change")
-    assert "cosmos_db_trigger_v3(" in module
-    assert "collection_name=" in module
-    assert "connection_string_setting=" in module
-    assert "lease_collection_name=" in module
-    assert "create_lease_collection_if_not_exists=" in module
-    # The v4 (non-v3) parameter names must not appear with the v3 decorator.
-    assert "container_name=" not in module
-    assert "connection=" not in module
-    assert "lease_container_name=" not in module
-    assert "create_lease_container_if_not_exists=" not in module
+    assert "cosmos_db_trigger(" in module
+    assert "container_name=" in module
+    assert "connection=" in module
+    assert "lease_container_name=" in module
+    assert "create_lease_container_if_not_exists=" in module
+    # The legacy v3 decorator and its field names must not appear.
+    assert "cosmos_db_trigger_v3" not in module
+    assert "collection_name=" not in module
+    assert "connection_string_setting=" not in module
+    assert "lease_collection_name=" not in module
+    assert "create_lease_collection_if_not_exists=" not in module
+
+
+@pytest.mark.parametrize("kind", ["standalone_template", "add_function_on_http"])
+def test_cosmosdb_binding_metadata_is_bundle4_compatible(tmp_path: Path, kind: str) -> None:
+    """Regression (#417): verify the actual emitted function.json binding
+    metadata (not just template source text) uses the v4 field names --
+    Python import success alone does not detect a trigger/bundle mismatch,
+    since the worker only validates binding metadata against the loaded
+    extension bundle at indexing time."""
+    import importlib
+    import sys
+
+    if kind == "standalone_template":
+        project_root = scaffold_project("cosmos-project", tmp_path, template_name="cosmosdb")
+    else:
+        project_root = scaffold_project("cosmos-add", tmp_path, template_name="http")
+        add_function(project_root=project_root, trigger="cosmosdb", function_name="changes")
+
+    sys.path.insert(0, str(project_root))
+    try:
+        importlib.invalidate_caches()
+        entry = importlib.import_module("function_app")
+        triggers = [
+            binding
+            for function in entry.app.get_functions()
+            for binding in json.loads(function.get_function_json())["bindings"]
+            if binding["type"] == "cosmosDBTrigger"
+        ]
+    finally:
+        sys.path.remove(str(project_root))
+        for module_name in list(sys.modules):
+            if module_name in ("function_app", "app") or module_name.startswith("app."):
+                del sys.modules[module_name]
+
+    assert len(triggers) == 1
+    trigger = triggers[0]
+    assert trigger["containerName"] == "my-container"
+    assert trigger["connection"] == "CosmosDBConnection"
+    assert trigger["leaseContainerName"] == "leases"
+    assert trigger["createLeaseContainerIfNotExists"] is True
+    for legacy_key in (
+        "collectionName",
+        "connectionStringSetting",
+        "leaseCollectionName",
+        "createLeaseCollectionIfNotExists",
+    ):
+        assert legacy_key not in trigger
 
 
 def test_render_function_module_raises_for_unknown_trigger() -> None:
