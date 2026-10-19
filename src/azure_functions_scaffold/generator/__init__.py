@@ -37,7 +37,10 @@ from azure_functions_scaffold.generator.json_mutators import (
     _compute_updated_host_json,
     _compute_updated_local_settings,
 )
-from azure_functions_scaffold.generator.pyproject import _compute_updated_pyproject_dependency
+from azure_functions_scaffold.generator.pyproject import (
+    _compute_requirements_txt,
+    _compute_updated_pyproject_dependency,
+)
 from azure_functions_scaffold.generator.writer import (
     _commit_pending_writes,
     _PendingWrite,
@@ -170,6 +173,18 @@ def add_function(
                     original_content=pyproject_content,
                 )
             )
+            requirements_path = project_root / "requirements.txt"
+            if requirements_path.is_file():
+                requirements_content = requirements_path.read_text(encoding="utf-8")
+                updated_requirements = _compute_requirements_txt(updated_pyproject)
+                if updated_requirements != requirements_content:
+                    writes.append(
+                        _PendingWrite(
+                            path=requirements_path,
+                            new_content=updated_requirements,
+                            original_content=requirements_content,
+                        )
+                    )
 
     test_path = _test_path_to_create(project_root, normalized_name)
     if test_path is not None:
@@ -266,14 +281,17 @@ def _describe_add_function_lines(
         lines.append(f"  - local.settings.json.example {connection_key}")
     if normalized_trigger == "durable":
         pyproject_content = (project_root / "pyproject.toml").read_text(encoding="utf-8")
-        if (
-            _compute_updated_pyproject_dependency(
-                pyproject_content,
-                requirement("azure-functions-durable"),
-            )
-            is not None
-        ):
+        updated_pyproject = _compute_updated_pyproject_dependency(
+            pyproject_content,
+            requirement("azure-functions-durable"),
+        )
+        if updated_pyproject is not None:
             lines.append("  - pyproject.toml azure-functions-durable dependency")
+            requirements_path = project_root / "requirements.txt"
+            if requirements_path.is_file():
+                updated_requirements = _compute_requirements_txt(updated_pyproject)
+                if updated_requirements != requirements_path.read_text(encoding="utf-8"):
+                    lines.append("  - requirements.txt azure-functions-durable dependency")
 
     return lines
 

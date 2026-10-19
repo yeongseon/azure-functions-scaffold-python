@@ -7,12 +7,12 @@ import shutil
 import subprocess  # nosec B404
 import sys
 import tempfile
-import tomllib
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 import typer
 
 from azure_functions_scaffold.errors import ScaffoldError
+from azure_functions_scaffold.generator.pyproject import _compute_requirements_txt
 from azure_functions_scaffold.models import ProjectOptions, TemplateContext, TemplateSpec
 from azure_functions_scaffold.packages import AZURE_FUNCTIONS_SPECS, SUPPORTED_PACKAGES
 from azure_functions_scaffold.template_registry import (
@@ -95,10 +95,9 @@ def scaffold_project(
 
         pyproject_path = staging_dir / "pyproject.toml"
         if pyproject_path.is_file():
-            metadata = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
-            dependencies = metadata["project"]["dependencies"]
+            pyproject_content = pyproject_path.read_text(encoding="utf-8")
             (staging_dir / "requirements.txt").write_text(
-                "".join(f"{dependency}\n" for dependency in sorted(dependencies, key=str.casefold)),
+                _compute_requirements_txt(pyproject_content),
                 encoding="utf-8",
             )
 
