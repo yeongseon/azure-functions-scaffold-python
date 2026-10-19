@@ -446,6 +446,23 @@ def test_describe_scaffold_project_reports_expected_files(tmp_path: Path) -> Non
     assert "  - function_app.py" in lines
     assert "  - app/functions/queue.py" in lines
     assert "  - .github/workflows/ci.yml" in lines
+    assert "  - requirements.txt" in lines
+
+
+def test_describe_scaffold_project_matches_actual_files_for_all_templates(
+    tmp_path: Path,
+) -> None:
+    for template in list_templates():
+        name = f"{template.name}-review"
+        lines = describe_scaffold_project(name, tmp_path, template_name=template.name)
+        previewed = {line.removeprefix("  - ") for line in lines if line.startswith("  - ")}
+        assert not (tmp_path / name).exists()
+
+        project = scaffold_project(name, tmp_path, template_name=template.name)
+        actual = {p.relative_to(project).as_posix() for p in project.rglob("*") if p.is_file()}
+
+        assert actual - previewed == set(), template.name
+        assert previewed - actual == set(), template.name
 
 
 def test_describe_scaffold_project_raises_for_invalid_template(
