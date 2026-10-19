@@ -6,7 +6,7 @@ import json
 
 from azure_functions_scaffold.errors import ScaffoldError
 
-HOST_JSON_TRIGGERS = frozenset({"queue", "blob", "servicebus", "eventhub", "cosmosdb"})
+HOST_JSON_TRIGGERS = frozenset({"queue", "blob", "servicebus", "eventhub", "cosmosdb", "durable"})
 
 
 def _compute_updated_host_json(content: str, trigger: str) -> str | None:

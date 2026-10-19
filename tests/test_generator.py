@@ -532,7 +532,9 @@ def test_add_timer_function(tmp_path: Path) -> None:
     assert "past_due=False" in test_content
 
 
-@pytest.mark.parametrize("trigger", ["queue", "blob", "servicebus", "eventhub", "cosmosdb"])
+@pytest.mark.parametrize(
+    "trigger", ["queue", "blob", "servicebus", "eventhub", "cosmosdb", "durable"]
+)
 def test_add_function_adds_extension_bundle_for_binding_triggers(
     tmp_path: Path,
     trigger: str,
@@ -565,6 +567,44 @@ def test_add_function_skips_extension_bundle_when_already_exists(tmp_path: Path)
 
     # Extension bundle should be the same
     assert host_config_2["extensionBundle"] == original_bundle
+
+
+def test_add_durable_function_to_http_project_configures_extension_bundle(
+    tmp_path: Path,
+) -> None:
+    """Regression (#418): adding a Durable function to a fresh HTTP project
+    installed the Python dependency but left host.json as bare
+    {"version": "2.0"} -- HOST_JSON_TRIGGERS excluded "durable", so the
+    existing host-config mutation path was skipped entirely even though
+    the generated durableClient/orchestrationTrigger/activityTrigger
+    metadata requires the same extension bundle the standalone durable
+    project template already emits."""
+    project_root = scaffold_project("sample", tmp_path)
+    host_json_path = project_root / "host.json"
+    original_host = json.loads(host_json_path.read_text(encoding="utf-8"))
+    assert "extensionBundle" not in original_host
+
+    add_function(project_root=project_root, trigger="durable", function_name="first")
+    host_config_1 = json.loads(host_json_path.read_text(encoding="utf-8"))
+    assert host_config_1["extensionBundle"]["id"] == "Microsoft.Azure.Functions.ExtensionBundle"
+    assert host_config_1["version"] == original_host["version"]
+
+    # A second Durable addition must not duplicate or rewrite the bundle.
+    add_function(project_root=project_root, trigger="durable", function_name="second")
+    host_config_2 = json.loads(host_json_path.read_text(encoding="utf-8"))
+    assert host_config_2["extensionBundle"] == host_config_1["extensionBundle"]
+
+
+def test_describe_add_durable_function_reports_host_json_change(tmp_path: Path) -> None:
+    """Regression (#418): dry-run output must report the host.json change
+    for Durable the same way it already does for other binding triggers."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    lines = describe_add_function(
+        project_root=project_root, trigger="durable", function_name="workflow"
+    )
+
+    assert "  - host.json extensionBundle" in lines
 
 
 def test_add_servicebus_function_updates_local_settings_example(tmp_path: Path) -> None:
