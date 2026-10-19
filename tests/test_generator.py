@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import json
 from pathlib import Path
+import re
 import tomllib
 from typing import Any
 
@@ -278,6 +279,57 @@ def test_add_durable_function_skips_requirements_sync_without_existing_file(
     add_function(project_root=project_root, trigger="durable", function_name="workflow")
 
     assert not (project_root / "requirements.txt").exists()
+
+
+def _extract_route(module_text: str) -> str:
+    """Extract the single ``route="..."`` value from a generated blueprint
+    module's source text. Avoids importing the generated module, which
+    would require the generated project's own azure-functions-durable
+    dependency to be installed in this tool's own dev environment."""
+    match = re.search(r'route="([^"]+)"', module_text)
+    assert match is not None, f"no route= found in module text:\n{module_text}"
+    return match.group(1)
+
+
+def test_two_durable_additions_do_not_duplicate_starter_route(tmp_path: Path) -> None:
+    """Regression (#419): every generated Durable partial hard-coded the
+    identical route "orchestrators/{functionName}" regardless of the
+    requested module name. Adding "first" then "second" to an HTTP project
+    registered two starters at the exact same route/method combination,
+    which the Azure Functions host rejects as a routing conflict
+    (HttpRoutesConflict) even though both functions import and index
+    successfully from the Python SDK's perspective."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    add_function(project_root=project_root, trigger="durable", function_name="first")
+    add_function(project_root=project_root, trigger="durable", function_name="second")
+
+    route_first = _extract_route(
+        (project_root / "app/functions/first.py").read_text(encoding="utf-8")
+    )
+    route_second = _extract_route(
+        (project_root / "app/functions/second.py").read_text(encoding="utf-8")
+    )
+    assert route_first != route_second, f"duplicate starter routes: {route_first!r}"
+
+
+def test_durable_addition_does_not_collide_with_standalone_durable_starter(
+    tmp_path: Path,
+) -> None:
+    """Regression (#419): the standalone durable project template emits its
+    own starter at the same hard-coded route. Adding a Durable module to
+    that same project must not collide with the project's own starter."""
+    project_root = scaffold_project("sample", tmp_path, template_name="durable")
+
+    add_function(project_root=project_root, trigger="durable", function_name="extra")
+
+    route_standalone = _extract_route(
+        (project_root / "app/functions/durable.py").read_text(encoding="utf-8")
+    )
+    route_added = _extract_route(
+        (project_root / "app/functions/extra.py").read_text(encoding="utf-8")
+    )
+    assert route_standalone != route_added, f"duplicate starter routes: {route_standalone!r}"
 
 
 def test_commit_pending_writes_reports_incomplete_rollback(

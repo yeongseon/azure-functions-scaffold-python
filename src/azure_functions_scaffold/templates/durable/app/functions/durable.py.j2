@@ -13,7 +13,7 @@ durable_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 
 @durable_blueprint.route(
-    route="orchestrators/{functionName}",
+    route="orchestrators/durable/{functionName}",
     methods=["POST"],
     auth_level=func.AuthLevel.FUNCTION,
 )
