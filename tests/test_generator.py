@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import json
 from pathlib import Path
+import tomllib
 from typing import Any
 
 import pytest
@@ -29,6 +30,7 @@ from azure_functions_scaffold.generator import (
     describe_add_route,
 )
 from azure_functions_scaffold.generator.writer import _commit_pending_writes, _PendingWrite
+from azure_functions_scaffold.packages import requirement
 from azure_functions_scaffold.scaffolder import scaffold_project
 from azure_functions_scaffold.template_registry import build_project_options, list_templates
 
@@ -218,6 +220,64 @@ def test_add_route_preserves_entrypoint_on_partial_write_failure(
     assert entry.read_bytes() == original
     assert not (project_root / "app/functions/status.py").exists()
     assert not (project_root / "tests/test_status.py").exists()
+
+
+def test_add_durable_function_synchronizes_deployment_requirements(
+    tmp_path: Path,
+) -> None:
+    """Regression (#410): adding a durable function updates pyproject.toml's
+    dependencies but previously left requirements.txt (the deployment
+    install manifest) unchanged, so a remote-build deployment installed
+    from requirements.txt would be missing azure-functions-durable even
+    though a dev install from pyproject would succeed."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    add_function(project_root=project_root, trigger="durable", function_name="workflow")
+
+    dependencies = tomllib.loads((project_root / "pyproject.toml").read_text(encoding="utf-8"))[
+        "project"
+    ]["dependencies"]
+    deployment_requirements = (
+        (project_root / "requirements.txt").read_text(encoding="utf-8").splitlines()
+    )
+    durable_dependency = requirement("azure-functions-durable")
+
+    assert durable_dependency in dependencies
+    assert durable_dependency in deployment_requirements
+    assert sorted(dependencies, key=str.casefold) == deployment_requirements
+
+
+def test_add_durable_function_requirements_sync_is_idempotent(
+    tmp_path: Path,
+) -> None:
+    """Regression (#410): adding a second durable function must not
+    duplicate the dependency entry or needlessly rewrite requirements.txt
+    when nothing actually changed."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    add_function(project_root=project_root, trigger="durable", function_name="workflow_one")
+    add_function(project_root=project_root, trigger="durable", function_name="workflow_two")
+
+    deployment_requirements = (
+        (project_root / "requirements.txt").read_text(encoding="utf-8").splitlines()
+    )
+    durable_dependency = requirement("azure-functions-durable")
+
+    assert deployment_requirements.count(durable_dependency) == 1
+
+
+def test_add_durable_function_skips_requirements_sync_without_existing_file(
+    tmp_path: Path,
+) -> None:
+    """Regression (#410): a project predating generated requirements.txt
+    must not have one silently created -- only synchronize when the file
+    already exists."""
+    project_root = scaffold_project("sample", tmp_path)
+    (project_root / "requirements.txt").unlink()
+
+    add_function(project_root=project_root, trigger="durable", function_name="workflow")
+
+    assert not (project_root / "requirements.txt").exists()
 
 
 def test_commit_pending_writes_reports_incomplete_rollback(
