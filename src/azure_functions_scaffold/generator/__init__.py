@@ -123,7 +123,7 @@ def add_function(
     _validate_project_root(project_root)
 
     function_path = project_root / "app" / "functions" / f"{normalized_name}.py"
-    if function_path.exists():
+    if _output_path_occupied(function_path):
         raise ScaffoldError(f"Function module already exists: {function_path}")
 
     import_stmt = f"from app.functions.{normalized_name} import {normalized_name}_blueprint"
@@ -313,9 +313,20 @@ def describe_add_function(
 
 def _test_path_to_create(project_root: Path, normalized_name: str) -> Path | None:
     test_path = project_root / "tests" / f"test_{normalized_name}.py"
-    if test_path.parent.is_dir() and not test_path.exists():
+    if test_path.parent.is_dir() and not _output_path_occupied(test_path):
         return test_path
     return None
+
+
+def _output_path_occupied(path: Path) -> bool:
+    """Return True if *path* is an existing file/dir or any symlink, including dangling ones.
+
+    ``Path.exists()`` follows symlinks and reports ``False`` for a dangling
+    symlink, which lets collision checks treat an occupied output entry as
+    absent. ``is_symlink()`` catches that case regardless of whether the
+    link target exists.
+    """
+    return path.exists() or path.is_symlink()
 
 
 def _normalize_trigger(trigger: str) -> str:
@@ -547,7 +558,7 @@ def add_resource(
     schema_path = project_root / "app" / "schemas" / f"{normalized}.py"
 
     for path in (blueprint_path, service_path, schema_path):
-        if path.exists():
+        if _output_path_occupied(path):
             raise ScaffoldError(f"File already exists: {path}")
 
     import_stmt = f"from app.functions.{normalized} import {normalized}_blueprint"
@@ -696,7 +707,7 @@ def add_route(
     _validate_project_root(project_root)
 
     blueprint_path = project_root / "app" / "functions" / f"{normalized}.py"
-    if blueprint_path.exists():
+    if _output_path_occupied(blueprint_path):
         raise ScaffoldError(f"Function module already exists: {blueprint_path}")
 
     import_stmt = f"from app.functions.{normalized} import {normalized}_blueprint"
