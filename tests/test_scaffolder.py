@@ -599,7 +599,13 @@ def test_durable_template_uses_correct_durable_module_path(tmp_path: Path) -> No
     assert "Generator[Any, Any, list[str]]" in durable_text
 
 
-def test_cosmosdb_template_uses_v3_trigger_param_names(tmp_path: Path) -> None:
+def test_cosmosdb_template_uses_v4_trigger_param_names(tmp_path: Path) -> None:
+    """Regression (#417): host.json selects extension bundle 4.x, which
+    requires the non-v3 `cosmos_db_trigger` decorator and its v4 field
+    names (container_name / connection / lease_container_name /
+    create_lease_container_if_not_exists) -- `cosmos_db_trigger_v3` and its
+    legacy field names only support bundles 2.x/3.x and are incompatible
+    with the bundle 4.x this project actually loads."""
     project_path = scaffold_project(
         "cosmosdb-sample",
         tmp_path,
@@ -607,14 +613,16 @@ def test_cosmosdb_template_uses_v3_trigger_param_names(tmp_path: Path) -> None:
     )
 
     cosmosdb_text = (project_path / "app/functions/cosmosdb.py").read_text(encoding="utf-8")
-    # The `cosmos_db_trigger_v3` decorator requires the legacy Cosmos DB param
-    # names (collection_name / connection_string_setting), NOT the newer
-    # container_name / connection names used by the non-v3 `cosmos_db_trigger`.
-    assert 'collection_name="my-container"' in cosmosdb_text
-    assert 'connection_string_setting="CosmosDBConnection"' in cosmosdb_text
-    assert 'lease_collection_name="leases"' in cosmosdb_text
-    assert "create_lease_collection_if_not_exists=True" in cosmosdb_text
-    assert "container_name" not in cosmosdb_text
+    assert "cosmos_db_trigger(" in cosmosdb_text
+    assert 'container_name="my-container"' in cosmosdb_text
+    assert 'connection="CosmosDBConnection"' in cosmosdb_text
+    assert 'lease_container_name="leases"' in cosmosdb_text
+    assert "create_lease_container_if_not_exists=True" in cosmosdb_text
+    assert "cosmos_db_trigger_v3" not in cosmosdb_text
+    assert "collection_name" not in cosmosdb_text
+    assert "connection_string_setting" not in cosmosdb_text
+    assert "lease_collection_name" not in cosmosdb_text
+    assert "create_lease_collection_if_not_exists" not in cosmosdb_text
 
 
 @pytest.mark.parametrize("template_name", ["queue", "blob", "servicebus", "eventhub", "cosmosdb"])
