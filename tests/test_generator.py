@@ -1217,6 +1217,63 @@ def test_add_resource_rejects_existing_blueprint(tmp_path: Path) -> None:
         add_resource(project_root=project_root, resource_name="products")
 
 
+def test_add_resource_rejects_singular_function_name_collision(tmp_path: Path) -> None:
+    """Regression (#420): "products" derives get_product/create_product/
+    update_product/delete_product; "product" derives the exact same four
+    names from its own (unchanged) singular form. Both resources register
+    successfully as far as file/module checks are concerned, but the SDK's
+    app.get_functions() rejects the duplicate Azure Function names at
+    indexing time -- breaking the whole app, including the first resource's
+    already-healthy routes. The collision must be rejected before any
+    files are written for the second resource."""
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+
+    with pytest.raises(ScaffoldError, match="duplicate Azure Function name"):
+        add_resource(project_root=project_root, resource_name="product")
+
+    assert not (project_root / "app/functions/product.py").exists()
+    assert not (project_root / "app/services/product_service.py").exists()
+    assert not (project_root / "app/schemas/product.py").exists()
+    # The first resource's registration must survive untouched.
+    function_app_text = (project_root / "function_app.py").read_text(encoding="utf-8")
+    assert "from app.functions.products import products_blueprint" in function_app_text
+
+    # The app remains indexable: importing it and calling get_functions()
+    # must not raise, and the original resource's functions are present.
+    import importlib
+    import sys
+
+    sys.path.insert(0, str(project_root))
+    try:
+        importlib.invalidate_caches()
+        entry = importlib.import_module("function_app")
+        function_names = {f.get_function_name() for f in entry.app.get_functions()}
+    finally:
+        sys.path.remove(str(project_root))
+        for module_name in list(sys.modules):
+            if module_name in ("function_app", "app") or module_name.startswith("app."):
+                del sys.modules[module_name]
+
+    assert "get_product" in function_names
+
+
+def test_add_route_rejects_function_name_collision_with_existing_resource(
+    tmp_path: Path,
+) -> None:
+    """Regression (#420): a resource `products` registers `get_product`; a
+    separately generated route `get-product` normalizes to the exact same
+    global Azure Function name `get_product`. The collision must be
+    rejected before any files are written for the route."""
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+
+    with pytest.raises(ScaffoldError, match="duplicate Azure Function name"):
+        add_route(project_root=project_root, route_name="get-product")
+
+    assert not (project_root / "app/functions/get_product.py").exists()
+
+
 def test_add_resource_rejects_non_scaffold_project(tmp_path: Path) -> None:
     project_root = tmp_path / "not-a-project"
     project_root.mkdir()

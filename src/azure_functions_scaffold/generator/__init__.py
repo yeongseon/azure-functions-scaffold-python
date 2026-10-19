@@ -15,6 +15,7 @@ Jinja rendering live in this module and compose the helpers above.
 
 from __future__ import annotations
 
+import ast
 import keyword
 import logging
 from pathlib import Path
@@ -145,10 +146,15 @@ def add_function(
         registration_stmt=registration_stmt,
     )
 
+    rendered_module = _render_function_module(normalized_trigger, normalized_name)
+    _raise_on_function_name_collision(
+        project_root, rendered_module, context_label=f"Adding {normalized_trigger} function"
+    )
+
     writes = [
         _PendingWrite(
             path=function_path,
-            new_content=_render_function_module(normalized_trigger, normalized_name),
+            new_content=rendered_module,
             original_content=None,
         ),
         _PendingWrite(
@@ -309,6 +315,54 @@ def describe_add_function(
         function_name=function_name,
         dry_run=True,
     )
+
+
+def _extract_top_level_function_names(source: str) -> set[str]:
+    tree = ast.parse(source)
+    return {
+        node.name
+        for node in ast.iter_child_nodes(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+
+
+def _collect_registered_function_names(project_root: Path) -> set[str]:
+    """Collect every top-level function name across ``app/functions/*.py`` --
+    the Azure Function names the SDK indexes app-wide (#420). Python module
+    boundaries do not provide Azure Function name isolation: two blueprints
+    in different files that happen to define a function with the same name
+    collide at ``app.get_functions()`` time, not at import time.
+    """
+    functions_dir = project_root / "app" / "functions"
+    if not functions_dir.is_dir():
+        return set()
+    names: set[str] = set()
+    for module_path in sorted(functions_dir.glob("*.py")):
+        names.update(_extract_top_level_function_names(module_path.read_text(encoding="utf-8")))
+    return names
+
+
+def _raise_on_function_name_collision(
+    project_root: Path, new_module_content: str, *, context_label: str
+) -> None:
+    """Reject a generation request before any files are written if it would
+    register an Azure Function name that already exists elsewhere in the app
+    (#420) -- rendering the candidate content first and inspecting its own
+    top-level function names keeps this check accurate for every trigger's
+    actual naming convention, without hardcoding each template's shape.
+    """
+    collisions = sorted(
+        _collect_registered_function_names(project_root)
+        & _extract_top_level_function_names(new_module_content)
+    )
+    if collisions:
+        joined = ", ".join(collisions)
+        raise ScaffoldError(
+            f"{context_label} would register duplicate Azure Function name(s): "
+            f"{joined}. Azure Function names must be unique app-wide; Python "
+            f"module separation does not provide name isolation. Choose a "
+            f"different name."
+        )
 
 
 def _test_path_to_create(project_root: Path, normalized_name: str) -> Path | None:
@@ -580,10 +634,15 @@ def add_resource(
         registration_stmt=registration_stmt,
     )
 
+    rendered_blueprint = _render_partial("resource_blueprint.py.j2", names)
+    _raise_on_function_name_collision(
+        project_root, rendered_blueprint, context_label="Adding resource"
+    )
+
     writes = [
         _PendingWrite(
             path=blueprint_path,
-            new_content=_render_partial("resource_blueprint.py.j2", names),
+            new_content=rendered_blueprint,
             original_content=None,
         ),
         _PendingWrite(
@@ -734,10 +793,15 @@ def add_route(
         "route_name": normalized.replace("_", "-"),
     }
 
+    rendered_blueprint = _render_partial("route_blueprint.py.j2", names)
+    _raise_on_function_name_collision(
+        project_root, rendered_blueprint, context_label="Adding route"
+    )
+
     writes = [
         _PendingWrite(
             path=blueprint_path,
-            new_content=_render_partial("route_blueprint.py.j2", names),
+            new_content=rendered_blueprint,
             original_content=None,
         )
     ]
