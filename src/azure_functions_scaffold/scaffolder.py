@@ -198,6 +198,7 @@ def describe_scaffold_project(
         ),
         keep_trailing_newline=True,
     )
+    pyproject_content: str | None = None
     for template_path in _iter_template_files(template.root):
         relative_path = template_path.relative_to(template.root)
         if not _should_render_template(relative_path, context):
@@ -205,7 +206,14 @@ def describe_scaffold_project(
         rendered_path = _render_path(relative_path, context)
         lines.append(f"  - {rendered_path.as_posix()}")
         if relative_path.suffix == ".j2":
-            _render_template(environment, relative_path.as_posix(), context)
+            rendered_content = _render_template(environment, relative_path.as_posix(), context)
+            if rendered_path.as_posix() == "pyproject.toml":
+                pyproject_content = rendered_content
+
+    if pyproject_content is not None:
+        # scaffold_project() always derives requirements.txt from pyproject.toml (#368).
+        _compute_requirements_txt(pyproject_content)
+        lines.append("  - requirements.txt")
 
     return lines
 
