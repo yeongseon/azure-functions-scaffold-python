@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import logging
 import os
+import re
 import uuid
 from datetime import UTC, datetime
 
@@ -28,10 +29,13 @@ def verify_signature(payload: bytes, signature: str, secret: str) -> bool:
     """
     if not signature.startswith("sha256="):
         return False
+    digest = signature.removeprefix("sha256=")
+    if not re.fullmatch(r"[0-9a-fA-F]+", digest):
+        return False
     expected = hmac.new(
         secret.encode(), payload, hashlib.sha256
     ).hexdigest()
-    return hmac.compare_digest(signature.removeprefix("sha256="), expected)
+    return hmac.compare_digest(digest, expected)
 
 
 class WebhookStore:
