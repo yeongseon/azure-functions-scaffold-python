@@ -166,16 +166,18 @@ def test_add_function_rolls_back_on_function_app_write_failure(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    import os
+
     project_root = scaffold_project("sample", tmp_path)
     function_app_path = project_root / "function_app.py"
-    original_write_text = Path.write_text
+    original_replace = os.replace
 
-    def failing_write_text(self: Path, data: str, *args: Any, **kwargs: Any) -> int:
-        if self == function_app_path:
+    def failing_replace(src: Any, dst: Any, *args: Any, **kwargs: Any) -> None:
+        if Path(dst) == function_app_path:
             raise PermissionError("blocked")
-        return original_write_text(self, data, *args, **kwargs)
+        return original_replace(src, dst, *args, **kwargs)
 
-    monkeypatch.setattr(Path, "write_text", failing_write_text)
+    monkeypatch.setattr("azure_functions_scaffold.generator.writer.os.replace", failing_replace)
 
     with pytest.raises(ScaffoldError, match="Atomic write failed"):
         add_function(project_root=project_root, trigger="http", function_name="bar")
@@ -184,26 +186,62 @@ def test_add_function_rolls_back_on_function_app_write_failure(
     assert not (project_root / "tests/test_bar.py").exists()
 
 
+def test_add_route_preserves_entrypoint_on_partial_write_failure(
+    tmp_path: Path,
+) -> None:
+    """Regression (#408): a write that fails partway through committing the
+    destination (e.g. disk-full during the final atomic replace) must never
+    leave the existing function_app.py truncated or damaged -- new content
+    is staged in a temp file first, so the real destination is either fully
+    replaced or never touched at all."""
+    import os
+    from unittest.mock import patch
+
+    project_root = scaffold_project("sample", tmp_path)
+    entry = project_root / "function_app.py"
+    original = entry.read_bytes()
+    real_replace = os.replace
+    failed = False
+
+    def failing_replace(src: Any, dst: Any, *args: Any, **kwargs: Any) -> None:
+        nonlocal failed
+        if Path(dst) == entry and not failed:
+            failed = True
+            msg = "synthetic disk-full during atomic replace"
+            raise OSError(msg)
+        return real_replace(src, dst, *args, **kwargs)
+
+    with patch("azure_functions_scaffold.generator.writer.os.replace", failing_replace):
+        with pytest.raises(ScaffoldError):
+            add_route(project_root=project_root, route_name="status")
+
+    assert entry.read_bytes() == original
+    assert not (project_root / "app/functions/status.py").exists()
+    assert not (project_root / "tests/test_status.py").exists()
+
+
 def test_commit_pending_writes_reports_incomplete_rollback(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    import os
+
     first_path = tmp_path / "first.txt"
     second_path = tmp_path / "second.txt"
     first_path.write_text("original", encoding="utf-8")
-    original_write_text = Path.write_text
+    original_replace = os.replace
     calls = 0
 
-    def failing_write_text(self: Path, data: str, *args: Any, **kwargs: Any) -> int:
+    def failing_replace(src: Any, dst: Any, *args: Any, **kwargs: Any) -> None:
         nonlocal calls
         calls += 1
         if calls == 2:
             raise PermissionError("second write blocked")
         if calls == 3:
             raise PermissionError("rollback blocked")
-        return original_write_text(self, data, *args, **kwargs)
+        return original_replace(src, dst, *args, **kwargs)
 
-    monkeypatch.setattr(Path, "write_text", failing_write_text)
+    monkeypatch.setattr("azure_functions_scaffold.generator.writer.os.replace", failing_replace)
 
     with pytest.raises(ScaffoldError, match=rf"rollback was incomplete.*{first_path}") as error:
         _commit_pending_writes(
@@ -983,17 +1021,19 @@ def test_add_resource_rolls_back_on_partial_failure(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    import os
+
     project_root = scaffold_project("sample", tmp_path)
     function_app_path = project_root / "function_app.py"
     original_function_app = function_app_path.read_text(encoding="utf-8")
-    original_write_text = Path.write_text
+    original_replace = os.replace
 
-    def failing_write_text(self: Path, data: str, *args: Any, **kwargs: Any) -> int:
-        if self == function_app_path:
+    def failing_replace(src: Any, dst: Any, *args: Any, **kwargs: Any) -> None:
+        if Path(dst) == function_app_path:
             raise PermissionError("blocked")
-        return original_write_text(self, data, *args, **kwargs)
+        return original_replace(src, dst, *args, **kwargs)
 
-    monkeypatch.setattr(Path, "write_text", failing_write_text)
+    monkeypatch.setattr("azure_functions_scaffold.generator.writer.os.replace", failing_replace)
 
     with pytest.raises(ScaffoldError, match="Atomic write failed"):
         add_resource(project_root=project_root, resource_name="products")

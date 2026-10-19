@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
+import os
 from pathlib import Path
+import tempfile
 
 from azure_functions_scaffold.errors import ScaffoldError
 
@@ -19,12 +21,36 @@ class _PendingWrite:
     created_parent: Path | None = None
 
 
+def _atomic_write(path: Path, content: str) -> None:
+    """Write *content* to *path* without ever exposing a partially written
+    destination (#408).
+
+    The new content is staged in a temp file in the same directory, flushed
+    and fsynced, then committed with a single ``os.replace()`` -- which is
+    atomic on the same filesystem. If staging fails partway through (e.g. a
+    disk-full error), only the disposable temp file is affected; the real
+    destination is never touched, so there is nothing to roll back for this
+    entry specifically.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    tmp_path = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(content)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp_path, path)
+    except BaseException:
+        tmp_path.unlink(missing_ok=True)
+        raise
+
+
 def _commit_pending_writes(writes: list[_PendingWrite]) -> None:
     written: list[_PendingWrite] = []
     try:
         for write in writes:
-            write.path.parent.mkdir(parents=True, exist_ok=True)
-            write.path.write_text(write.new_content, encoding="utf-8")
+            _atomic_write(write.path, write.new_content)
             written.append(write)
     except Exception as exc:
         rollback_failures: list[Path] = []
@@ -40,7 +66,7 @@ def _commit_pending_writes(writes: list[_PendingWrite]) -> None:
                     ):
                         write.created_parent.rmdir()
                 else:
-                    write.path.write_text(write.original_content, encoding="utf-8")
+                    _atomic_write(write.path, write.original_content)
             except OSError:
                 rollback_failures.append(write.path)
                 logger.exception("Rollback failed for %s", write.path)
