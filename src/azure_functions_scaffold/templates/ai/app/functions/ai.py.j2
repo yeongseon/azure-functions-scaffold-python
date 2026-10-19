@@ -18,10 +18,25 @@ ai_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 async def chat(req: func.HttpRequest) -> func.HttpResponse:
     try:
         body = req.get_json()
-        prompt = body.get("prompt", "")
     except ValueError:
         return func.HttpResponse(
             body=json.dumps({"error": "Invalid JSON body."}),
+            status_code=400,
+            mimetype="application/json",
+        )
+
+    if not isinstance(body, dict):
+        return func.HttpResponse(
+            body=json.dumps({"error": "Request body must be a JSON object."}),
+            status_code=400,
+            mimetype="application/json",
+        )
+
+    prompt = body.get("prompt", "")
+
+    if not isinstance(prompt, str):
+        return func.HttpResponse(
+            body=json.dumps({"error": "'prompt' must be a string."}),
             status_code=400,
             mimetype="application/json",
         )
