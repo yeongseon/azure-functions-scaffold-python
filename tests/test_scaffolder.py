@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tomllib
+from unittest.mock import patch
 
 from jinja2 import TemplateSyntaxError
 import pytest
@@ -286,6 +287,42 @@ def test_scaffold_project_preserves_existing_target_when_overwrite_rendering_fai
 
     assert keep_file.read_text(encoding="utf-8") == "keep"
     assert not (target_dir / "partial.txt").exists()
+
+
+def test_scaffold_project_preserves_backup_when_restore_also_fails(
+    tmp_path: Path,
+) -> None:
+    """Regression (#409): if publishing the staged project AND restoring the
+    original both fail, the unconditional `finally: shutil.rmtree(temporary_dir)`
+    deleted the only surviving copy of the original project. The original
+    backup must be preserved and the raised error must identify where it
+    was left, rather than silently destroying the user's files."""
+    target_dir = tmp_path / "sample"
+    target_dir.mkdir()
+    keep_file = target_dir / "keep.txt"
+    keep_file.write_text("user content to preserve", encoding="utf-8")
+    real_replace = Path.replace
+    blocked: list[str] = []
+
+    def fail_publish_and_restore(self: Path, target: Path) -> Path:
+        if Path(target) == target_dir and self != target_dir:
+            blocked.append(self.name)
+            msg = "synthetic destination rename failure"
+            raise PermissionError(msg)
+        return real_replace(self, target)
+
+    with patch.object(Path, "replace", fail_publish_and_restore):
+        with pytest.raises(ScaffoldError) as error:
+            scaffold_project("sample", tmp_path, overwrite=True, yes=True)
+
+    assert blocked == ["sample", "original"]
+    # A backup directory (sibling of target_dir, under the scaffold's own
+    # temp-dir naming convention) must still exist somewhere, holding the
+    # original keep.txt content -- the original must not be unrecoverable.
+    surviving_keep_files = list(tmp_path.rglob("keep.txt"))
+    assert len(surviving_keep_files) == 1
+    assert surviving_keep_files[0].read_text(encoding="utf-8") == "user content to preserve"
+    assert str(surviving_keep_files[0].parent) in str(error.value)
 
 
 def test_overwrite_in_tty_with_yes_proceeds(

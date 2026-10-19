@@ -70,6 +70,11 @@ def scaffold_project(
     staging_dir = temporary_dir / target_dir.name
     staging_dir.mkdir()
 
+    # Only shielded from the unconditional `finally` cleanup when the
+    # original backup is the SOLE surviving copy of the user's project
+    # (#409): a rollback that itself fails must never let `finally`
+    # delete the one place the original content still exists.
+    keep_temporary_dir = False
     try:
         for template_path in _iter_template_files(template_root):
             relative_path = template_path.relative_to(template_root)
@@ -102,8 +107,18 @@ def scaffold_project(
             target_dir.replace(backup_dir)
             try:
                 staging_dir.replace(target_dir)
-            except OSError:
-                backup_dir.replace(target_dir)
+            except OSError as publish_exc:
+                try:
+                    backup_dir.replace(target_dir)
+                except OSError as restore_exc:
+                    keep_temporary_dir = True
+                    msg = (
+                        f"Failed to publish the scaffolded project to {target_dir} "
+                        f"({publish_exc}), and restoring the original project also "
+                        f"failed ({restore_exc}). The original project is preserved "
+                        f"at {backup_dir} -- move it back to {target_dir} manually."
+                    )
+                    raise ScaffoldError(msg) from restore_exc
                 raise
         else:
             staging_dir.replace(target_dir)
@@ -113,10 +128,21 @@ def scaffold_project(
             except ScaffoldError:
                 shutil.rmtree(target_dir)
                 if backup_dir.exists():
-                    backup_dir.replace(target_dir)
+                    try:
+                        backup_dir.replace(target_dir)
+                    except OSError as restore_exc:
+                        keep_temporary_dir = True
+                        msg = (
+                            f"Git initialization failed, and restoring the original "
+                            f"project to {target_dir} also failed ({restore_exc}). "
+                            f"The original project is preserved at {backup_dir} -- "
+                            f"move it back to {target_dir} manually."
+                        )
+                        raise ScaffoldError(msg) from restore_exc
                 raise
     finally:
-        shutil.rmtree(temporary_dir, ignore_errors=True)
+        if not keep_temporary_dir:
+            shutil.rmtree(temporary_dir, ignore_errors=True)
 
     logger.info("Project scaffolded successfully: %s", target_dir)
     return target_dir
