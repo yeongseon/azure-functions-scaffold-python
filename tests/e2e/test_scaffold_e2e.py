@@ -81,4 +81,8 @@ def test_scaffolded_function_app_imports_cleanly() -> None:
 def test_health_endpoint_returns_200() -> None:
     r = requests.get(f"{BASE_URL}/api/health", timeout=30)
     assert r.status_code == 200
-    assert "ok" in r.text.lower()
+    try:
+        payload = r.json()
+    except ValueError as exc:
+        raise AssertionError(f"Health response body is not valid JSON: {r.text!r}") from exc
+    assert payload.get("status") == "ok", f"Unexpected health payload: {payload!r}"
