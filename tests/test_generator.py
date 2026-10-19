@@ -105,6 +105,48 @@ def test_add_function_rejects_existing_module(tmp_path: Path) -> None:
         add_function(project_root=project_root, trigger="http", function_name="sync-data")
 
 
+def test_add_function_rejects_dangling_output_symlink(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    outside = tmp_path / "outside.py"
+    function_path = project_root / "app" / "functions" / "status.py"
+    function_path.symlink_to(outside)
+    assert function_path.is_symlink() and not function_path.exists()
+
+    with pytest.raises(ScaffoldError, match="Function module already exists"):
+        add_function(project_root=project_root, trigger="http", function_name="status")
+
+    assert function_path.is_symlink()
+    assert not outside.exists()
+
+
+def test_add_route_rejects_dangling_output_symlink(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    outside = tmp_path / "outside.py"
+    blueprint_path = project_root / "app" / "functions" / "status.py"
+    blueprint_path.symlink_to(outside)
+    assert blueprint_path.is_symlink() and not blueprint_path.exists()
+
+    with pytest.raises(ScaffoldError, match="Function module already exists"):
+        add_route(project_root=project_root, route_name="status")
+
+    assert blueprint_path.is_symlink()
+    assert not outside.exists()
+
+
+def test_add_resource_rejects_dangling_output_symlink(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    outside = tmp_path / "outside.py"
+    blueprint_path = project_root / "app" / "functions" / "widget.py"
+    blueprint_path.symlink_to(outside)
+    assert blueprint_path.is_symlink() and not blueprint_path.exists()
+
+    with pytest.raises(ScaffoldError, match="File already exists"):
+        add_resource(project_root=project_root, resource_name="widget")
+
+    assert blueprint_path.is_symlink()
+    assert not outside.exists()
+
+
 def test_add_function_rejects_uneditable_function_app(tmp_path: Path) -> None:
     project_root = scaffold_project("sample", tmp_path)
     function_app_path = project_root / "function_app.py"
