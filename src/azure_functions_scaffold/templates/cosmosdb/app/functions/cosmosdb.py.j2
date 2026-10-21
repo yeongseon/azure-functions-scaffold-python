@@ -9,13 +9,13 @@ from app.services.cosmosdb_service import describe_documents
 cosmosdb_blueprint = func.Blueprint()  # type: ignore[no-untyped-call]
 
 
-@cosmosdb_blueprint.cosmos_db_trigger_v3(
+@cosmosdb_blueprint.cosmos_db_trigger(
     arg_name="documents",
-    collection_name="my-container",
+    container_name="my-container",
     database_name="my-database",
-    connection_string_setting="CosmosDBConnection",
-    lease_collection_name="leases",
-    create_lease_collection_if_not_exists=True,
+    connection="CosmosDBConnection",
+    lease_container_name="leases",
+    create_lease_container_if_not_exists=True,
 )
 def process_cosmos_changes(documents: func.DocumentList) -> None:
     count = describe_documents(documents)

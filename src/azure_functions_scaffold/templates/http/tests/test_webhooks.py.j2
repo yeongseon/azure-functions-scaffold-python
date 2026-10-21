@@ -199,7 +199,41 @@ class TestWebhookSignatureVerification:
 
         assert response.status_code == 401
 
-    def test_accepts_valid_signature_when_secret_set(self) -> None:
+    def test_rejects_malformed_ascii_signature_without_raising(self) -> None:
+        webhook_store.clear()
+
+        with patch.dict(os.environ, {"WEBHOOK_SECRET": "test-secret-key"}):
+            request = _make_request(
+                "POST",
+                "http://localhost/api/webhooks/inbound",
+                body=VALID_PAYLOAD,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Signature": "sha256=not-hex",
+                },
+            )
+            response = receive_webhook(request, CONTEXT)
+
+        assert response.status_code == 401
+
+    def test_rejects_non_ascii_signature_without_raising(self) -> None:
+        webhook_store.clear()
+
+        with patch.dict(os.environ, {"WEBHOOK_SECRET": "test-secret-key"}):
+            request = _make_request(
+                "POST",
+                "http://localhost/api/webhooks/inbound",
+                body=VALID_PAYLOAD,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Signature": "sha256=\u00e9",
+                },
+            )
+            response = receive_webhook(request, CONTEXT)
+
+        assert response.status_code == 401
+
+
         webhook_store.clear()
         secret = "test-secret-key"
         signature = _sign(VALID_PAYLOAD, secret)

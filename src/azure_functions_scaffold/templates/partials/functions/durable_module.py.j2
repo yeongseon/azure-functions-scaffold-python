@@ -11,7 +11,7 @@ import azure.functions as func
 
 
 @{{ function_name }}_blueprint.route(
-    route="orchestrators/{functionName}",
+    route="orchestrators/{{ function_name }}/{functionName}",
     methods=["POST"],
     auth_level=func.AuthLevel.FUNCTION,
 )

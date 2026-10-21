@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tomllib
+from unittest.mock import patch
 
 from jinja2 import TemplateSyntaxError
 import pytest
@@ -288,6 +289,42 @@ def test_scaffold_project_preserves_existing_target_when_overwrite_rendering_fai
     assert not (target_dir / "partial.txt").exists()
 
 
+def test_scaffold_project_preserves_backup_when_restore_also_fails(
+    tmp_path: Path,
+) -> None:
+    """Regression (#409): if publishing the staged project AND restoring the
+    original both fail, the unconditional `finally: shutil.rmtree(temporary_dir)`
+    deleted the only surviving copy of the original project. The original
+    backup must be preserved and the raised error must identify where it
+    was left, rather than silently destroying the user's files."""
+    target_dir = tmp_path / "sample"
+    target_dir.mkdir()
+    keep_file = target_dir / "keep.txt"
+    keep_file.write_text("user content to preserve", encoding="utf-8")
+    real_replace = Path.replace
+    blocked: list[str] = []
+
+    def fail_publish_and_restore(self: Path, target: Path) -> Path:
+        if Path(target) == target_dir and self != target_dir:
+            blocked.append(self.name)
+            msg = "synthetic destination rename failure"
+            raise PermissionError(msg)
+        return real_replace(self, target)
+
+    with patch.object(Path, "replace", fail_publish_and_restore):
+        with pytest.raises(ScaffoldError) as error:
+            scaffold_project("sample", tmp_path, overwrite=True, yes=True)
+
+    assert blocked == ["sample", "original"]
+    # A backup directory (sibling of target_dir, under the scaffold's own
+    # temp-dir naming convention) must still exist somewhere, holding the
+    # original keep.txt content -- the original must not be unrecoverable.
+    surviving_keep_files = list(tmp_path.rglob("keep.txt"))
+    assert len(surviving_keep_files) == 1
+    assert surviving_keep_files[0].read_text(encoding="utf-8") == "user content to preserve"
+    assert str(surviving_keep_files[0].parent) in str(error.value)
+
+
 def test_overwrite_in_tty_with_yes_proceeds(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -409,6 +446,23 @@ def test_describe_scaffold_project_reports_expected_files(tmp_path: Path) -> Non
     assert "  - function_app.py" in lines
     assert "  - app/functions/queue.py" in lines
     assert "  - .github/workflows/ci.yml" in lines
+    assert "  - requirements.txt" in lines
+
+
+def test_describe_scaffold_project_matches_actual_files_for_all_templates(
+    tmp_path: Path,
+) -> None:
+    for template in list_templates():
+        name = f"{template.name}-review"
+        lines = describe_scaffold_project(name, tmp_path, template_name=template.name)
+        previewed = {line.removeprefix("  - ") for line in lines if line.startswith("  - ")}
+        assert not (tmp_path / name).exists()
+
+        project = scaffold_project(name, tmp_path, template_name=template.name)
+        actual = {p.relative_to(project).as_posix() for p in project.rglob("*") if p.is_file()}
+
+        assert actual - previewed == set(), template.name
+        assert previewed - actual == set(), template.name
 
 
 def test_describe_scaffold_project_raises_for_invalid_template(
@@ -562,7 +616,13 @@ def test_durable_template_uses_correct_durable_module_path(tmp_path: Path) -> No
     assert "Generator[Any, Any, list[str]]" in durable_text
 
 
-def test_cosmosdb_template_uses_v3_trigger_param_names(tmp_path: Path) -> None:
+def test_cosmosdb_template_uses_v4_trigger_param_names(tmp_path: Path) -> None:
+    """Regression (#417): host.json selects extension bundle 4.x, which
+    requires the non-v3 `cosmos_db_trigger` decorator and its v4 field
+    names (container_name / connection / lease_container_name /
+    create_lease_container_if_not_exists) -- `cosmos_db_trigger_v3` and its
+    legacy field names only support bundles 2.x/3.x and are incompatible
+    with the bundle 4.x this project actually loads."""
     project_path = scaffold_project(
         "cosmosdb-sample",
         tmp_path,
@@ -570,14 +630,16 @@ def test_cosmosdb_template_uses_v3_trigger_param_names(tmp_path: Path) -> None:
     )
 
     cosmosdb_text = (project_path / "app/functions/cosmosdb.py").read_text(encoding="utf-8")
-    # The `cosmos_db_trigger_v3` decorator requires the legacy Cosmos DB param
-    # names (collection_name / connection_string_setting), NOT the newer
-    # container_name / connection names used by the non-v3 `cosmos_db_trigger`.
-    assert 'collection_name="my-container"' in cosmosdb_text
-    assert 'connection_string_setting="CosmosDBConnection"' in cosmosdb_text
-    assert 'lease_collection_name="leases"' in cosmosdb_text
-    assert "create_lease_collection_if_not_exists=True" in cosmosdb_text
-    assert "container_name" not in cosmosdb_text
+    assert "cosmos_db_trigger(" in cosmosdb_text
+    assert 'container_name="my-container"' in cosmosdb_text
+    assert 'connection="CosmosDBConnection"' in cosmosdb_text
+    assert 'lease_container_name="leases"' in cosmosdb_text
+    assert "create_lease_container_if_not_exists=True" in cosmosdb_text
+    assert "cosmos_db_trigger_v3" not in cosmosdb_text
+    assert "collection_name" not in cosmosdb_text
+    assert "connection_string_setting" not in cosmosdb_text
+    assert "lease_collection_name" not in cosmosdb_text
+    assert "create_lease_collection_if_not_exists" not in cosmosdb_text
 
 
 @pytest.mark.parametrize("template_name", ["queue", "blob", "servicebus", "eventhub", "cosmosdb"])

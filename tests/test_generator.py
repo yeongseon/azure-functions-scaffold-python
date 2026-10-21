@@ -3,6 +3,8 @@ from __future__ import annotations
 import ast
 import json
 from pathlib import Path
+import re
+import tomllib
 from typing import Any
 
 import pytest
@@ -29,6 +31,7 @@ from azure_functions_scaffold.generator import (
     describe_add_route,
 )
 from azure_functions_scaffold.generator.writer import _commit_pending_writes, _PendingWrite
+from azure_functions_scaffold.packages import requirement
 from azure_functions_scaffold.scaffolder import scaffold_project
 from azure_functions_scaffold.template_registry import build_project_options, list_templates
 
@@ -102,6 +105,48 @@ def test_add_function_rejects_existing_module(tmp_path: Path) -> None:
         add_function(project_root=project_root, trigger="http", function_name="sync-data")
 
 
+def test_add_function_rejects_dangling_output_symlink(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    outside = tmp_path / "outside.py"
+    function_path = project_root / "app" / "functions" / "status.py"
+    function_path.symlink_to(outside)
+    assert function_path.is_symlink() and not function_path.exists()
+
+    with pytest.raises(ScaffoldError, match="Function module already exists"):
+        add_function(project_root=project_root, trigger="http", function_name="status")
+
+    assert function_path.is_symlink()
+    assert not outside.exists()
+
+
+def test_add_route_rejects_dangling_output_symlink(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    outside = tmp_path / "outside.py"
+    blueprint_path = project_root / "app" / "functions" / "status.py"
+    blueprint_path.symlink_to(outside)
+    assert blueprint_path.is_symlink() and not blueprint_path.exists()
+
+    with pytest.raises(ScaffoldError, match="Function module already exists"):
+        add_route(project_root=project_root, route_name="status")
+
+    assert blueprint_path.is_symlink()
+    assert not outside.exists()
+
+
+def test_add_resource_rejects_dangling_output_symlink(tmp_path: Path) -> None:
+    project_root = scaffold_project("sample", tmp_path)
+    outside = tmp_path / "outside.py"
+    blueprint_path = project_root / "app" / "functions" / "widget.py"
+    blueprint_path.symlink_to(outside)
+    assert blueprint_path.is_symlink() and not blueprint_path.exists()
+
+    with pytest.raises(ScaffoldError, match="File already exists"):
+        add_resource(project_root=project_root, resource_name="widget")
+
+    assert blueprint_path.is_symlink()
+    assert not outside.exists()
+
+
 def test_add_function_rejects_uneditable_function_app(tmp_path: Path) -> None:
     project_root = scaffold_project("sample", tmp_path)
     function_app_path = project_root / "function_app.py"
@@ -166,16 +211,18 @@ def test_add_function_rolls_back_on_function_app_write_failure(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    import os
+
     project_root = scaffold_project("sample", tmp_path)
     function_app_path = project_root / "function_app.py"
-    original_write_text = Path.write_text
+    original_replace = os.replace
 
-    def failing_write_text(self: Path, data: str, *args: Any, **kwargs: Any) -> int:
-        if self == function_app_path:
+    def failing_replace(src: Any, dst: Any, *args: Any, **kwargs: Any) -> None:
+        if Path(dst) == function_app_path:
             raise PermissionError("blocked")
-        return original_write_text(self, data, *args, **kwargs)
+        return original_replace(src, dst, *args, **kwargs)
 
-    monkeypatch.setattr(Path, "write_text", failing_write_text)
+    monkeypatch.setattr("azure_functions_scaffold.generator.writer.os.replace", failing_replace)
 
     with pytest.raises(ScaffoldError, match="Atomic write failed"):
         add_function(project_root=project_root, trigger="http", function_name="bar")
@@ -184,26 +231,171 @@ def test_add_function_rolls_back_on_function_app_write_failure(
     assert not (project_root / "tests/test_bar.py").exists()
 
 
+def test_add_route_preserves_entrypoint_on_partial_write_failure(
+    tmp_path: Path,
+) -> None:
+    """Regression (#408): a write that fails partway through committing the
+    destination (e.g. disk-full during the final atomic replace) must never
+    leave the existing function_app.py truncated or damaged -- new content
+    is staged in a temp file first, so the real destination is either fully
+    replaced or never touched at all."""
+    import os
+    from unittest.mock import patch
+
+    project_root = scaffold_project("sample", tmp_path)
+    entry = project_root / "function_app.py"
+    original = entry.read_bytes()
+    real_replace = os.replace
+    failed = False
+
+    def failing_replace(src: Any, dst: Any, *args: Any, **kwargs: Any) -> None:
+        nonlocal failed
+        if Path(dst) == entry and not failed:
+            failed = True
+            msg = "synthetic disk-full during atomic replace"
+            raise OSError(msg)
+        return real_replace(src, dst, *args, **kwargs)
+
+    with patch("azure_functions_scaffold.generator.writer.os.replace", failing_replace):
+        with pytest.raises(ScaffoldError):
+            add_route(project_root=project_root, route_name="status")
+
+    assert entry.read_bytes() == original
+    assert not (project_root / "app/functions/status.py").exists()
+    assert not (project_root / "tests/test_status.py").exists()
+
+
+def test_add_durable_function_synchronizes_deployment_requirements(
+    tmp_path: Path,
+) -> None:
+    """Regression (#410): adding a durable function updates pyproject.toml's
+    dependencies but previously left requirements.txt (the deployment
+    install manifest) unchanged, so a remote-build deployment installed
+    from requirements.txt would be missing azure-functions-durable even
+    though a dev install from pyproject would succeed."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    add_function(project_root=project_root, trigger="durable", function_name="workflow")
+
+    dependencies = tomllib.loads((project_root / "pyproject.toml").read_text(encoding="utf-8"))[
+        "project"
+    ]["dependencies"]
+    deployment_requirements = (
+        (project_root / "requirements.txt").read_text(encoding="utf-8").splitlines()
+    )
+    durable_dependency = requirement("azure-functions-durable")
+
+    assert durable_dependency in dependencies
+    assert durable_dependency in deployment_requirements
+    assert sorted(dependencies, key=str.casefold) == deployment_requirements
+
+
+def test_add_durable_function_requirements_sync_is_idempotent(
+    tmp_path: Path,
+) -> None:
+    """Regression (#410): adding a second durable function must not
+    duplicate the dependency entry or needlessly rewrite requirements.txt
+    when nothing actually changed."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    add_function(project_root=project_root, trigger="durable", function_name="workflow_one")
+    add_function(project_root=project_root, trigger="durable", function_name="workflow_two")
+
+    deployment_requirements = (
+        (project_root / "requirements.txt").read_text(encoding="utf-8").splitlines()
+    )
+    durable_dependency = requirement("azure-functions-durable")
+
+    assert deployment_requirements.count(durable_dependency) == 1
+
+
+def test_add_durable_function_skips_requirements_sync_without_existing_file(
+    tmp_path: Path,
+) -> None:
+    """Regression (#410): a project predating generated requirements.txt
+    must not have one silently created -- only synchronize when the file
+    already exists."""
+    project_root = scaffold_project("sample", tmp_path)
+    (project_root / "requirements.txt").unlink()
+
+    add_function(project_root=project_root, trigger="durable", function_name="workflow")
+
+    assert not (project_root / "requirements.txt").exists()
+
+
+def _extract_route(module_text: str) -> str:
+    """Extract the single ``route="..."`` value from a generated blueprint
+    module's source text. Avoids importing the generated module, which
+    would require the generated project's own azure-functions-durable
+    dependency to be installed in this tool's own dev environment."""
+    match = re.search(r'route="([^"]+)"', module_text)
+    assert match is not None, f"no route= found in module text:\n{module_text}"
+    return match.group(1)
+
+
+def test_two_durable_additions_do_not_duplicate_starter_route(tmp_path: Path) -> None:
+    """Regression (#419): every generated Durable partial hard-coded the
+    identical route "orchestrators/{functionName}" regardless of the
+    requested module name. Adding "first" then "second" to an HTTP project
+    registered two starters at the exact same route/method combination,
+    which the Azure Functions host rejects as a routing conflict
+    (HttpRoutesConflict) even though both functions import and index
+    successfully from the Python SDK's perspective."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    add_function(project_root=project_root, trigger="durable", function_name="first")
+    add_function(project_root=project_root, trigger="durable", function_name="second")
+
+    route_first = _extract_route(
+        (project_root / "app/functions/first.py").read_text(encoding="utf-8")
+    )
+    route_second = _extract_route(
+        (project_root / "app/functions/second.py").read_text(encoding="utf-8")
+    )
+    assert route_first != route_second, f"duplicate starter routes: {route_first!r}"
+
+
+def test_durable_addition_does_not_collide_with_standalone_durable_starter(
+    tmp_path: Path,
+) -> None:
+    """Regression (#419): the standalone durable project template emits its
+    own starter at the same hard-coded route. Adding a Durable module to
+    that same project must not collide with the project's own starter."""
+    project_root = scaffold_project("sample", tmp_path, template_name="durable")
+
+    add_function(project_root=project_root, trigger="durable", function_name="extra")
+
+    route_standalone = _extract_route(
+        (project_root / "app/functions/durable.py").read_text(encoding="utf-8")
+    )
+    route_added = _extract_route(
+        (project_root / "app/functions/extra.py").read_text(encoding="utf-8")
+    )
+    assert route_standalone != route_added, f"duplicate starter routes: {route_standalone!r}"
+
+
 def test_commit_pending_writes_reports_incomplete_rollback(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    import os
+
     first_path = tmp_path / "first.txt"
     second_path = tmp_path / "second.txt"
     first_path.write_text("original", encoding="utf-8")
-    original_write_text = Path.write_text
+    original_replace = os.replace
     calls = 0
 
-    def failing_write_text(self: Path, data: str, *args: Any, **kwargs: Any) -> int:
+    def failing_replace(src: Any, dst: Any, *args: Any, **kwargs: Any) -> None:
         nonlocal calls
         calls += 1
         if calls == 2:
             raise PermissionError("second write blocked")
         if calls == 3:
             raise PermissionError("rollback blocked")
-        return original_write_text(self, data, *args, **kwargs)
+        return original_replace(src, dst, *args, **kwargs)
 
-    monkeypatch.setattr(Path, "write_text", failing_write_text)
+    monkeypatch.setattr("azure_functions_scaffold.generator.writer.os.replace", failing_replace)
 
     with pytest.raises(ScaffoldError, match=rf"rollback was incomplete.*{first_path}") as error:
         _commit_pending_writes(
@@ -340,7 +532,9 @@ def test_add_timer_function(tmp_path: Path) -> None:
     assert "past_due=False" in test_content
 
 
-@pytest.mark.parametrize("trigger", ["queue", "blob", "servicebus", "eventhub", "cosmosdb"])
+@pytest.mark.parametrize(
+    "trigger", ["queue", "blob", "servicebus", "eventhub", "cosmosdb", "durable"]
+)
 def test_add_function_adds_extension_bundle_for_binding_triggers(
     tmp_path: Path,
     trigger: str,
@@ -373,6 +567,44 @@ def test_add_function_skips_extension_bundle_when_already_exists(tmp_path: Path)
 
     # Extension bundle should be the same
     assert host_config_2["extensionBundle"] == original_bundle
+
+
+def test_add_durable_function_to_http_project_configures_extension_bundle(
+    tmp_path: Path,
+) -> None:
+    """Regression (#418): adding a Durable function to a fresh HTTP project
+    installed the Python dependency but left host.json as bare
+    {"version": "2.0"} -- HOST_JSON_TRIGGERS excluded "durable", so the
+    existing host-config mutation path was skipped entirely even though
+    the generated durableClient/orchestrationTrigger/activityTrigger
+    metadata requires the same extension bundle the standalone durable
+    project template already emits."""
+    project_root = scaffold_project("sample", tmp_path)
+    host_json_path = project_root / "host.json"
+    original_host = json.loads(host_json_path.read_text(encoding="utf-8"))
+    assert "extensionBundle" not in original_host
+
+    add_function(project_root=project_root, trigger="durable", function_name="first")
+    host_config_1 = json.loads(host_json_path.read_text(encoding="utf-8"))
+    assert host_config_1["extensionBundle"]["id"] == "Microsoft.Azure.Functions.ExtensionBundle"
+    assert host_config_1["version"] == original_host["version"]
+
+    # A second Durable addition must not duplicate or rewrite the bundle.
+    add_function(project_root=project_root, trigger="durable", function_name="second")
+    host_config_2 = json.loads(host_json_path.read_text(encoding="utf-8"))
+    assert host_config_2["extensionBundle"] == host_config_1["extensionBundle"]
+
+
+def test_describe_add_durable_function_reports_host_json_change(tmp_path: Path) -> None:
+    """Regression (#418): dry-run output must report the host.json change
+    for Durable the same way it already does for other binding triggers."""
+    project_root = scaffold_project("sample", tmp_path)
+
+    lines = describe_add_function(
+        project_root=project_root, trigger="durable", function_name="workflow"
+    )
+
+    assert "  - host.json extensionBundle" in lines
 
 
 def test_add_servicebus_function_updates_local_settings_example(tmp_path: Path) -> None:
@@ -606,25 +838,70 @@ app.register_functions(my_blueprint)"""
     assert "app = FunctionApp()\nnew_line_here" in result
 
 
-def test_render_cosmosdb_module_uses_v3_trigger_param_names() -> None:
-    """The generator's cosmosdb path must emit legacy v3 Cosmos DB param names.
-
-    ``cosmos_db_trigger_v3`` requires the legacy ``collection_name`` /
-    ``connection_string_setting`` / ``lease_collection_name`` /
-    ``create_lease_collection_if_not_exists`` names, not the newer
-    ``container_name`` / ``connection`` names used by non-v3 ``cosmos_db_trigger``.
-    """
+def test_render_cosmosdb_module_uses_v4_trigger_param_names() -> None:
+    """Regression (#417): the generator's cosmosdb path emitted
+    `cosmos_db_trigger_v3` (bundles 2.x/3.x only) while host.json selects
+    extension bundle 4.x, which requires the non-v3 `cosmos_db_trigger`
+    decorator and its v4 field names instead."""
     module = _render_function_module(trigger="cosmosdb", function_name="on_change")
-    assert "cosmos_db_trigger_v3(" in module
-    assert "collection_name=" in module
-    assert "connection_string_setting=" in module
-    assert "lease_collection_name=" in module
-    assert "create_lease_collection_if_not_exists=" in module
-    # The v4 (non-v3) parameter names must not appear with the v3 decorator.
-    assert "container_name=" not in module
-    assert "connection=" not in module
-    assert "lease_container_name=" not in module
-    assert "create_lease_container_if_not_exists=" not in module
+    assert "cosmos_db_trigger(" in module
+    assert "container_name=" in module
+    assert "connection=" in module
+    assert "lease_container_name=" in module
+    assert "create_lease_container_if_not_exists=" in module
+    # The legacy v3 decorator and its field names must not appear.
+    assert "cosmos_db_trigger_v3" not in module
+    assert "collection_name=" not in module
+    assert "connection_string_setting=" not in module
+    assert "lease_collection_name=" not in module
+    assert "create_lease_collection_if_not_exists=" not in module
+
+
+@pytest.mark.parametrize("kind", ["standalone_template", "add_function_on_http"])
+def test_cosmosdb_binding_metadata_is_bundle4_compatible(tmp_path: Path, kind: str) -> None:
+    """Regression (#417): verify the actual emitted function.json binding
+    metadata (not just template source text) uses the v4 field names --
+    Python import success alone does not detect a trigger/bundle mismatch,
+    since the worker only validates binding metadata against the loaded
+    extension bundle at indexing time."""
+    import importlib
+    import sys
+
+    if kind == "standalone_template":
+        project_root = scaffold_project("cosmos-project", tmp_path, template_name="cosmosdb")
+    else:
+        project_root = scaffold_project("cosmos-add", tmp_path, template_name="http")
+        add_function(project_root=project_root, trigger="cosmosdb", function_name="changes")
+
+    sys.path.insert(0, str(project_root))
+    try:
+        importlib.invalidate_caches()
+        entry = importlib.import_module("function_app")
+        triggers = [
+            binding
+            for function in entry.app.get_functions()
+            for binding in json.loads(function.get_function_json())["bindings"]
+            if binding["type"] == "cosmosDBTrigger"
+        ]
+    finally:
+        sys.path.remove(str(project_root))
+        for module_name in list(sys.modules):
+            if module_name in ("function_app", "app") or module_name.startswith("app."):
+                del sys.modules[module_name]
+
+    assert len(triggers) == 1
+    trigger = triggers[0]
+    assert trigger["containerName"] == "my-container"
+    assert trigger["connection"] == "CosmosDBConnection"
+    assert trigger["leaseContainerName"] == "leases"
+    assert trigger["createLeaseContainerIfNotExists"] is True
+    for legacy_key in (
+        "collectionName",
+        "connectionStringSetting",
+        "leaseCollectionName",
+        "createLeaseCollectionIfNotExists",
+    ):
+        assert legacy_key not in trigger
 
 
 def test_render_function_module_raises_for_unknown_trigger() -> None:
@@ -940,6 +1217,63 @@ def test_add_resource_rejects_existing_blueprint(tmp_path: Path) -> None:
         add_resource(project_root=project_root, resource_name="products")
 
 
+def test_add_resource_rejects_singular_function_name_collision(tmp_path: Path) -> None:
+    """Regression (#420): "products" derives get_product/create_product/
+    update_product/delete_product; "product" derives the exact same four
+    names from its own (unchanged) singular form. Both resources register
+    successfully as far as file/module checks are concerned, but the SDK's
+    app.get_functions() rejects the duplicate Azure Function names at
+    indexing time -- breaking the whole app, including the first resource's
+    already-healthy routes. The collision must be rejected before any
+    files are written for the second resource."""
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+
+    with pytest.raises(ScaffoldError, match="duplicate Azure Function name"):
+        add_resource(project_root=project_root, resource_name="product")
+
+    assert not (project_root / "app/functions/product.py").exists()
+    assert not (project_root / "app/services/product_service.py").exists()
+    assert not (project_root / "app/schemas/product.py").exists()
+    # The first resource's registration must survive untouched.
+    function_app_text = (project_root / "function_app.py").read_text(encoding="utf-8")
+    assert "from app.functions.products import products_blueprint" in function_app_text
+
+    # The app remains indexable: importing it and calling get_functions()
+    # must not raise, and the original resource's functions are present.
+    import importlib
+    import sys
+
+    sys.path.insert(0, str(project_root))
+    try:
+        importlib.invalidate_caches()
+        entry = importlib.import_module("function_app")
+        function_names = {f.get_function_name() for f in entry.app.get_functions()}
+    finally:
+        sys.path.remove(str(project_root))
+        for module_name in list(sys.modules):
+            if module_name in ("function_app", "app") or module_name.startswith("app."):
+                del sys.modules[module_name]
+
+    assert "get_product" in function_names
+
+
+def test_add_route_rejects_function_name_collision_with_existing_resource(
+    tmp_path: Path,
+) -> None:
+    """Regression (#420): a resource `products` registers `get_product`; a
+    separately generated route `get-product` normalizes to the exact same
+    global Azure Function name `get_product`. The collision must be
+    rejected before any files are written for the route."""
+    project_root = scaffold_project("sample", tmp_path)
+    add_resource(project_root=project_root, resource_name="products")
+
+    with pytest.raises(ScaffoldError, match="duplicate Azure Function name"):
+        add_route(project_root=project_root, route_name="get-product")
+
+    assert not (project_root / "app/functions/get_product.py").exists()
+
+
 def test_add_resource_rejects_non_scaffold_project(tmp_path: Path) -> None:
     project_root = tmp_path / "not-a-project"
     project_root.mkdir()
@@ -983,17 +1317,19 @@ def test_add_resource_rolls_back_on_partial_failure(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    import os
+
     project_root = scaffold_project("sample", tmp_path)
     function_app_path = project_root / "function_app.py"
     original_function_app = function_app_path.read_text(encoding="utf-8")
-    original_write_text = Path.write_text
+    original_replace = os.replace
 
-    def failing_write_text(self: Path, data: str, *args: Any, **kwargs: Any) -> int:
-        if self == function_app_path:
+    def failing_replace(src: Any, dst: Any, *args: Any, **kwargs: Any) -> None:
+        if Path(dst) == function_app_path:
             raise PermissionError("blocked")
-        return original_write_text(self, data, *args, **kwargs)
+        return original_replace(src, dst, *args, **kwargs)
 
-    monkeypatch.setattr(Path, "write_text", failing_write_text)
+    monkeypatch.setattr("azure_functions_scaffold.generator.writer.os.replace", failing_replace)
 
     with pytest.raises(ScaffoldError, match="Atomic write failed"):
         add_resource(project_root=project_root, resource_name="products")

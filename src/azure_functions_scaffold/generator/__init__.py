@@ -15,6 +15,7 @@ Jinja rendering live in this module and compose the helpers above.
 
 from __future__ import annotations
 
+import ast
 import keyword
 import logging
 from pathlib import Path
@@ -37,7 +38,10 @@ from azure_functions_scaffold.generator.json_mutators import (
     _compute_updated_host_json,
     _compute_updated_local_settings,
 )
-from azure_functions_scaffold.generator.pyproject import _compute_updated_pyproject_dependency
+from azure_functions_scaffold.generator.pyproject import (
+    _compute_requirements_txt,
+    _compute_updated_pyproject_dependency,
+)
 from azure_functions_scaffold.generator.writer import (
     _commit_pending_writes,
     _PendingWrite,
@@ -120,7 +124,7 @@ def add_function(
     _validate_project_root(project_root)
 
     function_path = project_root / "app" / "functions" / f"{normalized_name}.py"
-    if function_path.exists():
+    if _output_path_occupied(function_path):
         raise ScaffoldError(f"Function module already exists: {function_path}")
 
     import_stmt = f"from app.functions.{normalized_name} import {normalized_name}_blueprint"
@@ -142,10 +146,15 @@ def add_function(
         registration_stmt=registration_stmt,
     )
 
+    rendered_module = _render_function_module(normalized_trigger, normalized_name)
+    _raise_on_function_name_collision(
+        project_root, rendered_module, context_label=f"Adding {normalized_trigger} function"
+    )
+
     writes = [
         _PendingWrite(
             path=function_path,
-            new_content=_render_function_module(normalized_trigger, normalized_name),
+            new_content=rendered_module,
             original_content=None,
         ),
         _PendingWrite(
@@ -170,6 +179,18 @@ def add_function(
                     original_content=pyproject_content,
                 )
             )
+            requirements_path = project_root / "requirements.txt"
+            if requirements_path.is_file():
+                requirements_content = requirements_path.read_text(encoding="utf-8")
+                updated_requirements = _compute_requirements_txt(updated_pyproject)
+                if updated_requirements != requirements_content:
+                    writes.append(
+                        _PendingWrite(
+                            path=requirements_path,
+                            new_content=updated_requirements,
+                            original_content=requirements_content,
+                        )
+                    )
 
     test_path = _test_path_to_create(project_root, normalized_name)
     if test_path is not None:
@@ -266,14 +287,17 @@ def _describe_add_function_lines(
         lines.append(f"  - local.settings.json.example {connection_key}")
     if normalized_trigger == "durable":
         pyproject_content = (project_root / "pyproject.toml").read_text(encoding="utf-8")
-        if (
-            _compute_updated_pyproject_dependency(
-                pyproject_content,
-                requirement("azure-functions-durable"),
-            )
-            is not None
-        ):
+        updated_pyproject = _compute_updated_pyproject_dependency(
+            pyproject_content,
+            requirement("azure-functions-durable"),
+        )
+        if updated_pyproject is not None:
             lines.append("  - pyproject.toml azure-functions-durable dependency")
+            requirements_path = project_root / "requirements.txt"
+            if requirements_path.is_file():
+                updated_requirements = _compute_requirements_txt(updated_pyproject)
+                if updated_requirements != requirements_path.read_text(encoding="utf-8"):
+                    lines.append("  - requirements.txt azure-functions-durable dependency")
 
     return lines
 
@@ -293,11 +317,70 @@ def describe_add_function(
     )
 
 
+def _extract_top_level_function_names(source: str) -> set[str]:
+    tree = ast.parse(source)
+    return {
+        node.name
+        for node in ast.iter_child_nodes(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
+
+
+def _collect_registered_function_names(project_root: Path) -> set[str]:
+    """Collect every top-level function name across ``app/functions/*.py`` --
+    the Azure Function names the SDK indexes app-wide (#420). Python module
+    boundaries do not provide Azure Function name isolation: two blueprints
+    in different files that happen to define a function with the same name
+    collide at ``app.get_functions()`` time, not at import time.
+    """
+    functions_dir = project_root / "app" / "functions"
+    if not functions_dir.is_dir():
+        return set()
+    names: set[str] = set()
+    for module_path in sorted(functions_dir.glob("*.py")):
+        names.update(_extract_top_level_function_names(module_path.read_text(encoding="utf-8")))
+    return names
+
+
+def _raise_on_function_name_collision(
+    project_root: Path, new_module_content: str, *, context_label: str
+) -> None:
+    """Reject a generation request before any files are written if it would
+    register an Azure Function name that already exists elsewhere in the app
+    (#420) -- rendering the candidate content first and inspecting its own
+    top-level function names keeps this check accurate for every trigger's
+    actual naming convention, without hardcoding each template's shape.
+    """
+    collisions = sorted(
+        _collect_registered_function_names(project_root)
+        & _extract_top_level_function_names(new_module_content)
+    )
+    if collisions:
+        joined = ", ".join(collisions)
+        raise ScaffoldError(
+            f"{context_label} would register duplicate Azure Function name(s): "
+            f"{joined}. Azure Function names must be unique app-wide; Python "
+            f"module separation does not provide name isolation. Choose a "
+            f"different name."
+        )
+
+
 def _test_path_to_create(project_root: Path, normalized_name: str) -> Path | None:
     test_path = project_root / "tests" / f"test_{normalized_name}.py"
-    if test_path.parent.is_dir() and not test_path.exists():
+    if test_path.parent.is_dir() and not _output_path_occupied(test_path):
         return test_path
     return None
+
+
+def _output_path_occupied(path: Path) -> bool:
+    """Return True if *path* is an existing file/dir or any symlink, including dangling ones.
+
+    ``Path.exists()`` follows symlinks and reports ``False`` for a dangling
+    symlink, which lets collision checks treat an occupied output entry as
+    absent. ``is_symlink()`` catches that case regardless of whether the
+    link target exists.
+    """
+    return path.exists() or path.is_symlink()
 
 
 def _normalize_trigger(trigger: str) -> str:
@@ -529,7 +612,7 @@ def add_resource(
     schema_path = project_root / "app" / "schemas" / f"{normalized}.py"
 
     for path in (blueprint_path, service_path, schema_path):
-        if path.exists():
+        if _output_path_occupied(path):
             raise ScaffoldError(f"File already exists: {path}")
 
     import_stmt = f"from app.functions.{normalized} import {normalized}_blueprint"
@@ -551,10 +634,15 @@ def add_resource(
         registration_stmt=registration_stmt,
     )
 
+    rendered_blueprint = _render_partial("resource_blueprint.py.j2", names)
+    _raise_on_function_name_collision(
+        project_root, rendered_blueprint, context_label="Adding resource"
+    )
+
     writes = [
         _PendingWrite(
             path=blueprint_path,
-            new_content=_render_partial("resource_blueprint.py.j2", names),
+            new_content=rendered_blueprint,
             original_content=None,
         ),
         _PendingWrite(
@@ -678,7 +766,7 @@ def add_route(
     _validate_project_root(project_root)
 
     blueprint_path = project_root / "app" / "functions" / f"{normalized}.py"
-    if blueprint_path.exists():
+    if _output_path_occupied(blueprint_path):
         raise ScaffoldError(f"Function module already exists: {blueprint_path}")
 
     import_stmt = f"from app.functions.{normalized} import {normalized}_blueprint"
@@ -705,10 +793,15 @@ def add_route(
         "route_name": normalized.replace("_", "-"),
     }
 
+    rendered_blueprint = _render_partial("route_blueprint.py.j2", names)
+    _raise_on_function_name_collision(
+        project_root, rendered_blueprint, context_label="Adding route"
+    )
+
     writes = [
         _PendingWrite(
             path=blueprint_path,
-            new_content=_render_partial("route_blueprint.py.j2", names),
+            new_content=rendered_blueprint,
             original_content=None,
         )
     ]

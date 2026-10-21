@@ -7,12 +7,12 @@ import shutil
 import subprocess  # nosec B404
 import sys
 import tempfile
-import tomllib
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 import typer
 
 from azure_functions_scaffold.errors import ScaffoldError
+from azure_functions_scaffold.generator.pyproject import _compute_requirements_txt
 from azure_functions_scaffold.models import ProjectOptions, TemplateContext, TemplateSpec
 from azure_functions_scaffold.packages import AZURE_FUNCTIONS_SPECS, SUPPORTED_PACKAGES
 from azure_functions_scaffold.template_registry import (
@@ -70,6 +70,11 @@ def scaffold_project(
     staging_dir = temporary_dir / target_dir.name
     staging_dir.mkdir()
 
+    # Only shielded from the unconditional `finally` cleanup when the
+    # original backup is the SOLE surviving copy of the user's project
+    # (#409): a rollback that itself fails must never let `finally`
+    # delete the one place the original content still exists.
+    keep_temporary_dir = False
     try:
         for template_path in _iter_template_files(template_root):
             relative_path = template_path.relative_to(template_root)
@@ -90,10 +95,9 @@ def scaffold_project(
 
         pyproject_path = staging_dir / "pyproject.toml"
         if pyproject_path.is_file():
-            metadata = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
-            dependencies = metadata["project"]["dependencies"]
+            pyproject_content = pyproject_path.read_text(encoding="utf-8")
             (staging_dir / "requirements.txt").write_text(
-                "".join(f"{dependency}\n" for dependency in sorted(dependencies, key=str.casefold)),
+                _compute_requirements_txt(pyproject_content),
                 encoding="utf-8",
             )
 
@@ -102,8 +106,18 @@ def scaffold_project(
             target_dir.replace(backup_dir)
             try:
                 staging_dir.replace(target_dir)
-            except OSError:
-                backup_dir.replace(target_dir)
+            except OSError as publish_exc:
+                try:
+                    backup_dir.replace(target_dir)
+                except OSError as restore_exc:
+                    keep_temporary_dir = True
+                    msg = (
+                        f"Failed to publish the scaffolded project to {target_dir} "
+                        f"({publish_exc}), and restoring the original project also "
+                        f"failed ({restore_exc}). The original project is preserved "
+                        f"at {backup_dir} -- move it back to {target_dir} manually."
+                    )
+                    raise ScaffoldError(msg) from restore_exc
                 raise
         else:
             staging_dir.replace(target_dir)
@@ -113,10 +127,21 @@ def scaffold_project(
             except ScaffoldError:
                 shutil.rmtree(target_dir)
                 if backup_dir.exists():
-                    backup_dir.replace(target_dir)
+                    try:
+                        backup_dir.replace(target_dir)
+                    except OSError as restore_exc:
+                        keep_temporary_dir = True
+                        msg = (
+                            f"Git initialization failed, and restoring the original "
+                            f"project to {target_dir} also failed ({restore_exc}). "
+                            f"The original project is preserved at {backup_dir} -- "
+                            f"move it back to {target_dir} manually."
+                        )
+                        raise ScaffoldError(msg) from restore_exc
                 raise
     finally:
-        shutil.rmtree(temporary_dir, ignore_errors=True)
+        if not keep_temporary_dir:
+            shutil.rmtree(temporary_dir, ignore_errors=True)
 
     logger.info("Project scaffolded successfully: %s", target_dir)
     return target_dir
@@ -173,6 +198,7 @@ def describe_scaffold_project(
         ),
         keep_trailing_newline=True,
     )
+    pyproject_content: str | None = None
     for template_path in _iter_template_files(template.root):
         relative_path = template_path.relative_to(template.root)
         if not _should_render_template(relative_path, context):
@@ -180,7 +206,14 @@ def describe_scaffold_project(
         rendered_path = _render_path(relative_path, context)
         lines.append(f"  - {rendered_path.as_posix()}")
         if relative_path.suffix == ".j2":
-            _render_template(environment, relative_path.as_posix(), context)
+            rendered_content = _render_template(environment, relative_path.as_posix(), context)
+            if rendered_path.as_posix() == "pyproject.toml":
+                pyproject_content = rendered_content
+
+    if pyproject_content is not None:
+        # scaffold_project() always derives requirements.txt from pyproject.toml (#368).
+        _compute_requirements_txt(pyproject_content)
+        lines.append("  - requirements.txt")
 
     return lines
 
