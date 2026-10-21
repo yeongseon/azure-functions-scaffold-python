@@ -1,0 +1,21 @@
+# Minimum dependency floors for the "minimum" CI resolution axis.
+# Pins each DIRECT declared dependency (runtime + smoke-test extras) to the
+# lowest version allowed by pyproject.toml so compatibility breaks at the
+# declared floor are caught in CI. Keep in sync with pyproject.toml.
+#
+# Lives under ci/, not the repo root: Dependabot's pip ecosystem scans every
+# *.txt constraints/requirements file in its configured directory ("/") and
+# treats this one like a regular manifest to bump to latest, which silently
+# defeats its entire purpose (#445 -- this exact file was bumped to the
+# newest published versions by Dependabot once already, breaking the
+# "Minimum dependencies" CI job's separate floor assertion). Dependabot does
+# not recurse into subdirectories outside its configured `directory`, so this
+# path is not scanned.
+jinja2==3.1.0
+typer==0.16.0
+azure-functions==1.21.0
+azure-functions-logging==0.14.0
+azure-functions-openapi==0.29.0
+azure-functions-validation==0.14.0
+azure-functions-doctor==0.22.0
+pydantic==2.0.0

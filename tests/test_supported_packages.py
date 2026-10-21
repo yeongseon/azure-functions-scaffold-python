@@ -141,18 +141,19 @@ def test_requirement_unknown_name_raises_descriptive_error() -> None:
     assert "azure-functions" in message
 
 
-# --- constraints-min.txt (CI "minimum" resolution axis) coverage guard -------
+# --- ci/constraints-min.txt (CI "minimum" resolution axis) coverage guard ---
 #
-# `constraints-min.txt` pins each direct declared dependency to a low version so
-# the minimum-resolution CI axis (ci-test.yml: `pip install -c constraints-min
-# .txt -e .[dev]`) catches compatibility breaks at the declared floor. The
-# sibling toolkit floors are declared in three places that must stay coherent:
+# `ci/constraints-min.txt` pins each direct declared dependency to a low
+# version so the minimum-resolution CI axis (ci-test.yml: `pip install -c
+# ci/constraints-min.txt -e .[dev]`) catches compatibility breaks at the
+# declared floor. The sibling toolkit floors are declared in three places
+# that must stay coherent:
 #
 #   1. `SUPPORTED_PACKAGES` (packages.py)      -> the catalog templates render
 #   2. `[project.optional-dependencies].dev`   -> the scaffold's own smoke-test
 #      floors (only the http-template siblings, since test_template_smoke.py
 #      builds and runs the http template exclusively)
-#   3. `constraints-min.txt`                   -> the minimum-resolution axis
+#   3. `ci/constraints-min.txt`                -> the minimum-resolution axis
 #
 # (1)<->(2) and (1)<->templates are already guarded above. This guards (2)<->(3):
 # the minimum axis must cover EXACTLY the same sibling set as the dev extras and
@@ -170,45 +171,50 @@ def test_constraints_min_covers_declared_sibling_floors() -> None:
     """The minimum-resolution axis must cover the same siblings as the dev extras.
 
     Completeness: every `azure-functions-*` sibling pinned as a smoke-test floor
-    in the root `[dev]` extras must also appear in `constraints-min.txt`, and
+    in the root `[dev]` extras must also appear in `ci/constraints-min.txt`, and
     vice versa. This is the completeness half of issue #256 — a dev-extra floor
     that is missing from the minimum axis (or an orphaned constraint pin) is a
     silent coverage gap.
     """
     pyproject = (_REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    constraints = (_REPO_ROOT / "constraints-min.txt").read_text(encoding="utf-8")
+    constraints = (_REPO_ROOT / "ci" / "constraints-min.txt").read_text(encoding="utf-8")
 
     dev_floor_siblings = {name for name, _ in _SIBLING_FLOOR_RE.findall(pyproject)}
     constraint_siblings = {name for name, _ in _CONSTRAINT_PIN_RE.findall(constraints)}
 
     assert dev_floor_siblings, "expected sibling floors in the [dev] extras"
     assert dev_floor_siblings == constraint_siblings, (
-        "constraints-min.txt sibling coverage drifted from the [dev] extras.\n"
+        "ci/constraints-min.txt sibling coverage drifted from the [dev] extras.\n"
         f"  in [dev] but not constraints-min: {sorted(dev_floor_siblings - constraint_siblings)}\n"
         f"  in constraints-min but not [dev]: {sorted(constraint_siblings - dev_floor_siblings)}"
     )
 
 
-def test_constraints_min_pins_are_at_or_above_declared_floors() -> None:
-    """The minimum axis must never resolve a sibling BELOW its declared floor.
+def test_constraints_min_pins_match_declared_floors_exactly() -> None:
+    """The minimum axis must pin each sibling to EXACTLY its declared floor,
+    not merely at-or-above it.
 
-    Consistency: each `constraints-min.txt` sibling pin must be >= the lower
-    bound declared in the root `[dev]` extras. A constraint pin below the floor
-    would let CI's "minimum" axis test a version the package no longer claims to
-    support; a floor raised above the pin (dependabot bump drift) is caught here
-    too. This is the consistency half of issue #256.
+    Consistency: `ci/constraints-min.txt` only tests a real compatibility floor
+    if its pins equal the `[dev]` extras' lower bound exactly. A pin below the
+    floor would let CI's "minimum" axis test a version the package no longer
+    claims to support; a pin ABOVE the floor (#445 -- Dependabot bumped every
+    pin in this file to the newest published version, since it scans any *.txt
+    constraints file as a regular manifest) silently stops testing the actual
+    floor at all, even though the weaker `>=` check this test used to apply
+    would not have caught it. This is the consistency half of issue #256,
+    tightened by #445.
     """
     pyproject = (_REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    constraints = (_REPO_ROOT / "constraints-min.txt").read_text(encoding="utf-8")
+    constraints = (_REPO_ROOT / "ci" / "constraints-min.txt").read_text(encoding="utf-8")
 
     floors = dict(_SIBLING_FLOOR_RE.findall(pyproject))
     pins = dict(_CONSTRAINT_PIN_RE.findall(constraints))
 
     for name, floor in floors.items():
         assert name in pins, (
-            f"{name} declared as a [dev] floor but not pinned in constraints-min.txt"
+            f"{name} declared as a [dev] floor but not pinned in ci/constraints-min.txt"
         )
-        assert _version_tuple(pins[name]) >= _version_tuple(floor), (
-            f"constraints-min.txt pins {name}=={pins[name]} which is BELOW the "
-            f"declared [dev] floor {name}>={floor}"
+        assert _version_tuple(pins[name]) == _version_tuple(floor), (
+            f"ci/constraints-min.txt pins {name}=={pins[name]} but the declared "
+            f"[dev] floor is {name}>={floor} -- they must match exactly."
         )
