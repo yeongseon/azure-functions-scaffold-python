@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "exceptions": [
+    {"id":"B404","file":"tools/check_pr_format.py","line":5,"kind":"reviewed-static","reason":"Existing format checker uses argument-list git and formatter subprocesses without a shell","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"},
+    {"id":"B607","file":"tools/check_pr_format.py","line":10,"kind":"reviewed-static","reason":"Existing checker resolves git from trusted runner PATH","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"},
+    {"id":"B603","file":"tools/check_pr_format.py","line":10,"kind":"reviewed-static","reason":"Argument-list git call has no shell interpolation","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"},
+    {"id":"B607","file":"tools/check_pr_format.py","line":37,"kind":"reviewed-static","reason":"Existing checker resolves ruff from trusted verification PATH","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"},
+    {"id":"B603","file":"tools/check_pr_format.py","line":37,"kind":"reviewed-static","reason":"Argument-list formatter subprocess does not invoke a shell","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"},
+    {"id":"B404","file":"tools/dependency_audit_policy.py","line":11,"kind":"reviewed-static","reason":"Auditor invokes the current interpreter with fixed pip-audit arguments","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"},
+    {"id":"B603","file":"tools/dependency_audit_policy.py","line":101,"kind":"reviewed-static","reason":"Shell-free current-interpreter pip-audit command with bounded execution","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"},
+    {"id":"B404","file":"tools/security_evidence.py","line":11,"kind":"reviewed-static","reason":"Evidence collector invokes the current interpreter with fixed Bandit arguments","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"},
+    {"id":"B603","file":"tools/security_evidence.py","line":130,"kind":"reviewed-static","reason":"Shell-free fixed Bandit inventory invocation with timeout","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"},
+    {"id":"B105","file":"tools/security_report.py","line":59,"kind":"reviewed-static","reason":"PASS is an outcome enum string, not a password","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"},
+    {"id":"B404","file":"tools/rendered_security.py","line":9,"kind":"reviewed-static","reason":"Rendered analyzer invokes fixed Bandit arguments via current interpreter","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"},
+    {"id":"B603","file":"tools/rendered_security.py","line":111,"kind":"reviewed-static","reason":"Shell-free fixed Bandit command; temporary root only used as cwd","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"}
+  ],
+  "inline_suppressions": [
+    {"id":"B404","file":"src/azure_functions_scaffold/scaffolder.py","line":7,"kind":"reviewed-static","reason":"Existing subprocess import for shell-free git initialization","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"},
+    {"id":"B603","file":"src/azure_functions_scaffold/scaffolder.py","line":394,"kind":"reviewed-static","reason":"Existing resolved git executable and constant init argument; no shell","owner":"yeongseon","added":"2026-10-23","expires":"2027-01-20"}
+  ]
+}
