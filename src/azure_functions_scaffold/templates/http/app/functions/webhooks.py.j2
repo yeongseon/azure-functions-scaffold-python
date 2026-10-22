@@ -71,7 +71,14 @@ def receive_webhook(
         )
 
     signature = req.headers.get("X-Signature", "")
-    if not verify_signature(req.get_body(), signature, secret):
+    payload = req.get_body()
+    if len(payload) > 1024 * 1024:
+        return func.HttpResponse(
+            body=json.dumps({"error": "Request body too large"}),
+            mimetype="application/json",
+            status_code=413,
+        )
+    if not verify_signature(payload, signature, secret):
         logging.warning("Webhook signature verification failed")
         return func.HttpResponse(
             body=json.dumps({"error": "Invalid signature"}),
@@ -92,16 +99,16 @@ def receive_webhook(
 
     try:
         event = WebhookEvent(**raw) if isinstance(raw, dict) else WebhookEvent.model_validate(raw)
-    except (ValidationError, TypeError) as exc:
+    except (ValidationError, TypeError):
         return func.HttpResponse(
-            body=json.dumps({"error": "Validation error", "detail": str(exc)}),
+            body=json.dumps({"error": "Validation error"}),
             mimetype="application/json",
             status_code=422,
         )
 
     event_type = event.event_type
     source = event.source
-    logging.info("Received webhook: event_type=%s source=%s", event_type, source)
+    logging.info("Webhook verified: body_bytes=%d", len(payload))
 
     entry = webhook_store.record(event_type, source)
     return func.HttpResponse(
@@ -134,7 +141,7 @@ def receive_webhook(
             status_code=400,
         )
 
-    logging.info("Received webhook: event_type=%s source=%s", event_type, source)
+    logging.info("Webhook verified: body_bytes=%d", len(payload))
 
     entry = webhook_store.record(event_type, source)
     return func.HttpResponse(

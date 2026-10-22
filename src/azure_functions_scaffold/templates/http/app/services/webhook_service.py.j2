@@ -65,10 +65,8 @@ class WebhookStore:
             oldest_key = next(iter(self._deliveries))
             del self._deliveries[oldest_key]
         logger.info(
-            "Webhook accepted: delivery_id=%s event_type=%s source=%s",
+            "Webhook accepted: delivery_id=%s",
             delivery_id,
-            event_type,
-            source,
         )
         return entry
 
