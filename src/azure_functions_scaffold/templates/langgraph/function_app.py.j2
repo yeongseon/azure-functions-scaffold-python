@@ -1,12 +1,18 @@
 from __future__ import annotations
 
+import logging
+import os
+
 import azure.functions as func
 from azure_functions_langgraph import LangGraphApp
 
 from app.graphs.echo_agent import graph
 
-# Create LangGraph app with Azure Functions
-lg_app = LangGraphApp(auth_level=func.AuthLevel.ANONYMOUS)
+public_demo = os.environ.get("LANGGRAPH_PUBLIC_DEMO", "false").lower() == "true"
+if public_demo:
+    logging.warning("LANGGRAPH_PUBLIC_DEMO=true: graph routes are public; do not use in production")
+auth_level = func.AuthLevel.ANONYMOUS if public_demo else func.AuthLevel.FUNCTION
+lg_app = LangGraphApp(auth_level=auth_level)
 lg_app.register(graph=graph, name="echo_agent")
 
 # Azure Functions entrypoint

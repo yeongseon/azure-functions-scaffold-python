@@ -49,7 +49,9 @@ async def chat(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     result = await generate_completion(prompt)
-    logging.info("Generated completion for prompt: %s", prompt[:50])
+    logging.info(
+        "Completion succeeded: prompt_chars=%d completion_chars=%d", len(prompt), len(result)
+    )
     return func.HttpResponse(
         body=json.dumps({"response": result}),
         status_code=200,

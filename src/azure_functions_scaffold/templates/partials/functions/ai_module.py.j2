@@ -46,7 +46,7 @@ async def {{ function_name }}(req: func.HttpRequest) -> func.HttpResponse:
             mimetype="application/json",
         )
 
-    logging.info("AI function '{{ function_name }}' received prompt: %s", prompt[:50])
+    logging.info("AI function '{{ function_name }}' succeeded: prompt_chars=%d", len(prompt))
     return func.HttpResponse(
         body=json.dumps({"response": f"Echo: {prompt}"}),
         status_code=200,

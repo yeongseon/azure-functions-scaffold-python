@@ -1,0 +1,30 @@
+from __future__ import annotations
+
+import importlib
+import logging
+
+import pytest
+
+
+@pytest.mark.parametrize("public_demo", [False, True])
+def test_graph_auth_profile(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    public_demo: bool,
+) -> None:
+    monkeypatch.setenv("LANGGRAPH_PUBLIC_DEMO", "true" if public_demo else "false")
+    caplog.set_level(logging.WARNING)
+    import function_app
+
+    module = importlib.reload(function_app)
+    bindings = [
+        function.get_trigger().get_dict_repr() for function in module.func_app.get_functions()
+    ]
+    execution = [
+        binding for binding in bindings if binding["route"].endswith(("/invoke", "/stream"))
+    ]
+    assert len(execution) == 2
+    assert {binding["authLevel"].value for binding in execution} == {
+        "anonymous" if public_demo else "function"
+    }
+    assert ("LANGGRAPH_PUBLIC_DEMO=true" in caplog.text) == public_demo
