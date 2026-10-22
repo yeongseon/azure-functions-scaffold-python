@@ -31,6 +31,18 @@ jobs:
       - name: Run Bandit
         run: make security
 
+      - name: Collect redacted Bandit evidence
+        if: always()
+        run: hatch run python -m tools.security_evidence bandit --output security-results/bandit
+
+      - name: Upload Bandit evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: security-bandit
+          path: security-results/**
+          if-no-files-found: error
+
   semgrep:
     runs-on: ubuntu-latest
     steps:
@@ -38,6 +50,48 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Run Semgrep
+        id: semgrep
         uses: semgrep/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d # v1
         with:
           config: p/python
+
+      - name: Set up evidence interpreter
+        if: always()
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Record Semgrep outcome without raw diagnostics
+        if: always()
+        env:
+          OUTCOME: ${{ steps.semgrep.outcome }}
+        run: python -m tools.security_evidence semgrep --outcome "$OUTCOME" --output security-results/semgrep
+
+      - name: Upload Semgrep evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: security-semgrep
+          path: security-results/**
+          if-no-files-found: error
+
+  rendered-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+      - name: Install verification environment
+        run: pip install hatch uv && make install
+      - name: Analyze all rendered templates and presets
+        run: hatch run python -m tools.rendered_security
+      - name: Test rendered security contracts
+        run: hatch run pytest -o addopts= tests/test_rendered_security.py tests/test_generated_security_defaults.py tests/test_generated_webhook_boundaries.py
+      - name: Upload redacted rendered evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: security-rendered
+          path: security-results/**
+          if-no-files-found: error

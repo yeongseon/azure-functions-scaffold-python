@@ -13,62 +13,37 @@ jobs:
     name: Audit resolved dependencies
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.11"
-
-      - name: Install pip-audit and runtime dependencies
+      - name: Build audit candidate
         run: |
-          python -m pip install --upgrade pip
-          pip install "pip-audit==2.10.1" .
-
-      - name: Audit runtime dependencies
-        id: runtime
-        run: |
-          set +e
-          pip-audit --local --format json --output runtime-audit.json
-          status=$?
-          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
-          exit 0
-
-      - name: Install development dependencies
-        run: pip install -e ".[dev]"
-
-      - name: Audit development dependencies
-        id: development
+          pip install build 'pip-audit==2.10.1'
+          python -m build
+          python -m venv --without-pip "$RUNNER_TEMP/runtime"
+          python -m venv --without-pip "$RUNNER_TEMP/development"
+          wheels=(dist/*.whl)
+          test "${#wheels[@]}" -eq 1
+          python -m pip --python "$RUNNER_TEMP/runtime/bin/python" install "${wheels[0]}"
+          python -m pip --python "$RUNNER_TEMP/development/bin/python" install "${wheels[0]}[dev,docs]"
+      - name: Report runtime and development findings
+        if: always()
         run: |
           set +e
-          pip-audit --local --format json --output development-audit.json
-          status=$?
-          echo "exit_code=$status" >> "$GITHUB_OUTPUT"
+          for closure in runtime development; do
+            site_packages=$("$RUNNER_TEMP/$closure/bin/python" -c 'import sysconfig; print(sysconfig.get_path("purelib"))')
+            flag=()
+            if [ "$closure" = development ]; then flag=(--development); fi
+            python -m tools.dependency_audit_policy --site-packages "$site_packages" "${flag[@]}" --output "security-results/$closure"
+            status=$?
+            echo "Reporting-only $closure audit exit code: $status" >> "$GITHUB_STEP_SUMMARY"
+          done
           exit 0
-
-      - name: Write audit summary
-        env:
-          RUNTIME_EXIT_CODE: ${{ steps.runtime.outputs.exit_code }}
-          DEVELOPMENT_EXIT_CODE: ${{ steps.development.outputs.exit_code }}
-        run: |
-          {
-            echo "## pip-audit"
-            echo
-            echo "| Environment | Exit code | Report |"
-            echo "| --- | ---: | --- |"
-            echo "| Runtime | ${RUNTIME_EXIT_CODE} | \`runtime-audit.json\` |"
-            echo "| Development | ${DEVELOPMENT_EXIT_CODE} | \`development-audit.json\` |"
-            echo
-            echo "Exit code 0 means no known vulnerabilities; findings are currently non-blocking."
-            echo
-            echo "### Runtime report"
-            echo '```json'
-            python -m json.tool runtime-audit.json
-            echo '```'
-            echo
-            echo "### Development report"
-            echo '```json'
-            python -m json.tool development-audit.json
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload redacted audit evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dependency-audit-evidence
+          path: security-results/**
+          if-no-files-found: error
