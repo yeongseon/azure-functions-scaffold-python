@@ -285,6 +285,8 @@ def resolve_target_dir(destination: Path, project_name: str) -> Path:
         raise ScaffoldError(
             f"Destination symbolic link does not resolve to a directory: {destination}"
         )
+    if any(path.is_symlink() for path in (destination, *destination.parents)):
+        raise ScaffoldError("Destination must not traverse a symbolic link.")
     if destination.exists() and not destination.is_dir():
         raise ScaffoldError(f"Destination must be a directory: {destination}")
     return destination / project_name
@@ -389,8 +391,8 @@ def _initialize_git_repository(project_root: Path) -> None:
         raise ScaffoldError("Git is not installed or not available on PATH.")
 
     try:
-        subprocess.run(
-            [git_executable, "init"],  # nosec B603
+        subprocess.run(  # nosec B603
+            [git_executable, "init"],
             cwd=project_root,
             check=True,
             capture_output=True,

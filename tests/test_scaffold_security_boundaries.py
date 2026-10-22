@@ -44,7 +44,8 @@ def test_nonempty_tree_requires_explicit_overwrite(tmp_path: Path) -> None:
 
 
 def test_failed_publish_restores_tree_and_external_symlinks(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     outside = tmp_path / "outside"
     outside.mkdir()
