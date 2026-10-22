@@ -14,7 +14,20 @@ OpenAPI: enabled — visit `/api/docs` for Swagger UI
 Validation: enabled — request/response models validated via `azure-functions-validation`
 {% endif %}
 
-## Prerequisites
+## Security before deployment
+
+Health is intentionally anonymous minimal liveness (`{"status": "ok"}`). Optional
+OpenAPI/spec/docs routes are public local/demo examples: remove or restrict them
+before production. Local Core Tools does not enforce function keys.
+Webhooks declare FUNCTION auth and also require HMAC-SHA256. Bodies above 1 MiB
+return 413 before signature verification/JSON parsing; enforce ingress limits too.
+HMAC does not prevent replay: add provider-signed timestamps, freshness checks,
+durable delivery-ID deduplication, retry/idempotency rules and key rotation.
+The in-memory delivery store is not production replay protection.
+AI partial endpoints log sizes only; configure identity, rate limits, token limits,
+per-user quotas, provider budgets and cost alerts before adding a billable backend.
+
+## Local prerequisites
 
 - Python `{{ python_version }}` or newer
 - Azure Functions Core Tools v4 (`func`)

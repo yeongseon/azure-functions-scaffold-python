@@ -21,6 +21,7 @@ app.register_functions(webhooks_blueprint)
 {%- if include_openapi %}
 
 
+# Public documentation is a local/demo choice; restrict or remove these routes before production.
 @app.route(route="openapi.json", methods=["GET"], auth_level=func.AuthLevel.ANONYMOUS)
 def openapi_json(req: func.HttpRequest) -> func.HttpResponse:
     return func.HttpResponse(
