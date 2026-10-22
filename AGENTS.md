@@ -204,6 +204,9 @@ Titles for issues, pull requests, and commits follow the **Title Convention** in
 
 ## Agent Rules
 
+Security scan scope, generated-app trust boundaries, evidence and exception policy:
+see [SECURITY.md](SECURITY.md). Preserve all blocking release gates.
+
 When using AI-assisted development:
 
 - Prefer small, reviewable changes.

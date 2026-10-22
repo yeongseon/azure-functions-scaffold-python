@@ -8,8 +8,23 @@ Python: `{{ python_version }}`
 
 Template: `langgraph` — deploys a LangGraph agent on Azure Functions.
 
-The generated LangGraph app currently keeps `func.AuthLevel.ANONYMOUS` by default.
-Review that setting before exposing the endpoints outside trusted environments.
+## Secure defaults
+
+New projects use `func.AuthLevel.FUNCTION` for graph execution routes. In Azure,
+send a function key using `x-functions-key`; never put keys in URLs or logs.
+Local `func start` does not enforce function keys, so local development is unchanged.
+
+Only for an intentionally public demo, set the generated project's app setting
+`LANGGRAPH_PUBLIC_DEMO=true` before startup. This switches graph routes to
+`ANONYMOUS` and emits a startup WARNING that the routes are public. Unset it (or
+use any value other than case-insensitive `true`) to keep FUNCTION authentication.
+Do not enable this setting in production. Existing generated projects are not modified.
+
+A function key is application-level access control, not user identity or per-user
+authorization. Configure identity separately and consult the
+[LangGraph library documentation](https://github.com/yeongseon/azure-functions-langgraph-python)
+for `ThreadAuthorizer` guidance before exposing thread data. Apply request quotas,
+model token limits, rate limits and cost alerts at your API gateway/provider.
 
 ## Development
 
