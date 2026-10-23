@@ -10,9 +10,8 @@ generated project's environment/app settings before startup. Only the exact lowe
 string `true` selects ANONYMOUS; `True`, `TRUE`, `1`, `yes`, empty, ` true ` and
 newline variants keep FUNCTION. The template emits a Python `UserWarning` during
 indexing, proven visible in local Core Tools host output (not a guarantee for every
-cloud logging configuration). It selects ANONYMOUS
-and logs a WARNING that graph routes are public. Other values retain FUNCTION.
-Never enable the demo profile in production. Existing projects are not rewritten.
+cloud logging configuration). The demo profile selects ANONYMOUS, so graph routes
+are public; the `UserWarning` is the signal. Never enable the demo profile in production. Existing projects are not rewritten.
 This new-project deployment compatibility change needs maintainer release review;
 it does not change the scaffolder CLI or Python API.
 
@@ -45,6 +44,10 @@ destination resolves to a canonical root. Dangling destination links, a symlinke
 project directory, and links along generated output paths that escape the canonical
 project root are rejected. Outside data is never followed during staged replacement
 or cleanup. Avoid concurrent untrusted mutation of the selected directory.
+
+Path arguments are canonicalised before use, so when a destination or project root is given
+through an alias or a relative spelling, status messages print the canonical path rather than
+the spelling you typed; the generated files are identical.
 
 Expansion commands enforce the same canonical-root preflight before any file or
 registration update. Function/route/resource modules, tests, schemas, services and
