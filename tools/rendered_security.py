@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import replace
+from itertools import product
 from pathlib import Path
 import re
 import subprocess
@@ -29,19 +30,19 @@ ACTION_PINS = {
 def render_inventory(destination: Path) -> tuple[Path, ...]:
     projects: list[Path] = []
     for template in list_templates():
-        for preset in list_presets():
+        for preset, enabled in product(list_presets(), (True, False)):
             options = build_project_options(
                 preset_name=preset.name,
                 python_version="3.11",
                 include_github_actions=True,
                 initialize_git=False,
                 include_azd=True,
-                include_openapi="openapi" in template.allowed_features,
-                include_validation="validation" in template.allowed_features,
-                include_doctor="doctor" in template.allowed_features,
+                include_openapi=enabled and "openapi" in template.allowed_features,
+                include_validation=enabled and "validation" in template.allowed_features,
+                include_doctor=enabled and "doctor" in template.allowed_features,
             )
             root = scaffold_project(
-                f"{template.name}-{preset.name}",
+                f"{template.name}-{preset.name}-{'enabled' if enabled else 'disabled'}",
                 destination,
                 template_name=template.name,
                 options=options,
