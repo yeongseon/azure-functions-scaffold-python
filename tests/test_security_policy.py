@@ -94,7 +94,7 @@ def test_static_scan_fails_closed(raw: str, code: int, status: Status) -> None:
 @pytest.mark.parametrize(
     "outcome,status",
     [
-        ("success", Status.PASS),
+        ("success", Status.INCOMPLETE),
         ("failure", Status.TOOL_ERROR),
         ("skipped", Status.INCOMPLETE),
     ],
