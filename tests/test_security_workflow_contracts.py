@@ -1,5 +1,6 @@
 from pathlib import Path
 import subprocess
+import sys
 
 
 def test_semgrep_evidence_is_always_collected_without_overriding_action_gate(
@@ -9,7 +10,7 @@ def test_semgrep_evidence_is_always_collected_without_overriding_action_gate(
         [
             "make",
             "security-semgrep",
-            "SECURITY_RUN=python3.11",
+            f"SECURITY_RUN={sys.executable}",
             "SEMGREP_OUTCOME=success",
             f"SECURITY_OUTPUT={tmp_path}",
         ],
