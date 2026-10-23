@@ -1,16 +1,20 @@
 from __future__ import annotations
 
-import logging
 import os
+import warnings
 
 import azure.functions as func
 from azure_functions_langgraph import LangGraphApp
 
 from app.graphs.echo_agent import graph
 
-public_demo = os.environ.get("LANGGRAPH_PUBLIC_DEMO", "false").lower() == "true"
+public_demo = os.environ.get("LANGGRAPH_PUBLIC_DEMO", "false") == "true"
 if public_demo:
-    logging.warning("LANGGRAPH_PUBLIC_DEMO=true: graph routes are public; do not use in production")
+    warnings.warn(
+        "LANGGRAPH_PUBLIC_DEMO=true: graph routes are public; do not use in production",
+        UserWarning,
+        stacklevel=1,
+    )
 auth_level = func.AuthLevel.ANONYMOUS if public_demo else func.AuthLevel.FUNCTION
 lg_app = LangGraphApp(auth_level=auth_level)
 lg_app.register(graph=graph, name="echo_agent")

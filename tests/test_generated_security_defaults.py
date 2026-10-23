@@ -115,7 +115,9 @@ def isolated_langgraph(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return root
 
 
-@pytest.mark.parametrize("demo", ["", "false", "true", "TRUE", "1", "typo"])
+@pytest.mark.parametrize(
+    "demo", ["true", "True", "TRUE", "1", "yes", "false", "", " true ", "true\n"]
+)
 def test_langgraph_registered_routes_have_explicit_auth(
     isolated_langgraph: Path,
     demo: str,
@@ -140,8 +142,8 @@ def test_langgraph_registered_routes_have_explicit_auth(
     execution = [b for b in bindings if b["route"].endswith(("/invoke", "/stream"))]
     # Then execution routes declare FUNCTION unless the exact public opt-in is true.
     assert len(execution) == 2
-    expected = "anonymous" if demo.lower() == "true" else "function"
+    expected = "anonymous" if demo == "true" else "function"
     assert {b["authLevel"] for b in execution} == {expected}
-    assert ("WARNING" in result.stderr and "public" in result.stderr.lower()) == (
+    assert ("LANGGRAPH_PUBLIC_DEMO=true: graph routes are public" in result.stderr) == (
         expected == "anonymous"
     )

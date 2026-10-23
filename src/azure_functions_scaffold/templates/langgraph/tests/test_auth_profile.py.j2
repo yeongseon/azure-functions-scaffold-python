@@ -1,22 +1,25 @@
 from __future__ import annotations
 
 import importlib
-import logging
+import warnings
 
 import pytest
 
 
-@pytest.mark.parametrize("public_demo", [False, True])
+@pytest.mark.parametrize(
+    "value", ["true", "True", "TRUE", "1", "yes", "false", "", " true ", "true\n"]
+)
 def test_graph_auth_profile(
     monkeypatch: pytest.MonkeyPatch,
-    caplog: pytest.LogCaptureFixture,
-    public_demo: bool,
+    value: str,
 ) -> None:
-    monkeypatch.setenv("LANGGRAPH_PUBLIC_DEMO", "true" if public_demo else "false")
-    caplog.set_level(logging.WARNING)
+    public_demo = value == "true"
+    monkeypatch.setenv("LANGGRAPH_PUBLIC_DEMO", value)
     import function_app
 
-    module = importlib.reload(function_app)
+    with warnings.catch_warnings(record=True) as observed:
+        warnings.simplefilter("always")
+        module = importlib.reload(function_app)
     bindings = [
         function.get_trigger().get_dict_repr() for function in module.func_app.get_functions()
     ]
@@ -27,4 +30,5 @@ def test_graph_auth_profile(
     assert {binding["authLevel"].value for binding in execution} == {
         "anonymous" if public_demo else "function"
     }
-    assert ("LANGGRAPH_PUBLIC_DEMO=true" in caplog.text) == public_demo
+    warned = any("LANGGRAPH_PUBLIC_DEMO=true" in str(item.message) for item in observed)
+    assert warned == public_demo

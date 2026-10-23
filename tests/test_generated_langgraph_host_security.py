@@ -25,7 +25,10 @@ def _port() -> int:
 @pytest.mark.skipif(
     os.environ.get("RUN_LOCAL_HOST_SECURITY") != "true", reason="explicit local host run"
 )
-def test_real_host_indexes_function_authenticated_graph_routes(tmp_path: Path) -> None:
+@pytest.mark.parametrize("public_demo", [False, True])
+def test_real_host_indexes_function_authenticated_graph_routes(
+    tmp_path: Path, public_demo: bool
+) -> None:
     root = scaffold_project(
         "host-agent",
         tmp_path,
@@ -61,7 +64,7 @@ def test_real_host_indexes_function_authenticated_graph_routes(tmp_path: Path) -
         "VIRTUAL_ENV": str(root / ".venv"),
         "FUNCTIONS_WORKER_RUNTIME": "python",
         "AzureWebJobsStorage": connection,
-        "LANGGRAPH_PUBLIC_DEMO": "false",
+        "LANGGRAPH_PUBLIC_DEMO": "true" if public_demo else "false",
     }
     processes: list[subprocess.Popen[bytes]] = []
     with (
@@ -125,7 +128,11 @@ def test_real_host_indexes_function_authenticated_graph_routes(tmp_path: Path) -
                 and binding.get("route", "").endswith(("/invoke", "/stream"))
             ]
             assert len(bindings) == 2, (tmp_path / "host.log").read_text()
-            assert {binding["authLevel"].lower() for binding in bindings} == {"function"}
+            assert {binding["authLevel"].lower() for binding in bindings} == {
+                "anonymous" if public_demo else "function"
+            }
+            output = (tmp_path / "host.log").read_text()
+            assert ("LANGGRAPH_PUBLIC_DEMO=true: graph routes are public" in output) == public_demo
         finally:
             for process in reversed(processes):
                 if process.poll() is None:
