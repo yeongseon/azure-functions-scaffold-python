@@ -39,7 +39,8 @@ If you prefer email, contact: yeongseon.choe@gmail.com
 Pull-request/main security jobs retain Bandit and the SHA-pinned Semgrep action.
 Bandit evidence inventories Python in `src/`, `tools/`, `docs_hooks/`, and `ci/`,
 including exact reviewed inline suppressions. The rendered-security job generates
-all ten templates across all three presets, including optional supported features,
+all ten templates across all three presets with optional features both enabled and disabled
+(60 projects), including dataclass/Pydantic schemas and both webhook handlers,
 and the AI partial; Bandit scans the actual generated application Python.
 Generated test files are excluded from Bandit (pytest assertions are intentional),
 but remain exercised by generated-project pytest. Workflow permissions and action
@@ -49,7 +50,11 @@ CodeQL and SPDX SBOM generation remain separate unchanged workflows.
 
 The release `runtime-dependency-audit` job downloads the exact `build` wheel,
 installs it in an isolated environment on Python 3.11–3.14, and uses pip-audit
-2.10.1. There are no runtime extras (`dev` and `docs` are not runtime closures).
+2.10.1. It verifies the installed candidate name/version against the wheel metadata,
+then audits the exact installed third-party inventory using a temporary pinned requirements
+file (`--no-deps --disable-pip`). Only that verified candidate is excluded, allowing
+first publication without weakening third-party skip/advisory checks. Empty or mismatched
+inventories block. There are no runtime extras (`dev` and `docs` are not runtime closures).
 All known runtime advisories block, including unknown/low severity, unless a
 current exact exception applies. `publish` needs this job as well as the existing
 verification and real-Azure certification jobs; OIDC and artifact reuse are unchanged.
@@ -62,13 +67,22 @@ development results. A reporting-only job is not release authorization.
 counts, tool versions and outcomes. Raw source, scanner messages, request input,
 credentials, environment values, connection strings and advisory descriptions are
 discarded. Job Summaries and uploads run even after failures. Semgrep evidence
-records the action outcome only; its finding count is unknown.
+records `INCOMPLETE` with "action outcome only"; its analysed inventory and finding
+count are unknown. Exactly exit 3 is tolerated by the evidence target, while the pinned
+Semgrep action remains the blocking gate and its failure is never overridden.
 
 `FAIL` means a policy violation/finding; `TOOL_ERROR` means execution or evidence
 cannot be trusted; `INCOMPLETE` means scope/outputs are missing or skipped. All
 three block release/static gates; empty Python scans never pass. Recovery after a
 transient tool failure is `gh workflow run publish-pypi.yml --ref vX.Y.Z` on the
 same unchanged tag. Code corrections require a new release, never a moved tag.
+
+Local/CI entry points: `make security` includes repository Bandit and rendered scans;
+`make security-bandit`, `make security-rendered`, `make security-semgrep`,
+`make security-audit` (blocking), `make security-audit-report` (reporting-only),
+`make security-contracts`, and opt-in `make security-host` are shared targets.
+Audit targets take `AUDIT_SITE_PACKAGES`, `CANDIDATE_NAME`, `CANDIDATE_VERSION`
+(from candidate wheel metadata), and `SECURITY_OUTPUT`; Semgrep takes `SEMGREP_OUTCOME`.
 
 Exceptions in `security/*.json` require a maintainer-reviewed exact advisory/package
 or rule/file/line, kind, reason, owner, added date and expiry at most 90 days later.
