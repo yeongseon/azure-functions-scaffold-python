@@ -9,10 +9,12 @@ on:
       - "src/azure_functions_scaffold/generator/**"
       - "pyproject.toml"
       - "*.lock"
+      - "tools/**"
+      - "tests/**"
+      - "Makefile"
       - ".github/workflows/templates-smoke.yml"
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - "src/azure_functions_scaffold/templates/**"
       - "src/azure_functions_scaffold/template_registry.py"
@@ -20,6 +22,9 @@ on:
       - "src/azure_functions_scaffold/generator/**"
       - "pyproject.toml"
       - "*.lock"
+      - "tools/**"
+      - "tests/**"
+      - "Makefile"
       - ".github/workflows/templates-smoke.yml"
   workflow_dispatch:
   schedule:
@@ -38,107 +43,29 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Full template registry coverage is currently 10 entries, so we keep
-        # every template in the required matrix.
-        template:
-          - http
-          - timer
-          - queue
-          - blob
-          - servicebus
-          - eventhub
-          - cosmosdb
-          - durable
-          - ai
-          - langgraph
-        python-version:
-          - "3.11"
-          - "3.12"
-
+        template: [http, timer, queue, blob, servicebus, eventhub, cosmosdb, durable, ai, langgraph]
+        python-version: ["3.11", "3.12"]
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: pyproject.toml
-
-      - name: Install scaffold CLI
-        run: pip install -e .[dev]
-
-      - name: Scaffold template project
+      - name: Install selected-interpreter tooling
+        run: make install-ci
+      - name: Compile, lint, typecheck, execute tests and classify diagnostics from installed-wheel CLI
         env:
           TEMPLATE: ${{ matrix.template }}
-          PYTHON_VERSION: ${{ matrix.python-version }}
-        run: |
-          workdir="${RUNNER_TEMP}/scaffold-test"
-          project_name="smoke_${TEMPLATE}"
-          rm -rf "${workdir}"
-          mkdir -p "${workdir}"
-          afs advanced new "${project_name}" \
-            --destination "${workdir}" \
-            --template "${TEMPLATE}" \
-            --preset strict \
-            --python-version "${PYTHON_VERSION}"
-
-      - name: Install generated project dependencies
-        env:
-          TEMPLATE: ${{ matrix.template }}
-        working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
-        run: pip install -e .[dev]
-
-      - name: Compile generated project
-        working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
-        run: python -m compileall -q .
-
-      - name: Lint generated project
-        working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
-        run: |
-          if grep -Eq '^\[tool\.ruff' pyproject.toml; then
-            ruff check .
-          else
-            echo "Skipping ruff: generated project has no Ruff config"
-          fi
-
-      - name: Type-check generated project
-        working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
-        run: |
-          if grep -Eq '^\[tool\.mypy' pyproject.toml; then
-            mypy .
-          else
-            echo "Skipping mypy: generated project has no mypy config"
-          fi
-
-      - name: Test generated project
-        working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
-        run: |
-          set +e
-          pytest -q
-          status=$?
-          set -e
-          if [ "${status}" -ne 0 ] && [ "${status}" -ne 5 ]; then
-            exit "${status}"
-          fi
-
-      - name: Run Doctor diagnostics on generated project
-        working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
-        run: |
-          python -m pip install azure-functions-doctor
-          # Doctor runs as an informational smoke check. Scaffolded projects are
-          # pyproject-only; older published azure-functions-doctor versions flag a
-          # missing requirements.txt as a diagnostics failure (exit 1). Tolerate
-          # exit 1 (findings) but fail the job on exit 2+ (CLI crash/usage error).
-          set +e
-          azure-functions-doctor doctor --path .
-          status=$?
-          set -e
-          if [ "${status}" -gt 1 ]; then
-            echo "azure-functions-doctor crashed (exit ${status})"
-            exit "${status}"
-          fi
+        run: python -m tools.verification generated-project "$TEMPLATE"
+      - name: Upload generated template evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: template-${{ matrix.template }}-py${{ matrix.python-version }}
+          path: test-results/**
 
   scaffold-with-features:
     runs-on: ubuntu-latest
@@ -151,209 +78,72 @@ jobs:
           - --with-doctor
           - --with-openapi --with-validation
           - --with-openapi --with-validation --with-doctor
-
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
       - name: Set up Python 3.12
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
-          cache: pip
-          cache-dependency-path: pyproject.toml
-
-      - name: Install scaffold CLI
-        run: pip install -e .[dev]
-
-      - name: Scaffold http project with features
+      - name: Install selected-interpreter tooling
+        run: make install-ci
+      - name: Validate isolated HTTP feature combination including strict pytest and Doctor JSON
         env:
-          FEATURE_FLAGS: ${{ matrix.flags }}
-        run: |
-          workdir="${RUNNER_TEMP}/scaffold-features"
-          rm -rf "${workdir}"
-          mkdir -p "${workdir}"
-          afs advanced new smoke_http_features \
-            --destination "${workdir}" \
-            --template http \
-            --preset strict \
-            --python-version 3.12 \
-            ${FEATURE_FLAGS}
-
-      - name: Install generated project dependencies
-        working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
-        run: pip install -e .[dev]
-
-      - name: Compile generated project
-        working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
-        run: python -m compileall -q .
-
-      - name: Lint generated project
-        working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
-        run: ruff check .
-
-      - name: Type-check generated project
-        working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
-        run: mypy .
-
-      - name: Test generated project
-        working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
-        run: |
-          set +e
-          pytest -q
-          status=$?
-          set -e
-          if [ "${status}" -ne 0 ] && [ "${status}" -ne 5 ]; then
-            exit "${status}"
-          fi
-
-      - name: Run Doctor target when generated project ships one
-        working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
-        run: |
-          if grep -Eq '^doctor:' Makefile; then
-            # Tolerate diagnostics findings but fail on a Doctor crash or
-            # usage error. NOTE: GNU make reports a recipe command's exit 1
-            # as its own exit 2, which would mask tolerable findings. Doctor
-            # prints a "Doctor summary" line whenever it ran to completion
-            # (findings included), so treat any make failure WITHOUT that
-            # summary as a genuine crash/usage error and fail on it.
-            set +e
-            out="$(make doctor 2>&1)"
-            status=$?
-            set -e
-            printf '%s\n' "${out}"
-            if [ "${status}" -gt 1 ] && ! printf '%s' "${out}" | grep -q 'Doctor summary'; then
-              echo "make doctor failed unexpectedly (exit ${status})"
-              exit "${status}"
-            fi
-          else
-            echo "Skipping Doctor: generated project has no doctor target"
-          fi
+          VERIFICATION_FEATURE_FLAGS: ${{ matrix.flags }}
+        run: python -m tools.verification generated-project http
+      - name: Upload feature evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: features-${{ strategy.job-index }}
+          path: test-results/**
 
   add-commands-smoke:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
       - name: Set up Python 3.12
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
-          cache: pip
-          cache-dependency-path: pyproject.toml
-
-      - name: Install scaffold CLI
-        run: pip install -e .[dev]
-
-      - name: Scaffold base http project
-        run: |
-          workdir="${RUNNER_TEMP}/scaffold-add-commands"
-          rm -rf "${workdir}"
-          mkdir -p "${workdir}"
-          afs new smoke_http_additions \
-            --destination "${workdir}" \
-            --python-version 3.12
-
-      - name: Add commands to generated project
-        working-directory: ${{ runner.temp }}/scaffold-add-commands/smoke_http_additions
-        run: |
-          afs api add get-status --project-root .
-          afs api add-route status --project-root .
-          afs api add-resource products --project-root .
-          afs advanced add servicebus process-events --project-root .
-
-      - name: Install generated project dependencies
-        working-directory: ${{ runner.temp }}/scaffold-add-commands/smoke_http_additions
-        run: pip install -e .[dev]
-
-      - name: Compile generated project
-        working-directory: ${{ runner.temp }}/scaffold-add-commands/smoke_http_additions
-        run: python -m compileall -q .
-
-      - name: Lint generated project
-        working-directory: ${{ runner.temp }}/scaffold-add-commands/smoke_http_additions
-        run: ruff check .
-
-      - name: Type-check generated project
-        working-directory: ${{ runner.temp }}/scaffold-add-commands/smoke_http_additions
-        run: mypy .
-
-      - name: Test generated project
-        working-directory: ${{ runner.temp }}/scaffold-add-commands/smoke_http_additions
-        run: |
-          set +e
-          pytest -q
-          status=$?
-          set -e
-          if [ "${status}" -ne 0 ] && [ "${status}" -ne 5 ]; then
-            exit "${status}"
-          fi
+      - name: Install selected-interpreter tooling
+        run: make install-ci
+      - name: Validate installed CLI add, add-route, add-resource and Service Bus expansion
+        env:
+          VERIFICATION_ADDITIONS: "1"
+          VERIFICATION_FEATURE_FLAGS: --with-openapi --with-validation --with-doctor
+        run: python -m tools.verification generated-project http
+      - name: Upload expansion evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: add-commands-evidence
+          path: test-results/**
 
   python-314:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        template:
-          - http
-          - durable
-        python-version:
-          - "3.14"
-
+        template: [http, durable]
+        python-version: ["3.14"]
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip
-          cache-dependency-path: pyproject.toml
-
-      - name: Install scaffold CLI
-        run: pip install -e .[dev]
-
-      - name: Scaffold Python 3.14 template project
+      - name: Install selected-interpreter tooling
+        run: make install-ci
+      - name: Validate isolated Python 3.14 generated project including strict pytest
         env:
           TEMPLATE: ${{ matrix.template }}
-          PYTHON_VERSION: ${{ matrix.python-version }}
-        run: |
-          workdir="${RUNNER_TEMP}/scaffold-python-314"
-          project_name="python_314_${TEMPLATE}"
-          rm -rf "${workdir}"
-          mkdir -p "${workdir}"
-          afs advanced new "${project_name}" \
-            --destination "${workdir}" \
-            --template "${TEMPLATE}" \
-            --preset strict \
-            --python-version "${PYTHON_VERSION}"
-
-      - name: Install generated project dependencies
-        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
-        run: pip install -e .[dev]
-
-      - name: Compile generated project
-        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
-        run: python -m compileall -q .
-
-      - name: Lint generated project
-        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
-        run: ruff check .
-
-      - name: Type-check generated project
-        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
-        run: mypy .
-
-      - name: Test generated project
-        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
-        run: |
-          set +e
-          pytest -q
-          status=$?
-          set -e
-          if [ "${status}" -ne 0 ] && [ "${status}" -ne 5 ]; then
-            exit "${status}"
-          fi
+        run: python -m tools.verification generated-project "$TEMPLATE"
+      - name: Upload Python 3.14 template evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: template-314-${{ matrix.template }}
+          path: test-results/**

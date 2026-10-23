@@ -157,6 +157,8 @@ def runs_tests_directly_on_matrix(workflow_text: str) -> bool:
             continue
         if _DIRECT_PYTEST_RE.search(line) and "hatch" not in line and "make " not in line:
             return True
+        if re.search(r"\bpython\s+-m\s+tools\.verification\s+", line) and "hatch" not in line:
+            return True
     return False
 
 

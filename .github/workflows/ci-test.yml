@@ -102,7 +102,7 @@ jobs:
         run: python tools/check_pr_format.py "$PR_BASE_SHA" "$PR_HEAD_SHA"
 
       - name: Type check (mypy)
-        run: mypy src tests
+        run: mypy src tests tools/verification*.py
 
   test:
     name: Test (Py ${{ matrix.python-version }}, ${{ matrix.resolution }} deps)
@@ -158,25 +158,32 @@ jobs:
           IS_COVERAGE_CELL: ${{ matrix.python-version == '3.11' }}
         run: |
           if [ "$IS_COVERAGE_CELL" = "true" ]; then
-            pytest --ignore=tests/e2e
+            python -m tools.verification test
           else
-            pytest --ignore=tests/e2e --no-cov
+            python -m tools.verification test --no-cov
           fi
 
       - name: Verify coverage output
         if: matrix.python-version == '3.11'
-        run: ls -lh coverage.xml
+        run: ls -lh test-results/test/coverage.xml
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.11' && matrix.resolution == 'latest' && github.actor != 'dependabot[bot]'
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
+          files: ./test-results/test/coverage.xml
           verbose: true
           fail_ci_if_error: false
         env:
           CODECOV_RETRIES: 3
+
+      - name: Upload offline verification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: offline-py${{ matrix.python-version }}
+          path: test-results/**
 
   minimum-dependencies:
     name: Minimum dependencies (Py 3.11)
@@ -232,7 +239,14 @@ jobs:
               *) deselect+=("--deselect=$entry") ;;
             esac
           done < tools/minimum_dependency_optional_tests.txt
-          pytest --ignore=tests/e2e --no-cov "${deselect[@]}"
+          python -m tools.verification test --no-cov "${deselect[@]}"
+
+      - name: Upload minimum dependency evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: minimum-dependencies-evidence
+          path: test-results/**
 
   artifact-build:
     name: Build compatibility artifacts
@@ -368,40 +382,17 @@ jobs:
           npm install --global azure-functions-core-tools@4 --unsafe-perm true
           npm install --global azurite
           python -m pip install --upgrade pip
-          python -m pip install -e .
+          make install-ci
 
-      - name: Generate and install the HTTP project
-        run: |
-          cd "${RUNNER_TEMP}"
-          azure-functions-scaffold new host-smoke \
-            --python-version "${{ matrix.python-version }}" \
-            --no-git \
-            --no-github-actions
-          cd host-smoke
-          python -m venv .venv
-          .venv/bin/python -m pip install --upgrade pip
-          .venv/bin/python -m pip install -e .
+      - name: Invoke installed-wheel generated HTTP app with owned host and Azurite
+        run: make host-smoke
 
-      - name: Start host and probe health route
-        working-directory: ${{ runner.temp }}/host-smoke
-        env:
-          AzureWebJobsStorage: UseDevelopmentStorage=true
-          FUNCTIONS_WORKER_RUNTIME: python
-        run: |
-          source .venv/bin/activate
-          azurite --silent --location "${RUNNER_TEMP}/azurite" > "${RUNNER_TEMP}/azurite.log" 2>&1 &
-          func start --verbose > "${RUNNER_TEMP}/func-host.log" 2>&1 &
-          host_pid=$!
-          trap 'cat "${RUNNER_TEMP}/func-host.log"; kill "${host_pid}" 2>/dev/null || true' EXIT
-          for attempt in $(seq 1 60); do
-            status=$(curl --silent --output "${RUNNER_TEMP}/health.out" --write-out '%{http_code}' http://127.0.0.1:7071/api/health || true)
-            if [ "${status}" = 200 ]; then
-              cat "${RUNNER_TEMP}/health.out"
-              exit 0
-            fi
-            sleep 2
-          done
-          exit 1
+      - name: Upload generated host evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: generated-host-py${{ matrix.python-version }}
+          path: test-results/**
 
   # Wheel-installed proof that the published artifact and generated HTTP
   # project work with the azure-functions 2.x line on its supported runtimes.

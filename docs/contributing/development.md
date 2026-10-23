@@ -9,7 +9,7 @@ Ensure you have the following installed on your system:
 - Python 3.11 or newer (the project supports `>=3.11,<3.15`)
 - Git
 - GNU Make
-- Hatch (installed automatically via `make install`)
+- Hatch (install once in an isolated tool environment)
 
 ## Setup
 
@@ -42,18 +42,33 @@ Use these commands to manage your development workflow:
 
 | Target | Description |
 | :--- | :--- |
-| `make install` | Initial setup (venv, hatch, pre-commit hooks) |
+| `make install` | Idempotent Hatch environment and pre-commit hooks |
+| `make install-ci` | Install into the selected CI interpreter, not Hatch's default |
+| `make doctor` | Read-only prerequisites; required missing tools return nonzero |
 | `make format` | Format code using Ruff |
 | `make lint` | Run style checks and type analysis |
-| `make test` | Run the full test suite |
+| `make test` | Offline generator/unit/structure tests, coverage >=95% |
 | `make cov` | Run tests and generate a coverage report |
 | `make security` | Run a Bandit security scan |
-| `make check-all` | Run format, lint, test, and security checks |
+| `make check` | Non-mutating format/lint/types once/security/workflow checks |
+| `make integration` | Ten isolated generated suites and run-owned HTTP host/Azurite |
+| `make verify` / `make check-all` | Full local verification / exact alias |
+| `make e2e-azure` | Explicit existing deployed candidate, separate from local verification |
+| `make report` | Read saved evidence without running tests |
 | `make docs` | Build project documentation |
 | `make docs-serve` | Serve documentation locally for preview |
 | `make build` | Create distribution packages in `dist/` |
 | `make clean` | Remove build artifacts and temporary files |
 | `make clean-all` | Full cleanup including virtual environments |
+
+Focused targets are PARTIAL. Required generated suites must collect and execute
+positive cases; exit 5, unexpected skips and missing results never PASS. See the
+[root contributing guide](https://github.com/yeongseon/azure-functions-scaffold-python/blob/main/CONTRIBUTING.md#generated-projects-and-diagnostics-policy)
+for Doctor's required-rule/advisory policy and redacted evidence schema.
+Integration requires `func` and `azurite`, uses unique loopback ports and owned
+process groups, and never stops shared services. Check/test need neither tool.
+Local execution uses Hatch Python 3.11; CI preserves Python 3.11–3.14 and the
+minimum-dependency constraints on the matrix interpreter.
 
 ## Generated Artifacts
 
@@ -69,6 +84,7 @@ The repository's `.gitignore` already blocks the common offenders, but contribut
 | `.pytest_cache/`, `.mypy_cache/`, `.ruff_cache/` | `pytest`, `mypy`, `ruff` | `make clean` |
 | `build/`, `dist/`, `*.egg-info/` | `make build`, `hatch build` | `make clean` |
 | `site/` | `make docs` (MkDocs output) | `make clean` |
+| `test-results/` | Lane JUnit, coverage, logs, summaries and provenance | `make clean` |
 | `__pycache__/`, `*.py[cod]` | Python interpreter bytecode | `make clean` |
 | `.DS_Store` | macOS Finder metadata | `make clean-all` |
 

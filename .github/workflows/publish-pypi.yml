@@ -109,11 +109,18 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Hatch
-        run: pip install hatch
+      - name: Install selected-interpreter test dependencies
+        run: make install-ci
 
       - name: Run test suite
-        run: hatch run test
+        run: make test
+
+      - name: Upload release library evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-library-evidence
+          path: test-results/**
 
   azure-e2e:
     name: Azure release certification
@@ -162,4 +169,4 @@ jobs:
         # Documented exception to the SHA-pinning policy: PyPA officially
         # recommends pinning to the rolling `release/v1` branch. See
         # CONTRIBUTING.md "GitHub Actions Pinning" for rationale.
-        uses: pypa/gh-action-pypi-publish@release/v1 # pin-exempt: PyPA official publisher (trusted-publisher OIDC); tracks release/v1 by design
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0

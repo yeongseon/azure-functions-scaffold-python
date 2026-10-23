@@ -1,5 +1,34 @@
 # Testing
 
+## Verification contract
+
+`make check` is non-mutating quality; `make test` is offline with >=95% coverage.
+`make integration` runs ten isolated generated suites plus an owned HTTP
+Functions host and Azurite. `make verify` adds quality, wheel smoke, build and
+strict docs; `make check-all` is an exact alias. `make doctor` reports prerequisites,
+`make report` reads saved results, and `make clean` removes only generated artifacts.
+Focused commands are PARTIAL, not Azure certification.
+
+Required generated tests must execute positive cases: exit 5, zero execution,
+all-skipped and unexpected skips block. Doctor JSON is classified into required
+findings, advisory recommendations, CLI errors and crashes; only advisories pass.
+Missing required diagnostic identities block. The sole manifest exemption is
+generated LangGraph with Doctor 0.23.1's exact adapter-detection short circuit
+([Doctor #590](https://github.com/yeongseon/azure-functions-doctor-python/issues/590)),
+owned by `yeongseon` and expiring 2026-11-23 UTC. Diagnostics remain **INCOMPLETE**
+in a separate summary and the template's `diagnostics_status`; only this diagnostic
+requirement is temporarily optional. Structure, compile/lint/types, positive pytest
+and a real SDK FunctionApp export with registered functions still block the matrix job.
+No other template, report shape or Doctor version is exempt; expiry fails closed.
+See the [contributing guide](https://github.com/yeongseon/azure-functions-scaffold-python/blob/main/CONTRIBUTING.md)
+for the stable rule policy, isolated wheel provenance, prerequisites and evidence.
+
+`test-results/` contains separate generator, generated-project, installed-wheel,
+host, full-local and Azure generation/remote summaries. PASS/FAIL/INCOMPLETE/
+NOT_APPLICABLE results include counts and redacted environment metadata. Missing
+required proofs never PASS. Explicit Azure validation requires a generated project,
+deployed HTTPS URL, expected scaffold version and candidate wheel before tests.
+
 This guide describes the test suite for `azure-functions-scaffold`, including how to run tests, the structure of the test suite, and guidelines for contributing new tests.
 
 ## Running Tests

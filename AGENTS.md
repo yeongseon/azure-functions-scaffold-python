@@ -19,7 +19,7 @@
 
 ### Test Coverage
 - Maintain test coverage at **95% or above** for committed changes and PRs.
-- Run `hatch run pytest --cov --cov-report=term-missing -q` to verify before submitting changes.
+- Run `make test` to verify offline tests and coverage before submitting changes.
 - Any PR that drops coverage below 95% must include additional tests to compensate.
 - Keep repository-level engineering and planning docs at the repository root (`AGENTS.md`, `DESIGN.md`, `PRD.md`).
 - Keep `docs/` for user-facing documentation only.
@@ -111,10 +111,18 @@ This repository is **issue-based, not milestone-based**. Track and group work us
 - Before adding any organizational structure, check whether the repository already has an established convention. A category being empty or unused (zero milestones, no `epic:*` labels) is evidence to follow the existing pattern, not to introduce a new one.
 
 ## Validation
-- `make test`
-- `make lint`
-- `make typecheck`
-- `make build`
+- `make doctor`: read-only prerequisites; missing required tools return nonzero.
+- `make check`: non-mutating quality without service prerequisites; types once.
+- `make test`: offline generator/unit suite with coverage >=95%.
+- `make integration`: all ten isolated generated-project suites and owned HTTP host/Azurite.
+- `make verify`: full local gate; `make check-all` is an exact alias.
+- `make e2e-azure`: explicit generated input and deployed HTTPS endpoint; no provisioning.
+- `make report`: saved evidence only; `make clean`: generated artifacts only.
+
+See CONTRIBUTING.md for the template manifest, machine-readable diagnostics policy,
+prerequisites and redacted `test-results/` evidence. Required zero/all-skipped suites,
+missing results and unexpected skips never PASS. Focused commands are PARTIAL;
+generator, host and real-Azure proofs remain separate. Never change required CI job names.
 
 ## Release Process
 
@@ -188,13 +196,20 @@ Use Makefile entry points only. Do not bypass the Makefile in CI or contributor 
 | Purpose | Command |
 | --- | --- |
 | Environment setup | `make install` |
+| CI-selected interpreter setup | `make install-ci` |
+| Read-only prerequisites | `make doctor` |
 | Format code | `make format` |
 | Check formatting (`src`, `tests`) | `make format-check` |
 | Lint | `make lint` |
 | Type check | `make typecheck` |
-| Tests | `make test` |
+| Offline tests, coverage >=95% | `make test` |
+| Non-mutating quality | `make check` |
+| Generated suites and owned host | `make integration` |
 | Coverage | `make cov` |
-| Full validation | `make check-all` |
+| Full local validation | `make verify` (`make check-all` exact alias) |
+| Explicit Azure candidate | `make e2e-azure` |
+| Saved evidence only | `make report` |
+| Generated artifacts only | `make clean` |
 | Docs build | `make docs` |
 | Package build | `make build` |
 

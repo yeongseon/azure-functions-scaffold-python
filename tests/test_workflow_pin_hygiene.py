@@ -62,6 +62,9 @@ def test_template_smoke_workflow_covers_inputs_and_registry() -> None:
         "src/azure_functions_scaffold/generator/**",
         "pyproject.toml",
         "*.lock",
+        "tools/**",
+        "tests/**",
+        "Makefile",
         ".github/workflows/templates-smoke.yml",
     )
     triggers = workflow[True]

@@ -79,6 +79,7 @@ packages = ["src/azure_functions_scaffold"]
 include = [
     "src",
     "tests",
+    "tools",
     "docs",
     "README.md",
     "Makefile",
@@ -105,11 +106,11 @@ features = ["dev", "docs"]
 format = "ruff format src tests tools docs_hooks"
 format-check = "ruff format --check src tests tools docs_hooks"
 style = "ruff check src tests tools docs_hooks && ruff format --check src tests tools docs_hooks"
-typecheck = "mypy src tests"
+typecheck = "mypy src tests tools/verification*.py"
 lint = "hatch run style && hatch run typecheck"
-test = "pytest -v tests"
+test = "python -m tools.verification test"
 cov = "pytest --cov-report=term-missing --cov-report=html --cov-report=xml tests/"
-e2e-azure = "pytest -v -m e2e -o addopts= tests/e2e/"
+e2e-azure = "python -m tools.verification azure-e2e"
 docs = "mkdocs serve"
 precommit = "pre-commit run --all-files"
 precommit-install = "pre-commit install"

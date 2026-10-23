@@ -9,14 +9,15 @@ Local development requires Python 3.11 through 3.14, matching the
 Azure Functions Core Tools, Azurite, or Docker is required for the standard
 repository checks.
 
-From a clone of this repository, bootstrap the `.venv` and Hatch environment:
+Install Hatch once in an isolated tool environment. From a clone, create the
+Hatch development environment:
 
 ```bash
 make install
 ```
 
-The `install` target creates the local virtual environment, installs Hatch,
-creates the Hatch environment, and installs the pre-commit hook. Then run the
+The `install` target creates the Hatch environment and installs the pre-commit
+hook; routine targets never upgrade pip or reinstall Hatch. Then run the
 standard verification commands:
 
 ```bash
@@ -58,14 +59,99 @@ Recommended branch prefixes:
 
 ## Project Commands
 
-```bash
-make format      # Format code with ruff
-make lint        # Lint with ruff
-make typecheck   # Type check with mypy
-make test        # Run tests
-make cov         # Run tests with coverage
-make check-all   # Run the full local gate
-```
+| Command | Contract |
+| --- | --- |
+| `make install` | Idempotent Hatch development environment and hooks |
+| `make install-ci` | Install dev/docs extras into CI's selected interpreter |
+| `make doctor` | Read-only prerequisite check; nonzero for missing required tools |
+| `make format` / `make format-check` | Explicit formatting mutation / read-only check |
+| `make lint` / `make typecheck` / `make security` | Style plus strict types / strict types / Bandit |
+| `make check` | Non-mutating formatting, lint, types once, security and workflow policy |
+| `make test` | Offline generator/unit/structure suite; coverage >=95% |
+| `make integration` | Ten isolated generated-project suites plus real generated HTTP host |
+| `make verify` | Check, test, integration, installed-wheel smoke, build, strict docs |
+| `make e2e-azure` | Explicit existing generated input and deployed HTTPS endpoint; no provisioning |
+| `make report` | Display saved evidence only; never run tests |
+| `make clean` | Remove generated artifacts; preserve environments and shared/cloud resources |
+
+`make check-all` is an exact alias of `make verify`. `make clean-all` retains
+historical deep cleanup, including `.venv` and bytecode. `cov`, `generated-project`,
+`host-smoke`, `wheel-smoke`, `build`, `docs` and individual quality targets are
+focused **PARTIAL** evidence, not full verification. `e2e-local` runs host smoke,
+not Azure certification. Local commands use Hatch's Python 3.11; CI uses the
+selected matrix interpreter directly (`CI=1`, optionally `PYTHON=/path/to/python`).
+
+### Generated projects and diagnostics policy
+
+`tools/verification_manifest.py` declares the ten templates and test families.
+Every strict template must collect and execute at least one generated pytest case.
+There are **no no-tests exceptions**: pytest exit 5 is a failure. Zero execution,
+all-skipped or unexpected skips never PASS. The offline suite allows only the two
+existing historical-migration documentation skips, by test identity and reason.
+
+The runner builds a scaffold wheel (or uses explicit `VERIFICATION_WHEEL`), installs
+it into an isolated venv outside the checkout, checks imported package/version
+identity, and generates through that installed CLI. Each generated project gets
+its own isolated venv, SDK resolution, compile/lint/type/test and diagnostics run.
+No scaffolder source-tree imports are added to these environments.
+
+Doctor uses `doctor --format json` directly, never GNU Make's remapped exit status
+or human summary text. The stable required-rule allowlist is
+`check_python_version` (environment), `check_requirements_txt` and
+`check_azure_functions_library` (dependencies), and `check_host_json` and
+`check_host_json_version` (structure). Failed/skipped required conditions block;
+normal warnings and non-required recommendations are ADVISORY, including subjective
+configuration recommendations. Exit 2 is CLI_ERROR; other abnormal exits or
+missing/malformed JSON are CRASH. Both block. Required findings block regardless
+of a changed display severity. New required categories need an explicit policy update.
+
+Every required rule identity must appear; an incomplete report never becomes diagnostic
+PASS. One temporary **diagnostics-only** exemption is declared in the manifest:
+generated `langgraph`, owner `yeongseon`, expires **2026-11-23 (UTC, exclusive)**,
+[Doctor #590](https://github.com/yeongseon/azure-functions-doctor-python/issues/590).
+Released Doctor **0.23.1** short-circuits on `func_app = lg_app.function_app` even
+though this exports a real SDK FunctionApp. Only exit 1 with the exact single
+`check_programming_model_v2` error and `programming_model=unknown` matches.
+The runner still executes Doctor and records a separate `diagnostics/summary.json`
+as **INCOMPLETE**, `required=false`, preserving its exit 1, owner, reason, expiry,
+version and issue link. The generated-project summary carries
+`diagnostics_status=INCOMPLETE`; its PASS refers only to the remaining required
+checks, not complete diagnostic certification. Structure, compile, lint, types,
+positive generated pytest, and an imported SDK FunctionApp export with registered
+functions remain blocking. Other templates, malformed reports, other tool versions,
+new failures and expiry receive no exemption. A complete report is classified normally.
+Remove this entry after a released Doctor fixes detection; never renew automatically.
+
+`func` and `azurite` are required for integration/verify, not check/test. Doctor
+reports these prerequisites without installing anything. Host smoke uses unique
+loopback ports, temporary emulator storage and run-owned process groups; teardown
+terminates only its own children on success, failure, timeout or interruption.
+The generated HTTP health route must index, return 200 and contain `status=ok`.
+
+### Saved evidence and Azure
+
+Gitignored `test-results/` stores offline `test/{junit.xml,coverage.xml,summary.json}`,
+per-template integration JUnit/logs, separate host and wheel evidence,
+`verify/{summary.json,environment.json,lanes.json}`, and separate Azure generation
+and remote phase reports. Schema-versioned summaries include command/lane,
+required flag, scope, selected/passed/failed/skipped counts, exit status and artifact
+paths. Per-template evidence records generated Python, SDK, scaffold version,
+wheel SHA-256 and generated file digest. Environment evidence records Python,
+package versions and source commit. Secrets/connection strings are redacted from
+logs, JUnit, JSON, console and Actions Job Summary; CI uploads evidence with
+`if: always()` on failure as well as success.
+
+Statuses are PASS, FAIL, INCOMPLETE and NOT_APPLICABLE. Missing prerequisites or
+unexecuted required checks are INCOMPLETE/nonzero, never NOT_APPLICABLE; failed
+processes/tests are FAIL. NOT_APPLICABLE is reserved for explicitly unsupported
+lanes. Generator success does not prove a host or a deployed Azure app.
+
+Azure preflight requires `E2E_SCAFFOLDED_DIR`, `E2E_BASE_URL` (HTTPS),
+`E2E_EXPECTED_VERSION` and `VERIFICATION_WHEEL`. Missing inputs fail **before tests**.
+Both generated-input and remote-HTTP phases must execute positive, no-skip suites.
+There is no deployed package-version endpoint: `deployed_artifact_identity` remains
+INCOMPLETE and the release workflow owns deployment provenance. Local host smoke
+does not certify Azure. The existing OIDC deployment/release chain is unchanged.
 
 Before opening a PR, run `ruff format --check <changed-python-files>` (or
 `ruff format <changed-python-files>` to fix them). `make format-check` checks
@@ -105,8 +191,6 @@ context never drifts from the pinned commit.
 permitted in this repository and are flagged with an inline comment at
 the call site:
 
-- `pypa/gh-action-pypi-publish@release/v1` — PyPA-maintained stable
-  release channel; this pinning style is explicitly recommended upstream.
 - Local composite actions (`uses: ./...`) — versioned with the repo.
 
 When adding a new external Action, resolve the SHA with

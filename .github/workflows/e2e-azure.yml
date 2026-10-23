@@ -89,6 +89,8 @@ jobs:
           python -m pip install build==1.2.2.post1 requests pytest pytest-html
           python -m build --wheel
           python -m pip install dist/*.whl
+          echo "VERIFICATION_WHEEL=$(realpath dist/*.whl)" >> "$GITHUB_ENV"
+          echo "E2E_EXPECTED_VERSION=$(python -c 'from importlib.metadata import version; print(version("azure-functions-scaffold"))')" >> "$GITHUB_ENV"
 
       - name: Verify candidate wheel is imported outside checkout
         working-directory: /tmp
@@ -117,7 +119,10 @@ jobs:
           echo "E2E_SCAFFOLDED_DIR=$SCAFFOLDED/e2e-http-app" >> "$GITHUB_ENV"
 
       - name: Run scaffold structure tests (no Azure)
-        run: pytest tests/e2e -o addopts= -o "pythonpath=." -v -k "scaffolded"
+        run: |
+          mkdir -p test-results/azure-structure
+          pytest tests/e2e -o addopts= -o "pythonpath=." -v -k "scaffolded" --junitxml=test-results/azure-structure/junit.xml
+          python -m tools.verification record azure-structure 0
         env:
           E2E_SCAFFOLDED_DIR: ${{ env.E2E_SCAFFOLDED_DIR }}
 
@@ -190,9 +195,16 @@ jobs:
             sleep 10
           done
       - name: Run e2e HTTP tests
-        run: pytest tests/e2e -o addopts= -o "pythonpath=." -v -k "not scaffolded" --html=e2e-report/report.html --self-contained-html
+        run: make e2e-azure
         env:
           E2E_BASE_URL: https://${{ steps.names.outputs.app }}.azurewebsites.net
+
+      - name: Upload generation and deployed HTTP evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: azure-verification-evidence
+          path: test-results/**
 
       # Emit the release certification record: the audit trail of publish-pypi.yml's
       # azure-e2e gate. Written only after the live e2e HTTP

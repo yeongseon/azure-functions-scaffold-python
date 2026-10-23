@@ -22,7 +22,7 @@
 ## Checklist
 
 - [ ] My code follows the project's code style
-- [ ] I have run `make check-all`
+- [ ] I have run `make verify` (`make check-all` exact alias) and recorded evidence or missing prerequisites
 - [ ] I have added or updated tests when needed
 - [ ] I have updated documentation when needed
 - [ ] I have updated root planning documents when scope or design changed
