@@ -110,13 +110,21 @@ def test_auditor_execution_failure_is_tool_error(
     monkeypatch: pytest.MonkeyPatch,
     failure: Exception,
 ) -> None:
-    (tmp_path / "example.dist-info").mkdir()
+    for name in ("candidate", "example"):
+        directory = tmp_path / f"{name}-1.dist-info"
+        directory.mkdir()
+        (directory / "METADATA").write_text(f"Name: {name}\nVersion: 1\n")
 
     def crash(*args: object, **kwargs: object) -> None:
         raise failure
 
     monkeypatch.setattr(subprocess, "run", crash)
-    assert run_audit(tmp_path, tmp_path / "policy").status == Status.TOOL_ERROR
+    assert (
+        run_audit(
+            tmp_path, tmp_path / "policy", candidate_name="candidate", candidate_version="1"
+        ).status
+        == Status.TOOL_ERROR
+    )
 
 
 def test_candidate_installation_cannot_be_empty(tmp_path: Path) -> None:

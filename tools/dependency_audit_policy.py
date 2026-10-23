@@ -5,11 +5,12 @@ from __future__ import annotations
 import argparse
 from dataclasses import replace
 from datetime import date
-from importlib.metadata import PackageNotFoundError, version
+from importlib.metadata import PackageNotFoundError, distributions, version
 from pathlib import Path
 import re
 import subprocess
 import sys
+import tempfile
 
 from tools.security_exceptions import parse_exceptions
 from tools.security_report import (
@@ -88,37 +89,96 @@ def classify_audit(raw: str, exit_status: int, *, policy_raw: str, today: date) 
         return replace(result, message="Invalid audit/tool/policy evidence; release blocked.")
 
 
-def run_audit(site_packages: Path, policy: Path) -> Check:
+def run_audit(
+    site_packages: Path,
+    policy: Path,
+    *,
+    candidate_name: str = "",
+    candidate_version: str = "",
+) -> Check:
     try:
-        if not site_packages.is_dir() or not list(site_packages.glob("*.dist-info")):
+        inventory = {
+            re.sub(r"[-_.]+", "-", dist.metadata["Name"].lower()): dist.version
+            for dist in distributions(path=[str(site_packages)])
+        }
+        candidate = re.sub(r"[-_.]+", "-", candidate_name.lower())
+        if (
+            not candidate
+            or not candidate_version
+            or inventory.get(candidate) != candidate_version
+            or len(inventory) < 2
+        ):
             return Check(
                 "pip-audit",
                 ("resolved-runtime-wheel",),
                 Status.INCOMPLETE,
                 None,
-                message="Candidate installation inventory missing.",
+                message="Verified candidate identity or third-party inventory missing.",
             )
-        process = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "pip_audit",
-                "--path",
-                str(site_packages),
-                "--format",
-                "json",
-                "--desc",
-                "off",
-                "--progress-spinner",
-                "off",
-                "--timeout",
-                "30",
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
-            timeout=300,
-        )
+        with tempfile.TemporaryDirectory(prefix="runtime-audit-") as temporary:
+            requirements = Path(temporary) / "requirements.txt"
+            requirements.write_text(
+                "".join(
+                    f"{identifier(name)}=={identifier(installed_version)}\n"
+                    for name, installed_version in sorted(inventory.items())
+                    if name != candidate
+                ),
+                encoding="utf-8",
+            )
+            process = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pip_audit",
+                    "--requirement",
+                    str(requirements),
+                    "--no-deps",
+                    "--disable-pip",
+                    "--format",
+                    "json",
+                    "--desc",
+                    "off",
+                    "--progress-spinner",
+                    "off",
+                    "--timeout",
+                    "30",
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=300,
+            )
+        reported = sequence(load(process.stdout)["dependencies"])
+        for dependency in reported:
+            item = mapping(dependency)
+            if re.sub(r"[-_.]+", "-", text(item.get("name", "")).lower()) == candidate:
+                if item.get("version") != candidate_version or "skip_reason" in item:
+                    return Check(
+                        "pip-audit",
+                        ("resolved-runtime-wheel",),
+                        Status.INCOMPLETE,
+                        process.returncode,
+                        message="Candidate audit identity mismatch.",
+                    )
+        observed = {
+            re.sub(r"[-_.]+", "-", text(mapping(item)["name"]).lower()): mapping(item).get(
+                "version"
+            )
+            for item in reported
+            if "skip_reason" not in mapping(item)
+        }
+        expected = {name: value for name, value in inventory.items() if name != candidate}
+        if (
+            any("skip_reason" in mapping(item) for item in reported)
+            or {name: value for name, value in observed.items() if name != candidate} != expected
+        ):
+            return Check(
+                "pip-audit",
+                ("resolved-runtime-wheel",),
+                Status.INCOMPLETE,
+                process.returncode,
+                message="Third-party audit inventory incomplete.",
+            )
         result = classify_audit(
             process.stdout,
             process.returncode,
@@ -126,7 +186,14 @@ def run_audit(site_packages: Path, policy: Path) -> Check:
             today=date.today(),
         )
         return replace(result, tool_versions={"pip-audit": version("pip-audit")})
-    except (OSError, subprocess.TimeoutExpired, PackageNotFoundError):
+    except (
+        OSError,
+        subprocess.TimeoutExpired,
+        PackageNotFoundError,
+        ValueError,
+        KeyError,
+        TypeError,
+    ):
         return Check(
             "pip-audit",
             ("resolved-runtime-wheel",),
@@ -144,8 +211,15 @@ def main() -> int:
     )
     parser.add_argument("--output", type=Path, default=Path("security-results"))
     parser.add_argument("--development", action="store_true")
+    parser.add_argument("--candidate-name", required=True)
+    parser.add_argument("--candidate-version", required=True)
     args = parser.parse_args()
-    check = run_audit(args.site_packages, args.policy)
+    check = run_audit(
+        args.site_packages,
+        args.policy,
+        candidate_name=args.candidate_name,
+        candidate_version=args.candidate_version,
+    )
     if args.development:
         check = replace(check, name="pip-audit-development", scope=("runtime-and-development",))
     return write_report([check], args.output)
