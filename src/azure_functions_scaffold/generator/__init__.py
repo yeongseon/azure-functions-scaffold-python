@@ -25,6 +25,7 @@ from typing import Literal, overload
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from azure_functions_scaffold.errors import ScaffoldError
+from azure_functions_scaffold.filesystem import expansion_root
 from azure_functions_scaffold.generator.function_app import (
     FUNCTION_IMPORT_MARKER,
     FUNCTION_REGISTRATION_MARKER,
@@ -121,6 +122,7 @@ def add_function(
     normalized_trigger = _normalize_trigger(trigger)
     normalized_name = _normalize_function_name(function_name)
 
+    project_root = expansion_root(project_root)
     _validate_project_root(project_root)
 
     function_path = project_root / "app" / "functions" / f"{normalized_name}.py"
@@ -232,7 +234,7 @@ def add_function(
                 )
             )
 
-    _commit_pending_writes(writes)
+    _commit_pending_writes(writes, project_root=project_root)
 
     return function_path
 
@@ -603,6 +605,7 @@ def add_resource(
     if not dry_run:
         logger.info("Adding resource '%s' to %s", resource_name, project_root)
     normalized = _normalize_function_name(resource_name)
+    project_root = expansion_root(project_root)
     _validate_project_root(project_root)
     names = _derive_resource_names(normalized)
 
@@ -678,7 +681,7 @@ def add_resource(
         )
     )
 
-    _commit_pending_writes(writes)
+    _commit_pending_writes(writes, project_root=project_root)
 
     return created
 
@@ -763,6 +766,7 @@ def add_route(
     if not dry_run:
         logger.info("Adding route '%s' to %s", route_name, project_root)
     normalized = _normalize_function_name(route_name)
+    project_root = expansion_root(project_root)
     _validate_project_root(project_root)
 
     blueprint_path = project_root / "app" / "functions" / f"{normalized}.py"
@@ -824,7 +828,7 @@ def add_route(
         )
     )
 
-    _commit_pending_writes(writes)
+    _commit_pending_writes(writes, project_root=project_root)
 
     return blueprint_path
 

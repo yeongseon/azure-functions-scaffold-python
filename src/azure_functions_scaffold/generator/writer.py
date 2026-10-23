@@ -9,6 +9,7 @@ from pathlib import Path
 import tempfile
 
 from azure_functions_scaffold.errors import ScaffoldError
+from azure_functions_scaffold.filesystem import preflight_paths
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,11 @@ def _atomic_write(path: Path, content: str) -> None:
         raise
 
 
-def _commit_pending_writes(writes: list[_PendingWrite]) -> None:
+def _commit_pending_writes(
+    writes: list[_PendingWrite], *, project_root: Path | None = None
+) -> None:
+    if project_root is not None:
+        preflight_paths(project_root, (write.path for write in writes))
     written: list[_PendingWrite] = []
     try:
         for write in writes:
