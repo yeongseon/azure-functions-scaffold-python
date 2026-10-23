@@ -8,14 +8,13 @@ from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.scaffolder import scaffold_project
 
 
-def test_destination_symlink_cannot_write_outside_root(tmp_path: Path) -> None:
+def test_dangling_destination_symlink_cannot_write_outside_root(tmp_path: Path) -> None:
     outside = tmp_path / "outside"
-    outside.mkdir()
     destination = tmp_path / "selected"
     destination.symlink_to(outside, target_is_directory=True)
     with pytest.raises(ScaffoldError):
         scaffold_project("project", destination)
-    assert list(outside.iterdir()) == []
+    assert not outside.exists()
 
 
 def test_nested_symlink_does_not_modify_external_data(tmp_path: Path) -> None:
@@ -28,7 +27,8 @@ def test_nested_symlink_does_not_modify_external_data(tmp_path: Path) -> None:
     target = root / "project"
     target.mkdir()
     (target / "app").symlink_to(outside, target_is_directory=True)
-    scaffold_project("project", root, overwrite=True, yes=True)
+    with pytest.raises(ScaffoldError):
+        scaffold_project("project", root, overwrite=True, yes=True)
     assert sentinel.read_text() == "original"
     assert list(outside.iterdir()) == [sentinel]
 

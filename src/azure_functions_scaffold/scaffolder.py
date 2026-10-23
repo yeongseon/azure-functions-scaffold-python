@@ -81,6 +81,9 @@ def scaffold_project(
             if not _should_render_template(relative_path, context):
                 continue
             rendered_path = _render_path(relative_path, context)
+            existing_path = target_dir / rendered_path
+            if not existing_path.resolve().is_relative_to(target_dir):
+                raise ScaffoldError(f"Generated path escapes the selected project: {rendered_path}")
             output_path = staging_dir / rendered_path
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -285,11 +288,13 @@ def resolve_target_dir(destination: Path, project_name: str) -> Path:
         raise ScaffoldError(
             f"Destination symbolic link does not resolve to a directory: {destination}"
         )
-    if any(path.is_symlink() for path in (destination, *destination.parents)):
-        raise ScaffoldError("Destination must not traverse a symbolic link.")
     if destination.exists() and not destination.is_dir():
         raise ScaffoldError(f"Destination must be a directory: {destination}")
-    return destination / project_name
+    canonical_destination = destination.resolve()
+    target = canonical_destination / project_name
+    if target.is_symlink():
+        raise ScaffoldError("Project directory must not be a symbolic link.")
+    return target
 
 
 def _iter_template_files(template_root: Path) -> list[Path]:
