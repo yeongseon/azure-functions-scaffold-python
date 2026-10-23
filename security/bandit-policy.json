@@ -16,6 +16,6 @@
   ],
   "inline_suppressions": [
     {"id":"B404","file":"src/azure_functions_scaffold/scaffolder.py","line":7,"kind":"reviewed-static","reason":"Existing subprocess import for shell-free git initialization","owner":"yeongseon","added":"2026-10-22","expires":"2027-01-20"},
-    {"id":"B603","file":"src/azure_functions_scaffold/scaffolder.py","line":399,"kind":"reviewed-static","reason":"Existing resolved git executable and constant init argument; no shell","owner":"yeongseon","added":"2026-10-22","expires":"2027-01-20"}
+    {"id":"B603","file":"src/azure_functions_scaffold/scaffolder.py","line":400,"kind":"reviewed-static","reason":"Existing resolved git executable and constant init argument; no shell","owner":"yeongseon","added":"2026-10-22","expires":"2027-01-20"}
   ]
 }

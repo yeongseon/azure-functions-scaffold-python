@@ -12,6 +12,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 import typer
 
 from azure_functions_scaffold.errors import ScaffoldError
+from azure_functions_scaffold.filesystem import resolve_path
 from azure_functions_scaffold.generator.pyproject import _compute_requirements_txt
 from azure_functions_scaffold.models import ProjectOptions, TemplateContext, TemplateSpec
 from azure_functions_scaffold.packages import AZURE_FUNCTIONS_SPECS, SUPPORTED_PACKAGES
@@ -82,7 +83,7 @@ def scaffold_project(
                 continue
             rendered_path = _render_path(relative_path, context)
             existing_path = target_dir / rendered_path
-            if not existing_path.resolve().is_relative_to(target_dir):
+            if not resolve_path(existing_path).is_relative_to(target_dir):
                 raise ScaffoldError(f"Generated path escapes the selected project: {rendered_path}")
             output_path = staging_dir / rendered_path
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -290,7 +291,7 @@ def resolve_target_dir(destination: Path, project_name: str) -> Path:
         )
     if destination.exists() and not destination.is_dir():
         raise ScaffoldError(f"Destination must be a directory: {destination}")
-    canonical_destination = destination.resolve()
+    canonical_destination = resolve_path(destination)
     target = canonical_destination / project_name
     if target.is_symlink():
         raise ScaffoldError("Project directory must not be a symbolic link.")
