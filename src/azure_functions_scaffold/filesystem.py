@@ -6,6 +6,12 @@ from azure_functions_scaffold.errors import ScaffoldError
 
 def resolve_path(path: Path) -> Path:
     try:
+        for component in (path, *path.parents):
+            if component.is_symlink():
+                try:
+                    component.resolve(strict=True)
+                except FileNotFoundError:
+                    continue
         return path.resolve()
     except (RuntimeError, OSError) as error:
         raise ScaffoldError(f"Cannot resolve selected project path: {path}") from error
