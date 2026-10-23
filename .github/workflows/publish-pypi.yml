@@ -165,7 +165,8 @@ jobs:
           if [ -x "$RUNNER_TEMP/candidate/bin/python" ]; then
             site_packages=$("$RUNNER_TEMP/candidate/bin/python" -c 'import sysconfig; print(sysconfig.get_path("purelib"))')
           fi
-          python -m tools.dependency_audit_policy --site-packages "$site_packages" --output security-results/runtime
+          candidate_version=$(python -c 'import zipfile,email; from pathlib import Path; w=list(Path("candidate-dist").glob("*.whl")); assert len(w)==1; z=zipfile.ZipFile(w[0]); m=[n for n in z.namelist() if n.endswith(".dist-info/METADATA")]; assert len(m)==1; print(email.message_from_bytes(z.read(m[0]))["Version"])')
+          make security-audit SECURITY_RUN=python AUDIT_SITE_PACKAGES="$site_packages" CANDIDATE_VERSION="$candidate_version" SECURITY_OUTPUT=security-results/runtime
       - name: Upload redacted release evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

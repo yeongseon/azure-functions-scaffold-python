@@ -61,6 +61,32 @@ lint: ensure-hatch
 .PHONY: security
 security: ensure-hatch
 	@$(HATCH) run security
+	@$(MAKE) security-bandit security-rendered
+
+# Security entry points are separate to minimize verification-branch conflicts.
+SECURITY_RUN ?= $(HATCH) run python
+SECURITY_OUTPUT ?= security-results
+AUDIT_SITE_PACKAGES ?=
+CANDIDATE_NAME ?= azure-functions-scaffold
+CANDIDATE_VERSION ?=
+AUDIT_FLAGS ?=
+SEMGREP_OUTCOME ?=
+
+.PHONY: security-rendered security-bandit security-semgrep security-audit security-audit-report security-host security-contracts
+security-rendered:
+	@$(SECURITY_RUN) -m tools.rendered_security --output $(SECURITY_OUTPUT)/rendered
+security-bandit:
+	@$(SECURITY_RUN) -m tools.security_evidence bandit --output $(SECURITY_OUTPUT)/bandit
+security-semgrep:
+	@status=0; $(SECURITY_RUN) -m tools.security_evidence semgrep --outcome "$(SEMGREP_OUTCOME)" --output $(SECURITY_OUTPUT)/semgrep || status=$$?; test $$status -eq 0 -o $$status -eq 3
+security-audit:
+	@$(SECURITY_RUN) -m tools.dependency_audit_policy --site-packages "$(AUDIT_SITE_PACKAGES)" --candidate-name "$(CANDIDATE_NAME)" --candidate-version "$(CANDIDATE_VERSION)" $(AUDIT_FLAGS) --output $(SECURITY_OUTPUT)
+security-audit-report:
+	@status=0; $(MAKE) security-audit || status=$$?; echo "Reporting-only dependency audit exit code: $$status"
+security-host:
+	@RUN_LOCAL_HOST_SECURITY=true $(HATCH) run pytest -o addopts= tests/test_generated_langgraph_host_security.py
+security-contracts:
+	@$(HATCH) run pytest -o addopts= tests/test_rendered_security.py tests/test_generated_security_defaults.py tests/test_generated_webhook_boundaries.py
 
 .PHONY: lint-workflows
 lint-workflows: ensure-hatch

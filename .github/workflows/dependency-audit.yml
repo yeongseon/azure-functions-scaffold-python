@@ -35,7 +35,8 @@ jobs:
             site_packages=$("$RUNNER_TEMP/$closure/bin/python" -c 'import sysconfig; print(sysconfig.get_path("purelib"))')
             flag=()
             if [ "$closure" = development ]; then flag=(--development); fi
-            python -m tools.dependency_audit_policy --site-packages "$site_packages" "${flag[@]}" --output "security-results/$closure"
+            candidate_version=$(python -c 'import zipfile,email; from pathlib import Path; z=zipfile.ZipFile(next(Path("dist").glob("*.whl"))); m=[n for n in z.namelist() if n.endswith(".dist-info/METADATA")]; assert len(m)==1; print(email.message_from_bytes(z.read(m[0]))["Version"])')
+            make security-audit-report SECURITY_RUN=python AUDIT_SITE_PACKAGES="$site_packages" CANDIDATE_VERSION="$candidate_version" AUDIT_FLAGS="${flag[*]}" SECURITY_OUTPUT="security-results/$closure"
             status=$?
             echo "Reporting-only $closure audit exit code: $status" >> "$GITHUB_STEP_SUMMARY"
           done

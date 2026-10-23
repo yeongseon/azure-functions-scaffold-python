@@ -33,7 +33,7 @@ jobs:
 
       - name: Collect redacted Bandit evidence
         if: always()
-        run: hatch run python -m tools.security_evidence bandit --output security-results/bandit
+        run: make security-bandit
 
       - name: Upload Bandit evidence
         if: always()
@@ -65,7 +65,7 @@ jobs:
         if: always()
         env:
           OUTCOME: ${{ steps.semgrep.outcome }}
-        run: python -m tools.security_evidence semgrep --outcome "$OUTCOME" --output security-results/semgrep
+        run: make security-semgrep SECURITY_RUN=python SEMGREP_OUTCOME="$OUTCOME"
 
       - name: Upload Semgrep evidence
         if: always()
@@ -85,9 +85,10 @@ jobs:
       - name: Install verification environment
         run: pip install hatch uv && make install
       - name: Analyze all rendered templates and presets
-        run: hatch run python -m tools.rendered_security
+        if: always()
+        run: make security-rendered
       - name: Test rendered security contracts
-        run: hatch run pytest -o addopts= tests/test_rendered_security.py tests/test_generated_security_defaults.py tests/test_generated_webhook_boundaries.py
+        run: make security-contracts
       - name: Upload redacted rendered evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
