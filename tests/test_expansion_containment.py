@@ -1,4 +1,5 @@
 from hashlib import sha256
+import json
 import os
 from pathlib import Path
 import shutil
@@ -170,30 +171,17 @@ def test_cli_supports_canonical_alias_relative_root_and_internal_links(
 @pytest.mark.parametrize("kind", KINDS)
 def test_normal_expansion_output_matches_main(tmp_path: Path, kind: str) -> None:
     root = scaffold_project("project", tmp_path)
-    baseline = tmp_path / "baseline"
-    shutil.copytree(root, baseline)
-    source = subprocess.run(
-        ["git", "show", "f8a45fa:src/azure_functions_scaffold/generator/__init__.py"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    script = (
-        "import azure_functions_scaffold.generator as g; "
-        f"exec(compile({source!r},g.__file__,'exec'),g.__dict__); "
-        "from pathlib import Path; "
-        + (
-            f"g.add_resource(project_root=Path({str(baseline)!r}),resource_name='cli_items')"
-            if kind == "resource"
-            else f"g.add_route(project_root=Path({str(baseline)!r}),route_name='cli_escape')"
-            if kind == "route"
-            else f"g.add_function(project_root=Path({str(baseline)!r}),trigger={kind!r},"
-            "function_name='cli_escape')"
-        )
-    )
-    subprocess.run([sys.executable, "-c", script], check=True, capture_output=True, text=True)
+    before = {
+        p.relative_to(root).as_posix(): p.read_bytes() for p in root.rglob("*") if p.is_file()
+    }
     result = subprocess.run(command(kind, root), capture_output=True, text=True)
     assert result.returncode == 0, result.stdout + result.stderr
-    for path in root.rglob("*"):
-        if path.is_file():
-            assert path.read_bytes() == (baseline / path.relative_to(root)).read_bytes()
+    changed = {
+        p.relative_to(root).as_posix(): sha256(p.read_bytes()).hexdigest()
+        for p in root.rglob("*")
+        if p.is_file() and before.get(p.relative_to(root).as_posix()) != p.read_bytes()
+    }
+    golden = json.loads(
+        (Path(__file__).parent / "fixtures/expansion-main-f8a45fa.json").read_text()
+    )
+    assert sha256(json.dumps(changed, sort_keys=True).encode()).hexdigest() == golden[kind]
