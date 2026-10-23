@@ -97,7 +97,12 @@ dependency registries are trust boundaries. The scaffolder is not a runtime secu
 gateway: operators must configure identity, quotas, secret storage and deployment
 network policies. New LangGraph projects use FUNCTION authentication; only the
 generated-project setting `LANGGRAPH_PUBLIC_DEMO=true` opts into public execution
-with a startup WARNING. Core Tools local mode does not enforce function keys.
+only when the value is exactly lowercase `true` (no case folding or whitespace
+trimming). `True`, `TRUE`, `1`, `yes`, empty and whitespace/newline variants keep
+FUNCTION. A template-owned Python `UserWarning` during indexing is visible in
+local Core Tools host output; real-host tests assert it in public mode and its
+absence in default mode. This is not a claim about every cloud log configuration.
+Core Tools local mode does not enforce function keys.
 Keys are application access control, not user identity or thread authorization;
 consult the runtime library's `ThreadAuthorizer` documentation separately.
 
@@ -116,3 +121,17 @@ These output changes affect newly generated projects only. We consider changing
 anonymous graph execution to FUNCTION a deployment compatibility change warranting
 explicit release review; the maintainer decides versioning. No CLI/API change or
 automatic migration of existing projects is introduced.
+
+## Filesystem publication boundary
+
+The selected destination is a directory root alias: existing symlinked ancestors
+and a valid symlink selected as the destination are followed once to a canonical
+root, preserving the previous CLI contract. Dangling destination links are rejected.
+The project directory immediately below that canonical root cannot itself be a
+symlink. Before publication, any existing link along a generated output path that
+resolves outside the canonical project root is rejected without changing outside
+data. Other unrelated existing links are never followed by the staged whole-tree
+replacement or cleanup. Rendering uses a fresh sibling staging tree; overwrite
+and rollback rename whole directories and preserve original data on publish failure.
+Do not let an untrusted concurrent process mutate the selected directory during
+generation: this is a local filesystem boundary, not a hostile concurrent-filesystem sandbox.

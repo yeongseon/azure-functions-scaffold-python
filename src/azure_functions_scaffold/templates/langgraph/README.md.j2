@@ -16,8 +16,9 @@ Local `func start` does not enforce function keys, so local development is uncha
 
 Only for an intentionally public demo, set the generated project's app setting
 `LANGGRAPH_PUBLIC_DEMO=true` before startup. This switches graph routes to
-`ANONYMOUS` and emits a startup WARNING that the routes are public. Unset it (or
-use any value other than case-insensitive `true`) to keep FUNCTION authentication.
+`ANONYMOUS` and emits a template-owned Python `UserWarning` during indexing,
+visible in local Core Tools host output. Only the exact lowercase string `true`
+opts in: `True`, `TRUE`, `1`, `yes`, empty, whitespace and newline variants keep FUNCTION.
 Do not enable this setting in production. Existing generated projects are not modified.
 
 A function key is application-level access control, not user identity or per-user

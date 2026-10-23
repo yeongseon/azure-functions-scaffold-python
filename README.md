@@ -190,7 +190,8 @@ Template defaults:
 
 **Security change for new projects:** LangGraph execution now defaults to FUNCTION.
 Only `LANGGRAPH_PUBLIC_DEMO=true` in the generated project enables anonymous graph
-routes, with a startup WARNING. Local `func start` does not enforce keys, so local
+routes: only the exact lowercase string `true` opts in. A template-owned Python
+`UserWarning` during indexing is visible in local Core Tools output. Local `func start` does not enforce keys, so local
 development is unchanged. Existing projects are not migrated. Function keys are not
 per-user authorization. Review [generated-app security](docs/guide/security.md) and
 [SECURITY.md](SECURITY.md) before deployment.

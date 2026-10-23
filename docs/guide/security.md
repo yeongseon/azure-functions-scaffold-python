@@ -6,7 +6,11 @@ In Azure, send the function key in `x-functions-key`, not URLs. Core Tools local
 keys even when bindings declare FUNCTION. Local success is not an authentication test.
 
 Only for a deliberately public demo, set `LANGGRAPH_PUBLIC_DEMO=true` in the
-generated project's environment/app settings before startup. It selects ANONYMOUS
+generated project's environment/app settings before startup. Only the exact lowercase
+string `true` selects ANONYMOUS; `True`, `TRUE`, `1`, `yes`, empty, ` true ` and
+newline variants keep FUNCTION. The template emits a Python `UserWarning` during
+indexing, proven visible in local Core Tools host output (not a guarantee for every
+cloud logging configuration). It selects ANONYMOUS
 and logs a WARNING that graph routes are public. Other values retain FUNCTION.
 Never enable the demo profile in production. Existing projects are not rewritten.
 This new-project deployment compatibility change needs maintainer release review;
@@ -36,7 +40,18 @@ demo and has no backend retries; the standalone service delegates to the SDK.
 Apply identity, gateway rate limits/concurrency caps, token limits, per-user quotas,
 provider budgets and cost alerts before exposing billable AI/agent routes.
 
-Use a real output directory: scaffolding rejects destinations traversing symlinks.
+Symlinked ancestors and a valid selected destination alias are supported: the
+destination resolves to a canonical root. Dangling destination links, a symlinked
+project directory, and links along generated output paths that escape the canonical
+project root are rejected. Outside data is never followed during staged replacement
+or cleanup. Avoid concurrent untrusted mutation of the selected directory.
+
+## Upgrading or regenerating
+
+**BREAKING CHANGE for newly generated projects:** graph execution routes now require
+a function key in Azure (`x-functions-key`). For an intentionally public demo only,
+set exactly `LANGGRAPH_PUBLIC_DEMO=true`. Upgrading the scaffolder does not rewrite
+existing generated projects; regenerating creates the new deployment contract.
 Replacing a project requires explicit overwrite consent; publishing stages a new
 tree and restores the original on publish failure. Do not concurrently mutate the
 destination while generation runs; this is not an adversarial multi-user sandbox.
