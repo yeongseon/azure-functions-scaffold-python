@@ -49,7 +49,8 @@ def test_real_host_indexes_function_authenticated_graph_routes(tmp_path: Path) -
     host_port, blob_port, queue_port, table_port = ports
     connection = (
         "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;"
-        "AccountKey=Eby8vdM02xNOcqFeqCnf2V5IYFTg0u4RHGtD1QMK3tT8f3HQ==;"
+        "AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/"
+        "K1SZFPTOtr/KBHBeksoGMGw==;"
         f"BlobEndpoint=http://127.0.0.1:{blob_port}/devstoreaccount1;"
         f"QueueEndpoint=http://127.0.0.1:{queue_port}/devstoreaccount1;"
         f"TableEndpoint=http://127.0.0.1:{table_port}/devstoreaccount1;"
