@@ -135,3 +135,13 @@ replacement or cleanup. Rendering uses a fresh sibling staging tree; overwrite
 and rollback rename whole directories and preserve original data on publish failure.
 Do not let an untrusted concurrent process mutate the selected directory during
 generation: this is a local filesystem boundary, not a hostile concurrent-filesystem sandbox.
+
+Expansion (`advanced add`, `api add-route`, `api add-resource`) uses the same
+canonical-root boundary. Before any write it preflights function, test, schema,
+service, registration and configuration paths, then the complete planned atomic
+write set. Existing in-root links remain supported; escaping, dangling and looping
+paths fail with `ScaffoldError` before staging or registration changes. Expansion
+does not write README/docs/workflows; any future such writes must enter the same
+preflighted write set. Refused operations leave project and outside inventories
+unchanged. Checks are pathname-based, not directory-handle anchored: a concurrent
+untrusted rename/symlink swap between preflight and use remains a TOCTOU risk.

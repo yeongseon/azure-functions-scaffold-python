@@ -46,6 +46,13 @@ project directory, and links along generated output paths that escape the canoni
 project root are rejected. Outside data is never followed during staged replacement
 or cleanup. Avoid concurrent untrusted mutation of the selected directory.
 
+Expansion commands enforce the same canonical-root preflight before any file or
+registration update. Function/route/resource modules, tests, schemas, services and
+configuration targets cannot escape through symlinks. In-root links and project-root
+aliases remain supported. Dangling/looping paths produce a normal CLI error without
+changing either tree. This is pathname-based protection, not directory-handle anchored;
+concurrent untrusted path swaps remain a residual TOCTOU risk.
+
 ## Upgrading or regenerating
 
 **BREAKING CHANGE for newly generated projects:** graph execution routes now require
