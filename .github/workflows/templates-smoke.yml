@@ -1,5 +1,12 @@
 name: Generated Project Smoke Tests
 
+# A thin caller of tests/test_generated_projects.py, the lane the required `test`
+# job also runs. Each matrix cell only selects one node id; the lane scaffolds the
+# project, installs it into its own venv, runs its `make check-all`, requires at
+# least one executed and no skipped test, and applies Doctor's required profile.
+# A cell that selects, collects or executes nothing fails, and no step tolerates
+# a non-zero pytest exit status (tests/test_workflow_pin_hygiene.py guards this).
+
 on:
   pull_request:
     paths:
@@ -7,6 +14,7 @@ on:
       - "src/azure_functions_scaffold/template_registry.py"
       - "src/azure_functions_scaffold/scaffolder.py"
       - "src/azure_functions_scaffold/generator/**"
+      - "tests/test_generated_projects.py"
       - "pyproject.toml"
       - "*.lock"
       - ".github/workflows/templates-smoke.yml"
@@ -18,6 +26,7 @@ on:
       - "src/azure_functions_scaffold/template_registry.py"
       - "src/azure_functions_scaffold/scaffolder.py"
       - "src/azure_functions_scaffold/generator/**"
+      - "tests/test_generated_projects.py"
       - "pyproject.toml"
       - "*.lock"
       - ".github/workflows/templates-smoke.yml"
@@ -35,11 +44,12 @@ permissions:
 jobs:
   scaffold-and-validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         # Full template registry coverage is currently 10 entries, so we keep
-        # every template in the required matrix.
+        # every template in the matrix.
         template:
           - http
           - timer
@@ -67,90 +77,49 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Install scaffold CLI
-        run: pip install -e .[dev]
+        run: python -m pip install -e ".[dev]"
 
-      - name: Scaffold template project
+      - name: Run the generated-project lane for the template
         env:
           TEMPLATE: ${{ matrix.template }}
-          PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
-          workdir="${RUNNER_TEMP}/scaffold-test"
-          project_name="smoke_${TEMPLATE}"
-          rm -rf "${workdir}"
-          mkdir -p "${workdir}"
-          afs advanced new "${project_name}" \
-            --destination "${workdir}" \
-            --template "${TEMPLATE}" \
-            --preset strict \
-            --python-version "${PYTHON_VERSION}"
+          pytest "tests/test_generated_projects.py::test_generated_project_passes_in_isolated_venv[${TEMPLATE}]" \
+            --no-cov --junitxml=junit.xml
 
-      - name: Install generated project dependencies
-        env:
-          TEMPLATE: ${{ matrix.template }}
-        working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
-        run: pip install -e .[dev]
-
-      - name: Compile generated project
-        working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
-        run: python -m compileall -q .
-
-      - name: Lint generated project
-        working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
+      - name: Append counts to the job summary
+        if: always()
         run: |
-          if grep -Eq '^\[tool\.ruff' pyproject.toml; then
-            ruff check .
-          else
-            echo "Skipping ruff: generated project has no Ruff config"
-          fi
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import xml.etree.ElementTree as ET
 
-      - name: Type-check generated project
-        working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
-        run: |
-          if grep -Eq '^\[tool\.mypy' pyproject.toml; then
-            mypy .
-          else
-            echo "Skipping mypy: generated project has no mypy config"
-          fi
+          suite = ET.parse("junit.xml").getroot().find("testsuite")
+          counts = {k: int(suite.get(k, "0")) for k in ("tests", "failures", "errors", "skipped")}
+          print(" ".join(f"{k}={v}" for k, v in counts.items()))
+          assert counts["tests"] >= 1 and counts["skipped"] == 0, counts
+          PY
 
-      - name: Test generated project
-        working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
-        run: |
-          set +e
-          pytest -q
-          status=$?
-          set -e
-          if [ "${status}" -ne 0 ] && [ "${status}" -ne 5 ]; then
-            exit "${status}"
-          fi
-
-      - name: Run Doctor diagnostics on generated project
-        working-directory: ${{ runner.temp }}/scaffold-test/smoke_${{ matrix.template }}
-        run: |
-          python -m pip install azure-functions-doctor
-          # Doctor runs as an informational smoke check. Scaffolded projects are
-          # pyproject-only; older published azure-functions-doctor versions flag a
-          # missing requirements.txt as a diagnostics failure (exit 1). Tolerate
-          # exit 1 (findings) but fail the job on exit 2+ (CLI crash/usage error).
-          set +e
-          azure-functions-doctor doctor --path .
-          status=$?
-          set -e
-          if [ "${status}" -gt 1 ]; then
-            echo "azure-functions-doctor crashed (exit ${status})"
-            exit "${status}"
-          fi
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: junit-${{ matrix.template }}-py${{ matrix.python-version }}
+          path: junit.xml
+          retention-days: 7
 
   scaffold-with-features:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        flags:
-          - --with-openapi
-          - --with-validation
-          - --with-doctor
-          - --with-openapi --with-validation
-          - --with-openapi --with-validation --with-doctor
+        # The `--with-*` combinations of the http template; ids of
+        # test_generated_http_features_pass_in_isolated_venv.
+        features:
+          - openapi
+          - validation
+          - doctor
+          - openapi-validation
+          - openapi-validation-doctor
 
     steps:
       - name: Checkout code
@@ -164,74 +133,38 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Install scaffold CLI
-        run: pip install -e .[dev]
+        run: python -m pip install -e ".[dev]"
 
-      - name: Scaffold http project with features
+      - name: Run the generated-project lane for the feature combination
         env:
-          FEATURE_FLAGS: ${{ matrix.flags }}
+          FEATURES: ${{ matrix.features }}
         run: |
-          workdir="${RUNNER_TEMP}/scaffold-features"
-          rm -rf "${workdir}"
-          mkdir -p "${workdir}"
-          afs advanced new smoke_http_features \
-            --destination "${workdir}" \
-            --template http \
-            --preset strict \
-            --python-version 3.12 \
-            ${FEATURE_FLAGS}
+          pytest "tests/test_generated_projects.py::test_generated_http_features_pass_in_isolated_venv[${FEATURES}]" \
+            --no-cov --junitxml=junit.xml
 
-      - name: Install generated project dependencies
-        working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
-        run: pip install -e .[dev]
-
-      - name: Compile generated project
-        working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
-        run: python -m compileall -q .
-
-      - name: Lint generated project
-        working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
-        run: ruff check .
-
-      - name: Type-check generated project
-        working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
-        run: mypy .
-
-      - name: Test generated project
-        working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
+      - name: Append counts to the job summary
+        if: always()
         run: |
-          set +e
-          pytest -q
-          status=$?
-          set -e
-          if [ "${status}" -ne 0 ] && [ "${status}" -ne 5 ]; then
-            exit "${status}"
-          fi
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import xml.etree.ElementTree as ET
 
-      - name: Run Doctor target when generated project ships one
-        working-directory: ${{ runner.temp }}/scaffold-features/smoke_http_features
-        run: |
-          if grep -Eq '^doctor:' Makefile; then
-            # Tolerate diagnostics findings but fail on a Doctor crash or
-            # usage error. NOTE: GNU make reports a recipe command's exit 1
-            # as its own exit 2, which would mask tolerable findings. Doctor
-            # prints a "Doctor summary" line whenever it ran to completion
-            # (findings included), so treat any make failure WITHOUT that
-            # summary as a genuine crash/usage error and fail on it.
-            set +e
-            out="$(make doctor 2>&1)"
-            status=$?
-            set -e
-            printf '%s\n' "${out}"
-            if [ "${status}" -gt 1 ] && ! printf '%s' "${out}" | grep -q 'Doctor summary'; then
-              echo "make doctor failed unexpectedly (exit ${status})"
-              exit "${status}"
-            fi
-          else
-            echo "Skipping Doctor: generated project has no doctor target"
-          fi
+          suite = ET.parse("junit.xml").getroot().find("testsuite")
+          counts = {k: int(suite.get(k, "0")) for k in ("tests", "failures", "errors", "skipped")}
+          print(" ".join(f"{k}={v}" for k, v in counts.items()))
+          assert counts["tests"] >= 1 and counts["skipped"] == 0, counts
+          PY
+
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: junit-features-${{ matrix.features }}
+          path: junit.xml
+          retention-days: 7
 
   add-commands-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -245,115 +178,29 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Install scaffold CLI
-        run: pip install -e .[dev]
+        run: python -m pip install -e ".[dev]"
 
-      - name: Scaffold base http project
+      - name: Run the generated-project lane after the add commands
         run: |
-          workdir="${RUNNER_TEMP}/scaffold-add-commands"
-          rm -rf "${workdir}"
-          mkdir -p "${workdir}"
-          afs new smoke_http_additions \
-            --destination "${workdir}" \
-            --python-version 3.12
+          pytest "tests/test_generated_projects.py::test_generated_http_project_passes_after_add_commands" \
+            --no-cov --junitxml=junit.xml
 
-      - name: Add commands to generated project
-        working-directory: ${{ runner.temp }}/scaffold-add-commands/smoke_http_additions
+      - name: Append counts to the job summary
+        if: always()
         run: |
-          afs api add get-status --project-root .
-          afs api add-route status --project-root .
-          afs api add-resource products --project-root .
-          afs advanced add servicebus process-events --project-root .
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import xml.etree.ElementTree as ET
 
-      - name: Install generated project dependencies
-        working-directory: ${{ runner.temp }}/scaffold-add-commands/smoke_http_additions
-        run: pip install -e .[dev]
+          suite = ET.parse("junit.xml").getroot().find("testsuite")
+          counts = {k: int(suite.get(k, "0")) for k in ("tests", "failures", "errors", "skipped")}
+          print(" ".join(f"{k}={v}" for k, v in counts.items()))
+          assert counts["tests"] >= 1 and counts["skipped"] == 0, counts
+          PY
 
-      - name: Compile generated project
-        working-directory: ${{ runner.temp }}/scaffold-add-commands/smoke_http_additions
-        run: python -m compileall -q .
-
-      - name: Lint generated project
-        working-directory: ${{ runner.temp }}/scaffold-add-commands/smoke_http_additions
-        run: ruff check .
-
-      - name: Type-check generated project
-        working-directory: ${{ runner.temp }}/scaffold-add-commands/smoke_http_additions
-        run: mypy .
-
-      - name: Test generated project
-        working-directory: ${{ runner.temp }}/scaffold-add-commands/smoke_http_additions
-        run: |
-          set +e
-          pytest -q
-          status=$?
-          set -e
-          if [ "${status}" -ne 0 ] && [ "${status}" -ne 5 ]; then
-            exit "${status}"
-          fi
-
-  python-314:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        template:
-          - http
-          - durable
-        python-version:
-          - "3.14"
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: pip
-          cache-dependency-path: pyproject.toml
-
-      - name: Install scaffold CLI
-        run: pip install -e .[dev]
-
-      - name: Scaffold Python 3.14 template project
-        env:
-          TEMPLATE: ${{ matrix.template }}
-          PYTHON_VERSION: ${{ matrix.python-version }}
-        run: |
-          workdir="${RUNNER_TEMP}/scaffold-python-314"
-          project_name="python_314_${TEMPLATE}"
-          rm -rf "${workdir}"
-          mkdir -p "${workdir}"
-          afs advanced new "${project_name}" \
-            --destination "${workdir}" \
-            --template "${TEMPLATE}" \
-            --preset strict \
-            --python-version "${PYTHON_VERSION}"
-
-      - name: Install generated project dependencies
-        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
-        run: pip install -e .[dev]
-
-      - name: Compile generated project
-        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
-        run: python -m compileall -q .
-
-      - name: Lint generated project
-        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
-        run: ruff check .
-
-      - name: Type-check generated project
-        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
-        run: mypy .
-
-      - name: Test generated project
-        working-directory: ${{ runner.temp }}/scaffold-python-314/python_314_${{ matrix.template }}
-        run: |
-          set +e
-          pytest -q
-          status=$?
-          set -e
-          if [ "${status}" -ne 0 ] && [ "${status}" -ne 5 ]; then
-            exit "${status}"
-          fi
+          name: junit-add-commands
+          path: junit.xml
+          retention-days: 7

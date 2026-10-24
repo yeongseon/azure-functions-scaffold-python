@@ -7,8 +7,13 @@ against synthetic drift (must be caught). Keeps the vendored lint honest.
 from __future__ import annotations
 
 import importlib.util
+import itertools
 from pathlib import Path
 import re
+import string
+import subprocess
+import sys
+from typing import Any
 
 import yaml
 
@@ -16,6 +21,8 @@ from azure_functions_scaffold.template_registry import TEMPLATE_SPECS
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _LINT_PATH = _REPO_ROOT / "tools" / "lint_workflow_pins.py"
+_SMOKE_WORKFLOW = _REPO_ROOT / ".github" / "workflows" / "templates-smoke.yml"
+_LANE = "tests/test_generated_projects.py"
 
 _spec = importlib.util.spec_from_file_location("lint_workflow_pins", _LINT_PATH)
 assert _spec and _spec.loader
@@ -52,14 +59,13 @@ def test_workflow_path_filters_reference_existing_paths() -> None:
 
 
 def test_template_smoke_workflow_covers_inputs_and_registry() -> None:
-    workflow = yaml.safe_load(
-        (_REPO_ROOT / ".github" / "workflows" / "templates-smoke.yml").read_text(encoding="utf-8")
-    )
+    workflow = yaml.safe_load(_SMOKE_WORKFLOW.read_text(encoding="utf-8"))
     required_filters = (
         "src/azure_functions_scaffold/templates/**",
         "src/azure_functions_scaffold/template_registry.py",
         "src/azure_functions_scaffold/scaffolder.py",
         "src/azure_functions_scaffold/generator/**",
+        _LANE,
         "pyproject.toml",
         "*.lock",
         ".github/workflows/templates-smoke.yml",
@@ -70,6 +76,50 @@ def test_template_smoke_workflow_covers_inputs_and_registry() -> None:
     assert set(workflow["jobs"]["scaffold-and-validate"]["strategy"]["matrix"]["template"]) == {
         template.name for template in TEMPLATE_SPECS
     }
+
+
+def test_template_smoke_workflow_tolerates_no_exit_status() -> None:
+    workflow = yaml.safe_load(_SMOKE_WORKFLOW.read_text(encoding="utf-8"))
+    steps = [step for job in workflow["jobs"].values() for step in job["steps"]]
+    scripts = "\n".join(step.get("run", "") for step in steps)
+
+    # Then: no exit-5 tolerance, no swallowed failure, no step or job allowed to fail.
+    assert [word for word in ("-ne 5", "|| true", "set +e") if word in scripts] == []
+    assert not [job for job in workflow["jobs"].values() if "continue-on-error" in job]
+    assert not [step for step in steps if "continue-on-error" in step]
+
+
+def _lane_node_ids(job: dict[str, Any]) -> set[str]:
+    """Node ids a job's pytest steps select, with ``${MATRIX_KEY}`` expanded per matrix cell."""
+    matrix = job.get("strategy", {}).get("matrix", {})
+    cells = [
+        {key.upper().replace("-", "_"): value for key, value in zip(matrix, values, strict=True)}
+        for values in itertools.product(*matrix.values())
+    ]
+    scripts = "\n".join(step.get("run", "") for step in job["steps"])
+    nodes = re.findall(rf'{re.escape(_LANE)}::[^"\s]+', scripts)
+    return {string.Template(node).substitute(cell) for node in nodes for cell in cells}
+
+
+def test_template_smoke_cells_select_existing_lane_node_ids() -> None:
+    workflow = yaml.safe_load(_SMOKE_WORKFLOW.read_text(encoding="utf-8"))
+    pytest = [sys.executable, "-m", "pytest", "-o", "addopts=", "-p", "no:cacheprovider"]
+    listing = subprocess.run(
+        [*pytest, "--collect-only", "-q", _LANE],
+        cwd=_REPO_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert listing.returncode == 0, listing.stdout + listing.stderr
+    collected = {line for line in listing.stdout.splitlines() if "::" in line}
+
+    for job_id, job in workflow["jobs"].items():
+        selected = _lane_node_ids(job)
+        assert selected, f"{job_id} selects no node id of {_LANE}"
+        assert selected <= collected, (
+            f"{job_id} selects unknown ids: {sorted(selected - collected)}"
+        )
 
 
 def test_sha_with_comment_passes() -> None:
