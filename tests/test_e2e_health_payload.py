@@ -18,6 +18,7 @@ import requests
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _E2E_TEST_PATH = _REPO_ROOT / "tests" / "e2e" / "test_scaffold_e2e.py"
+_OFFLINE_URL = "https://offline.invalid"
 
 _spec = importlib.util.spec_from_file_location("scaffold_e2e", _E2E_TEST_PATH)
 assert _spec and _spec.loader
@@ -41,25 +42,18 @@ def _response(status_code: int, body: bytes) -> requests.Response:
         b"<html>token validation failed</html>",
     ],
 )
-def test_health_check_rejects_invalid_payloads(
-    monkeypatch: pytest.MonkeyPatch, body: bytes
-) -> None:
-    monkeypatch.setattr(e2e_mod, "BASE_URL", "https://offline.invalid")
+def test_health_check_rejects_invalid_payloads(body: bytes) -> None:
     with patch.object(e2e_mod.requests, "get", return_value=_response(200, body)):
         with pytest.raises(AssertionError):
-            e2e_mod.test_health_endpoint_returns_200()
+            e2e_mod.test_health_endpoint_returns_200(_OFFLINE_URL)
 
 
-def test_health_check_accepts_valid_payload(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(e2e_mod, "BASE_URL", "https://offline.invalid")
+def test_health_check_accepts_valid_payload() -> None:
     with patch.object(e2e_mod.requests, "get", return_value=_response(200, b'{"status":"ok"}')):
-        e2e_mod.test_health_endpoint_returns_200()
+        e2e_mod.test_health_endpoint_returns_200(_OFFLINE_URL)
 
 
-def test_health_check_rejects_non_200_even_with_valid_payload(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(e2e_mod, "BASE_URL", "https://offline.invalid")
+def test_health_check_rejects_non_200_even_with_valid_payload() -> None:
     with patch.object(e2e_mod.requests, "get", return_value=_response(503, b'{"status":"ok"}')):
         with pytest.raises(AssertionError):
-            e2e_mod.test_health_endpoint_returns_200()
+            e2e_mod.test_health_endpoint_returns_200(_OFFLINE_URL)
