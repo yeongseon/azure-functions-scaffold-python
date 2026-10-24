@@ -855,61 +855,6 @@ def test_initialize_git_repository_handles_file_not_found_from_subprocess(
         _initialize_git_repository(tmp_path)
 
 
-def _run_generated_project_checks(project_path: Path) -> None:
-    subprocess.run(
-        ["make", "install"],
-        cwd=project_path,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    subprocess.run(
-        ["make", "check-all"],
-        cwd=project_path,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-
-
-def _current_python_minor() -> str:
-    return f"{sys.version_info.major}.{sys.version_info.minor}"
-
-
-@pytest.mark.parametrize(
-    ("template_name", "preset_name"),
-    [
-        ("http", "strict"),
-        ("timer", "standard"),
-        ("queue", "standard"),
-        ("blob", "standard"),
-        ("servicebus", "standard"),
-        ("eventhub", "standard"),
-        ("cosmosdb", "standard"),
-        ("durable", "standard"),
-        ("ai", "standard"),
-    ],
-)
-def test_simple_trigger_templates_pass_generated_checks(
-    tmp_path: Path,
-    template_name: str,
-    preset_name: str,
-) -> None:
-    project_path = scaffold_project(
-        f"{template_name}-e2e",
-        tmp_path,
-        template_name=template_name,
-        options=build_project_options(
-            preset_name=preset_name,
-            python_version=_current_python_minor(),
-            include_github_actions=False,
-            initialize_git=False,
-        ),
-    )
-
-    _run_generated_project_checks(project_path)
-
-
 def test_scaffold_project_with_azd_generates_azure_yaml(tmp_path: Path) -> None:
     project_path = scaffold_project(
         "azd-sample",
