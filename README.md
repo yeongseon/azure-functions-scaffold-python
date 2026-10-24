@@ -300,10 +300,15 @@ Use Makefile commands as the canonical entry points:
 
 ```bash
 make install
+make doctor      # read-only: reports missing required tools, changes nothing
 make check-all
 make docs
 make build
 ```
+
+For jobs that provision their own Python, `make install-ci` installs the project with its `dev` and
+`docs` extras into the interpreter you select (`make install-ci PYTHON=python3.12`) instead of
+creating the Hatch environment.
 
 ## Ecosystem
 

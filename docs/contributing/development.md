@@ -42,7 +42,9 @@ Use these commands to manage your development workflow:
 
 | Target | Description |
 | :--- | :--- |
-| `make install` | Initial setup (venv, hatch, pre-commit hooks) |
+| `make install` | Initial setup (venv, hatch, pre-commit hooks); Hatch is installed only if missing |
+| `make install-ci` | Install the project with its `dev` and `docs` extras into the selected `PYTHON`, without Hatch (for jobs that provision their own Python) |
+| `make doctor` | Read-only check of the required tools (Python 3.11+, Hatch, git); lists `func` and `azurite` as optional |
 | `make format` | Format code using Ruff |
 | `make lint` | Run style checks and type analysis |
 | `make test` | Run the full test suite |

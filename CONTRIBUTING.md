@@ -81,6 +81,7 @@ make typecheck   # Type check with mypy
 make test        # Run tests
 make cov         # Run tests with coverage
 make check-all   # Run the full local gate
+make doctor      # Report missing required tools (read-only)
 ```
 
 Before opening a PR, run `ruff format --check <changed-python-files>` (or
