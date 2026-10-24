@@ -1,5 +1,5 @@
 VENV_DIR := .venv
-# The interpreter you select: it builds the virtual environment.
+# The interpreter you select: it builds the virtual environment and receives `make install-ci`.
 PYTHON ?= python3
 PIP := $(VENV_DIR)/bin/pip
 HATCH := $(VENV_DIR)/bin/hatch
@@ -24,6 +24,11 @@ install: ensure-hatch
 	else \
 		$(MAKE) precommit-install; \
 	fi
+
+# Installs into the selected interpreter (PYTHON), never into Hatch's default environment.
+.PHONY: install-ci
+install-ci:
+	@$(PYTHON) -m pip install -e ".[dev,docs]"
 
 .PHONY: shell
 shell: ensure-hatch
@@ -162,13 +167,29 @@ docs:
 docs-serve: ensure-hatch
 	@$(HATCH) run docs
 
+# Read-only: reports on tools and never installs or writes anything. Fails (non-zero) when a
+# required tool is missing or the interpreter is older than Python 3.11.
+REQUIRED_TOOLS ?= $(PYTHON) $(HATCH) git
+OPTIONAL_TOOLS ?= func azurite
+
 .PHONY: doctor
 doctor:
-	@echo "Python version:" && $(PYTHON) --version
-	@echo "Installed packages:" && $(HATCH) env run pip list || echo "No hatch environment found"
-	@echo "Azure Function Core Tools version:" && func --version || echo "func not found"
-	@echo "Pre-commit hook installed:"
-	@if [ -f .git/hooks/pre-commit ]; then echo yes; else echo no; fi
+	@status=0; \
+	for tool in $(REQUIRED_TOOLS); do \
+		if ! command -v "$$tool" > /dev/null 2>&1; then \
+			echo "MISSING  $$tool"; status=1; \
+		elif [ "$$tool" = "$(PYTHON)" ] && ! "$$tool" -c 'import sys; sys.exit(sys.version_info < (3, 11))'; then \
+			echo "TOO OLD  $$tool (Python 3.11 or newer is required)"; status=1; \
+		else \
+			echo "ok       $$tool"; \
+		fi; \
+	done; \
+	echo "Optional (only make e2e-local and make security-host run a Functions host):"; \
+	for tool in $(OPTIONAL_TOOLS); do \
+		if command -v "$$tool" > /dev/null 2>&1; then echo "ok       $$tool"; else echo "absent   $$tool"; fi; \
+	done; \
+	[ $$status -eq 0 ] || echo "Not ready: make install creates $(HATCH); PYTHON=python3.12 selects another interpreter."; \
+	exit $$status
 
 .PHONY: clean
 clean:
