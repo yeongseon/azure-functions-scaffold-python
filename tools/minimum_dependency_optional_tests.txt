@@ -1,2 +1,3 @@
 # Generated projects intentionally resolve and certify their own current dependency sets.
 tests/test_scaffolder.py::test_simple_trigger_templates_pass_generated_checks
+tests/test_generated_projects.py
