@@ -90,17 +90,14 @@ Each pull request is tested against a matrix of environments to ensure broad com
 
 ## Generated-project smoke tests
 
-The `templates-smoke.yml` workflow scaffolds every template on every push that touches `src/azure_functions_scaffold/templates/**` or related code, then runs `compileall`, `ruff`, `mypy`, and `pytest` against each generated project. This catches template-level breakage that unit tests cannot - for example, a marker-string drift between `generator.py` constants and template comments.
+`tests/test_generated_projects.py` is the single definition of the generated-project gate. For every registered template, for each `--with-*` feature combination of the `http` template, and for the `afs new` project after `afs api add` / `afs advanced add`, it scaffolds the project, installs it into its own virtual environment (so a dependency the project does not declare fails), runs the project's own `make check-all` (Ruff, mypy, pytest), requires at least one executed test and none skipped, and runs Doctor's required (`--profile minimal`) rules. This catches template-level breakage that unit tests cannot - for example, a marker-string drift between `generator.py` constants and template comments. The required `test` job runs it on every supported Python.
 
-Local equivalent:
+The `templates-smoke.yml` workflow runs the same node ids as parallel matrix cells: one per template on Python 3.11 and 3.12, one per feature combination and one for the add commands on Python 3.12. It runs daily and when a pull request or a push to `main` changes the templates, the scaffolder or the lane. Each cell uploads its JUnit report, a cell that executes no test fails, and no step tolerates a non-zero pytest exit status.
+
+Local equivalent (one template; `--no-cov` because a single node cannot reach the coverage threshold):
 
 ```bash
-tmpdir=$(mktemp -d)
-cd "$tmpdir"
-afs new smoke --python-version 3.12
-cd smoke
-python -m compileall -q .
-ruff check . && mypy . && pytest -q
+pytest --no-cov "tests/test_generated_projects.py::test_generated_project_passes_in_isolated_venv[http]"
 ```
 
 ## Azure End-to-End Tests
