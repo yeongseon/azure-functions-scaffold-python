@@ -1,9 +1,13 @@
 """Run every registered template's generated project in its own venv and fail closed.
 
-Per template: scaffold (strict preset, this interpreter's minor) -> generated ``make install``
+Per project: scaffold (strict preset, this interpreter's minor) -> generated ``make install``
 into its own ``.venv`` (this checkout's dev extras cannot mask an undeclared dependency) ->
 generated ``make check-all`` (ruff, mypy, pytest) -> pytest rerun with JUnit (at least one test,
 none skipped or xfailed) -> Doctor's own required (``minimal``) profile.
+
+The projects are one per registered template, the http template with each ``--with-*`` feature
+combination, and the ``afs new`` project after ``afs api add`` / ``afs advanced add``. The
+``templates-smoke.yml`` workflow runs these same node ids, one matrix cell each.
 """
 
 from __future__ import annotations
@@ -16,12 +20,33 @@ import sys
 import xml.etree.ElementTree as ET
 
 import pytest
+from typer.testing import CliRunner
 
+from azure_functions_scaffold.cli import app
 from azure_functions_scaffold.scaffolder import scaffold_project
-from azure_functions_scaffold.template_registry import build_project_options, list_templates
+from azure_functions_scaffold.template_registry import (
+    INTENT_SPECS,
+    build_project_options,
+    list_templates,
+)
 
 PYTHON_MINOR = f"{sys.version_info.major}.{sys.version_info.minor}"
 DOCTOR_GAP = "langgraph"
+# http template feature combinations; an id is the `-`-joined `--with-*` names.
+FEATURE_COMBOS = (
+    "openapi",
+    "validation",
+    "doctor",
+    "openapi-validation",
+    "openapi-validation-doctor",
+)
+# Applied to the `afs new` project (http, strict, openapi + validation + doctor).
+ADD_COMMANDS = (
+    ("api", "add", "get-status"),
+    ("api", "add-route", "status"),
+    ("api", "add-resource", "products"),
+    ("advanced", "add", "servicebus", "process-events"),
+)
 
 
 def _run(command: list[str], cwd: Path) -> str:
@@ -45,7 +70,7 @@ def _run(command: list[str], cwd: Path) -> str:
     return done.stdout
 
 
-def _scaffold(tmp_path: Path, template: str) -> Path:
+def _scaffold(tmp_path: Path, template: str, features: frozenset[str] = frozenset()) -> Path:
     return scaffold_project(
         f"{template}-isolated",
         tmp_path,
@@ -55,6 +80,9 @@ def _scaffold(tmp_path: Path, template: str) -> Path:
             python_version=PYTHON_MINOR,
             include_github_actions=False,
             initialize_git=False,
+            include_openapi="openapi" in features,
+            include_validation="validation" in features,
+            include_doctor="doctor" in features,
         ),
     )
 
@@ -68,10 +96,13 @@ def _assert_doctor_required_profile(root: Path) -> None:
     assert evaluated >= 5, f"Doctor evaluated {evaluated} required rules, expected at least 5"
 
 
-@pytest.mark.slow
-@pytest.mark.parametrize("template", [template.name for template in list_templates()])
-def test_generated_project_passes_in_isolated_venv(tmp_path: Path, template: str) -> None:
-    root = _scaffold(tmp_path, template)
+def _assert_tests_executed(junit: Path) -> None:
+    cases = ET.parse(junit).getroot().findall(".//testcase")
+    skipped = [case.get("name") for case in cases if case.find("skipped") is not None]
+    assert cases and not skipped, f"{len(cases)} tests ran; skipped or xfailed: {skipped}"
+
+
+def _assert_project_passes(root: Path, *, doctor: bool = True) -> None:
     venv_python = root / ".venv" / "bin" / "python"
 
     # Own venv: only the project's declared dependencies, on the interpreter running this test.
@@ -86,13 +117,53 @@ def test_generated_project_passes_in_isolated_venv(tmp_path: Path, template: str
     _run(["make", "check-all"], root)
     junit = root / "junit.xml"
     _run([str(venv_python), "-m", "pytest", "-q", f"--junitxml={junit}"], root)
-    cases = ET.parse(junit).getroot().findall(".//testcase")
-    skipped = [case.get("name") for case in cases if case.find("skipped") is not None]
-    executed = len(cases)
-    assert executed >= 1 and not skipped, f"{executed} tests ran; skipped or xfailed: {skipped}"
+    _assert_tests_executed(junit)
 
-    if template != DOCTOR_GAP:
+    if doctor:
         _assert_doctor_required_profile(root)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("template", [template.name for template in list_templates()])
+def test_generated_project_passes_in_isolated_venv(tmp_path: Path, template: str) -> None:
+    _assert_project_passes(_scaffold(tmp_path, template), doctor=template != DOCTOR_GAP)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("combo", FEATURE_COMBOS)
+def test_generated_http_features_pass_in_isolated_venv(tmp_path: Path, combo: str) -> None:
+    _assert_project_passes(_scaffold(tmp_path, "http", frozenset(combo.split("-"))))
+
+
+@pytest.mark.slow
+def test_generated_http_project_passes_after_add_commands(tmp_path: Path) -> None:
+    root = _scaffold(tmp_path, "http", INTENT_SPECS["api/new"].features)
+    for command in ADD_COMMANDS:
+        result = CliRunner().invoke(app, [*command, "--project-root", str(root)])
+        assert result.exit_code == 0, f"afs {' '.join(command)} failed:\n{result.output}"
+    _assert_project_passes(root)
+
+
+@pytest.mark.parametrize(
+    "testcases",
+    [
+        "",
+        '<testcase name="t"><skipped/></testcase>',
+        '<testcase name="t"><skipped type="pytest.xfail"/></testcase>',
+    ],
+    ids=["none-collected", "skipped", "xfailed"],
+)
+def test_suite_without_an_executed_test_fails_the_lane(tmp_path: Path, testcases: str) -> None:
+    junit = tmp_path / "junit.xml"
+    junit.write_text(f"<testsuites><testsuite>{testcases}</testsuite></testsuites>")
+    with pytest.raises(AssertionError):
+        _assert_tests_executed(junit)
+
+
+def test_suite_with_an_executed_test_passes_the_lane(tmp_path: Path) -> None:
+    junit = tmp_path / "junit.xml"
+    junit.write_text('<testsuites><testsuite><testcase name="t"/></testsuite></testsuites>')
+    _assert_tests_executed(junit)
 
 
 @pytest.mark.xfail(
