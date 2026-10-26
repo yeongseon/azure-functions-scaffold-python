@@ -1,6 +1,32 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.10.0](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.9.1...v0.10.0) (2026-10-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* **templates:** secure generated apps by default and scan rendered output ([#451](https://github.com/yeongseon/azure-functions-scaffold-python/issues/451))
+
+### Bug Fixes
+
+* **ci:** keep constraints-min.txt out of Dependabot's pip scan ([#446](https://github.com/yeongseon/azure-functions-scaffold-python/issues/446)) ([f8a45fa](https://github.com/yeongseon/azure-functions-scaffold-python/commit/f8a45fad69b6f21bb9fb30607f4de71c1cfd8f41))
+* **e2e:** fail instead of skip when Azure e2e inputs are missing ([#460](https://github.com/yeongseon/azure-functions-scaffold-python/issues/460)) ([452ad70](https://github.com/yeongseon/azure-functions-scaffold-python/commit/452ad7081998c6c3631f2ed90f837c37eba961bb))
+* **generator:** configure the extension bundle when adding durable functions ([#432](https://github.com/yeongseon/azure-functions-scaffold-python/issues/432)) ([2cd0751](https://github.com/yeongseon/azure-functions-scaffold-python/commit/2cd0751423faaf99c83efba34a07d0eb8182925d)), closes [#418](https://github.com/yeongseon/azure-functions-scaffold-python/issues/418)
+* **generator:** prevent generated resource function names from breaking app indexing ([#433](https://github.com/yeongseon/azure-functions-scaffold-python/issues/433)) ([7cbf9e3](https://github.com/yeongseon/azure-functions-scaffold-python/commit/7cbf9e348653de1e745b0f7cfa2b44c5e4012be1)), closes [#420](https://github.com/yeongseon/azure-functions-scaffold-python/issues/420)
+* **generator:** reject dangling output symlinks before writing ([#436](https://github.com/yeongseon/azure-functions-scaffold-python/issues/436)) ([18283f5](https://github.com/yeongseon/azure-functions-scaffold-python/commit/18283f5d0fca4770e54b1d72d68fb9cba35b887e)), closes [#412](https://github.com/yeongseon/azure-functions-scaffold-python/issues/412)
+* **generator:** scope dependency edits to the project TOML table ([#435](https://github.com/yeongseon/azure-functions-scaffold-python/issues/435)) ([ac35dfc](https://github.com/yeongseon/azure-functions-scaffold-python/commit/ac35dfc6fa7b465facfacfd41bf5bd0a5b031abd)), closes [#411](https://github.com/yeongseon/azure-functions-scaffold-python/issues/411)
+* **generator:** synchronize deployment requirements after adding dependencies ([#430](https://github.com/yeongseon/azure-functions-scaffold-python/issues/430)) ([041715f](https://github.com/yeongseon/azure-functions-scaffold-python/commit/041715fa8e50ab6f11304ec1e6a9573992f13d6e)), closes [#410](https://github.com/yeongseon/azure-functions-scaffold-python/issues/410)
+* **packaging:** preserve generated requirements files in project source distributions ([#442](https://github.com/yeongseon/azure-functions-scaffold-python/issues/442)) ([b99b24b](https://github.com/yeongseon/azure-functions-scaffold-python/commit/b99b24b17aac57bcd8b85aac4fae4f0a3cf54eae)), closes [#422](https://github.com/yeongseon/azure-functions-scaffold-python/issues/422)
+* **scaffolder:** retain the original backup when rollback fails ([#428](https://github.com/yeongseon/azure-functions-scaffold-python/issues/428)) ([b6e312b](https://github.com/yeongseon/azure-functions-scaffold-python/commit/b6e312be94385ae8bfe950c7fd04da77e1b3a829)), closes [#409](https://github.com/yeongseon/azure-functions-scaffold-python/issues/409)
+* **scaffold:** include generated requirements in new-project previews ([#437](https://github.com/yeongseon/azure-functions-scaffold-python/issues/437)) ([9b50055](https://github.com/yeongseon/azure-functions-scaffold-python/commit/9b5005538037093f757a4e88f93ce4057830192d)), closes [#413](https://github.com/yeongseon/azure-functions-scaffold-python/issues/413)
+* **templates:** avoid duplicate durable starter routes when expanding an app ([#434](https://github.com/yeongseon/azure-functions-scaffold-python/issues/434)) ([eee55ad](https://github.com/yeongseon/azure-functions-scaffold-python/commit/eee55ad785e46caa587ec448a31ddc672c92294e)), closes [#419](https://github.com/yeongseon/azure-functions-scaffold-python/issues/419)
+* **templates:** generate cosmos db bindings compatible with extension bundle 4 ([#431](https://github.com/yeongseon/azure-functions-scaffold-python/issues/431)) ([c8c7f57](https://github.com/yeongseon/azure-functions-scaffold-python/commit/c8c7f57eebbff1118fae463e054c9161ecf022ac)), closes [#417](https://github.com/yeongseon/azure-functions-scaffold-python/issues/417)
+* **templates:** reject malformed webhook signatures without raising type errors ([#443](https://github.com/yeongseon/azure-functions-scaffold-python/issues/443)) ([e691b87](https://github.com/yeongseon/azure-functions-scaffold-python/commit/e691b87d4bbe1f2d7f60f6b4d78448803e6e41b7)), closes [#423](https://github.com/yeongseon/azure-functions-scaffold-python/issues/423)
+* **templates:** secure generated apps by default and scan rendered output ([#451](https://github.com/yeongseon/azure-functions-scaffold-python/issues/451)) ([4bd2a0a](https://github.com/yeongseon/azure-functions-scaffold-python/commit/4bd2a0a0a0fbcbae5f5ac26a23f5daa4ac441eca))
+* **templates:** validate ai request objects and prompt types before processing ([#441](https://github.com/yeongseon/azure-functions-scaffold-python/issues/441)) ([77074db](https://github.com/yeongseon/azure-functions-scaffold-python/commit/77074dbe43e31ec544909e0f8143965b5d615349)), closes [#421](https://github.com/yeongseon/azure-functions-scaffold-python/issues/421)
+* **writer:** preserve the destination when a write fails partway through ([#427](https://github.com/yeongseon/azure-functions-scaffold-python/issues/427)) ([ae907ed](https://github.com/yeongseon/azure-functions-scaffold-python/commit/ae907eda7761984c4eb6f81c74807d0d94cf5ed0)), closes [#408](https://github.com/yeongseon/azure-functions-scaffold-python/issues/408)
+
 ## [0.9.1](https://github.com/yeongseon/azure-functions-scaffold-python/compare/v0.9.0...v0.9.1) (2026-10-07)
 
 
