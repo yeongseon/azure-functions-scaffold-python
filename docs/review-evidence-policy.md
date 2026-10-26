@@ -95,11 +95,11 @@ exceptions in PR history rather than being recorded as if a review had occurred:
   pinned SHA matches its claimed tag (see AGENTS.md). This human check *is* the review evidence —
   record the SHA/tag comparison performed.
 - **Forks**: external PRs are reviewed by a maintainer before merge; Copilot review may be
-  unavailable or restricted on fork PRs depending on repository settings — record "unavailable"
-  explicitly rather than silently skipping the field.
+  unavailable or restricted on fork PRs depending on repository settings. Routine PRs need no
+  availability record; record significant findings and retain the R3 authorization record when applicable.
 - **Reviewer outages / emergencies**: if Copilot review is unavailable (quota, outage, provider
-  error), record the unavailability and fall back to human review before merge. This is never a
-  reason to merge with the review field left blank.
+  error), fall back to human review before merge. Record the outage only when it leaves a material
+  verification gap; routine PRs need no empty review field. R3 authorization remains required.
 
 ## Provenance pitfalls (do not accept as evidence)
 
