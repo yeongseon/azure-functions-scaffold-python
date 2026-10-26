@@ -31,6 +31,14 @@
 
 <!-- Link to related issues: Closes #123 -->
 
+### Breaking-change impact (only if applicable)
+
+<!-- Complete this only when the PR title has ! or the final squash commit uses a BREAKING CHANGE: footer. Otherwise remove/leave blank. -->
+- Previous supported behavior:
+- New incompatible behavior:
+- Affected consumers and scope (existing deployments, new/regenerated projects, versions, etc.):
+- Migration or mitigation (or "none", with explanation):
+
 ## Review Evidence
 
 <!-- See docs/review-evidence-policy.md (advisory, not a required check).
