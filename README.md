@@ -340,6 +340,10 @@ Reference:
 - Repository: https://github.com/yeongseon/azure-functions-scaffold-python
 - Issue: [#40](https://github.com/yeongseon/azure-functions-scaffold-python/issues/40)
 
+## Contributing
+
+Newcomers welcome! See [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md) for setup and PR workflow. Browse [good first issue](https://github.com/yeongseon/azure-functions-scaffold-python/labels/good%20first%20issue) for bounded starter tasks, or [help wanted](https://github.com/yeongseon/azure-functions-scaffold-python/labels/help%20wanted) for tasks that may need more codebase context. Comment on an issue to request assignment.
+
 ## Disclaimer
 
 This project is an independent community project and is not affiliated with,
