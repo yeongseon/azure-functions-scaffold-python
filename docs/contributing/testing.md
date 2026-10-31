@@ -81,6 +81,17 @@ A minimum coverage of **95%** is required. PRs that drop the coverage below this
 - Include both success and error paths (edge cases).
 - Use descriptive function names like `test_scaffolder_fails_on_duplicate_name`.
 
+When a test name alone does not explain a recovery, ownership, or generated-app
+integrity invariant, add a concise one-line English docstring stating the
+protected condition. For example, distinguish a rendering failure that leaves
+the original target untouched from a restoration failure that must retain the
+only surviving backup and report its location. Explain a filesystem-failure
+mock's ordering or an unusual expected result with one nearby inline comment
+only when needed. Prefer renaming vague tests; leave clearly named list, CLI,
+and validation tests uncluttered. This is not a comment-per-test requirement or
+a new lint rule, and readability edits must preserve fixtures, mock sequences,
+assertions, and generated output.
+
 ## CI Matrix
 
 Each pull request is tested against a matrix of environments to ensure broad compatibility:
