@@ -106,6 +106,7 @@ def test_add_function_rejects_existing_module(tmp_path: Path) -> None:
 
 
 def test_add_function_rejects_dangling_output_symlink(tmp_path: Path) -> None:
+    """An absent outside target does not make a user-owned symlink safe to overwrite."""
     project_root = scaffold_project("sample", tmp_path)
     outside = tmp_path / "outside.py"
     function_path = project_root / "app" / "functions" / "status.py"
@@ -120,6 +121,7 @@ def test_add_function_rejects_dangling_output_symlink(tmp_path: Path) -> None:
 
 
 def test_add_route_rejects_dangling_output_symlink(tmp_path: Path) -> None:
+    """Reject the user-owned link without creating its destination outside the project."""
     project_root = scaffold_project("sample", tmp_path)
     outside = tmp_path / "outside.py"
     blueprint_path = project_root / "app" / "functions" / "status.py"
@@ -134,6 +136,7 @@ def test_add_route_rejects_dangling_output_symlink(tmp_path: Path) -> None:
 
 
 def test_add_resource_rejects_dangling_output_symlink(tmp_path: Path) -> None:
+    """Reject the user-owned link without creating its destination outside the project."""
     project_root = scaffold_project("sample", tmp_path)
     outside = tmp_path / "outside.py"
     blueprint_path = project_root / "app" / "functions" / "widget.py"
@@ -211,6 +214,7 @@ def test_add_function_rolls_back_on_function_app_write_failure(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """An entrypoint commit failure removes the new module and test, avoiding orphaned files."""
     import os
 
     project_root = scaffold_project("sample", tmp_path)
@@ -234,11 +238,7 @@ def test_add_function_rolls_back_on_function_app_write_failure(
 def test_add_route_preserves_entrypoint_on_partial_write_failure(
     tmp_path: Path,
 ) -> None:
-    """Regression (#408): a write that fails partway through committing the
-    destination (e.g. disk-full during the final atomic replace) must never
-    leave the existing function_app.py truncated or damaged -- new content
-    is staged in a temp file first, so the real destination is either fully
-    replaced or never touched at all."""
+    """A failed atomic replace preserves entrypoint bytes and removes the new route files."""
     import os
     from unittest.mock import patch
 
@@ -251,6 +251,7 @@ def test_add_route_preserves_entrypoint_on_partial_write_failure(
     def failing_replace(src: Any, dst: Any, *args: Any, **kwargs: Any) -> None:
         nonlocal failed
         if Path(dst) == entry and not failed:
+            # Fail the entrypoint commit once; subsequent rollback writes can succeed.
             failed = True
             msg = "synthetic disk-full during atomic replace"
             raise OSError(msg)
@@ -268,11 +269,7 @@ def test_add_route_preserves_entrypoint_on_partial_write_failure(
 def test_add_durable_function_synchronizes_deployment_requirements(
     tmp_path: Path,
 ) -> None:
-    """Regression (#410): adding a durable function updates pyproject.toml's
-    dependencies but previously left requirements.txt (the deployment
-    install manifest) unchanged, so a remote-build deployment installed
-    from requirements.txt would be missing azure-functions-durable even
-    though a dev install from pyproject would succeed."""
+    """Durable additions keep development and remote-build dependency manifests in agreement."""
     project_root = scaffold_project("sample", tmp_path)
 
     add_function(project_root=project_root, trigger="durable", function_name="workflow")
@@ -293,9 +290,7 @@ def test_add_durable_function_synchronizes_deployment_requirements(
 def test_add_durable_function_requirements_sync_is_idempotent(
     tmp_path: Path,
 ) -> None:
-    """Regression (#410): adding a second durable function must not
-    duplicate the dependency entry or needlessly rewrite requirements.txt
-    when nothing actually changed."""
+    """Repeated Durable additions retain exactly one deployment dependency entry."""
     project_root = scaffold_project("sample", tmp_path)
 
     add_function(project_root=project_root, trigger="durable", function_name="workflow_one")
@@ -312,9 +307,7 @@ def test_add_durable_function_requirements_sync_is_idempotent(
 def test_add_durable_function_skips_requirements_sync_without_existing_file(
     tmp_path: Path,
 ) -> None:
-    """Regression (#410): a project predating generated requirements.txt
-    must not have one silently created -- only synchronize when the file
-    already exists."""
+    """Synchronizing dependencies must not introduce a deployment manifest into older projects."""
     project_root = scaffold_project("sample", tmp_path)
     (project_root / "requirements.txt").unlink()
 
@@ -378,6 +371,7 @@ def test_commit_pending_writes_reports_incomplete_rollback(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Failed restoration reports the unrecovered path and retains the commit error cause."""
     import os
 
     first_path = tmp_path / "first.txt"
@@ -389,6 +383,7 @@ def test_commit_pending_writes_reports_incomplete_rollback(
     def failing_replace(src: Any, dst: Any, *args: Any, **kwargs: Any) -> None:
         nonlocal calls
         calls += 1
+        # Commit the first file, fail the second, then fail restoration of the first.
         if calls == 2:
             raise PermissionError("second write blocked")
         if calls == 3:
@@ -1201,6 +1196,7 @@ def test_add_resource_test_content_is_valid_python(tmp_path: Path) -> None:
 
 
 def test_add_resource_registers_blueprint(tmp_path: Path) -> None:
+    """The entrypoint imports and registers the same generated resource Blueprint symbol."""
     project_root = scaffold_project("sample", tmp_path)
     add_resource(project_root=project_root, resource_name="products")
 
@@ -1317,6 +1313,7 @@ def test_add_resource_rolls_back_on_partial_failure(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """An entrypoint commit failure removes all new resource files and preserves the entrypoint."""
     import os
 
     project_root = scaffold_project("sample", tmp_path)
@@ -1479,6 +1476,7 @@ def test_add_route_test_content_is_valid_python(tmp_path: Path) -> None:
 
 
 def test_add_route_registers_blueprint(tmp_path: Path) -> None:
+    """The entrypoint imports and registers the same generated route Blueprint symbol."""
     project_root = scaffold_project("sample", tmp_path)
     add_route(project_root=project_root, route_name="status")
 

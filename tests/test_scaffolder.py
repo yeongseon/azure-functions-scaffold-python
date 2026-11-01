@@ -58,6 +58,7 @@ def test_generated_requirements_match_project_dependencies(
     tmp_path: Path,
     template: str,
 ) -> None:
+    """Remote builds and project installs must receive the same generated runtime dependencies."""
     project_root = scaffold_project(
         project_name=f"{template}-requirements",
         destination=tmp_path,
@@ -264,6 +265,7 @@ def test_scaffold_project_preserves_existing_target_when_overwrite_rendering_fai
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Rendering fails in staging, leaving the original target intact without partial output."""
     target_dir = tmp_path / "sample"
     target_dir.mkdir()
     keep_file = target_dir / "keep.txt"
@@ -271,6 +273,7 @@ def test_scaffold_project_preserves_existing_target_when_overwrite_rendering_fai
     template_root = tmp_path / "template"
     template_root.mkdir()
     (template_root / "partial.txt").write_text("partial", encoding="utf-8")
+    # Sorted rendering writes a staged asset before the malformed template fails.
     (template_root / "z-broken.j2").write_text("{{ broken", encoding="utf-8")
     monkeypatch.setattr(
         "azure_functions_scaffold.scaffolder.get_template",
@@ -292,11 +295,7 @@ def test_scaffold_project_preserves_existing_target_when_overwrite_rendering_fai
 def test_scaffold_project_preserves_backup_when_restore_also_fails(
     tmp_path: Path,
 ) -> None:
-    """Regression (#409): if publishing the staged project AND restoring the
-    original both fail, the unconditional `finally: shutil.rmtree(temporary_dir)`
-    deleted the only surviving copy of the original project. The original
-    backup must be preserved and the raised error must identify where it
-    was left, rather than silently destroying the user's files."""
+    """Failed publication and restoration retain the sole original backup and report its path."""
     target_dir = tmp_path / "sample"
     target_dir.mkdir()
     keep_file = target_dir / "keep.txt"
@@ -305,6 +304,7 @@ def test_scaffold_project_preserves_backup_when_restore_also_fails(
     blocked: list[str] = []
 
     def fail_publish_and_restore(self: Path, target: Path) -> Path:
+        # Allow moving the original into backup; block both attempts to publish to the target.
         if Path(target) == target_dir and self != target_dir:
             blocked.append(self.name)
             msg = "synthetic destination rename failure"
@@ -316,9 +316,6 @@ def test_scaffold_project_preserves_backup_when_restore_also_fails(
             scaffold_project("sample", tmp_path, overwrite=True, yes=True)
 
     assert blocked == ["sample", "original"]
-    # A backup directory (sibling of target_dir, under the scaffold's own
-    # temp-dir naming convention) must still exist somewhere, holding the
-    # original keep.txt content -- the original must not be unrecoverable.
     surviving_keep_files = list(tmp_path.rglob("keep.txt"))
     assert len(surviving_keep_files) == 1
     assert surviving_keep_files[0].read_text(encoding="utf-8") == "user content to preserve"
