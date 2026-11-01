@@ -2,13 +2,19 @@
 
 ## Summary
 
-<!-- Brief description of changes -->
+<!-- Explain what changed and why; omit agent execution logs. -->
 
 ## Changes
 
-<!-- List the specific changes made -->
+<!-- Only relevant changes, compatibility concerns, and findings. -->
 
 -
+
+## Validation
+
+<!-- List checks actually run and the results; disclose important checks not run. -->
+
+- 
 
 ## Type of Change
 
@@ -18,14 +24,6 @@
 - [ ] Documentation update
 - [ ] Refactoring
 - [ ] Chore
-
-## Checklist
-
-- [ ] My code follows the project's code style
-- [ ] I have run `make check-all`
-- [ ] I have added or updated tests when needed
-- [ ] I have updated documentation when needed
-- [ ] I have updated root planning documents when scope or design changed
 
 ## Related Issues
 
@@ -39,13 +37,5 @@
 - Affected consumers and scope (existing deployments, new/regenerated projects, versions, etc.):
 - Migration or mitigation (or "none", with explanation):
 
-## Review Evidence
-
-<!-- See docs/review-evidence-policy.md (advisory, not a required check).
-     Record review source/SHA so evidence can be checked against the
-     commit it actually evaluated, not just the PR as a whole. -->
-
-- Review source and reviewed commit SHA:
-- Material findings and disposition (fixed / acknowledged-wont-fix / deferred-with-issue), or "none":
-- Unresolved blockers, or "none":
-- R3 (workflow permissions, release/publishing, destructive filesystem behavior, generated auth/credential boundaries, review-policy files): yes/no — if yes, human authorization record:
+<!-- Extra review details for high-risk changes: docs/review-evidence-policy.md.
+     Do not copy agent transcripts or unused review fields. -->
