@@ -102,6 +102,21 @@ logger = get_logger("my-api")
 | `--with-validation` / `--no-validation` | `--no-validation` | Adds `azure-functions-validation` and Pydantic request/response model validation for HTTP projects. |
 | `--with-doctor` / `--no-doctor` | `--no-doctor` | Adds `azure-functions-doctor` dependency and a `make doctor` target. |
 
+!!! note "`--with-validation` is not `@validate_http`"
+    `--with-validation` installs `azure-functions-validation` and Pydantic, but the
+    generated webhook handler does **not** use the `@validate_http` decorator. It
+    verifies the HMAC signature first, then parses the body with Pydantic directly
+    (400 for invalid JSON, 422 for schema errors, 202 on success). Replacing this
+    with `@validate_http` would parse client-supplied JSON before signature
+    verification, so adopt the decorator only on routes that do not need
+    signature-before-parse ordering. OpenAPI documents the runtime behavior above.
+
+!!! note "Route prefix"
+    The generated Swagger UI loads `/api/openapi.json`, which matches the default
+    `api` route prefix in the generated `host.json`. If you set a custom or empty
+    `extensions.http.routePrefix`, update `openapi_url` in `function_app.py`;
+    the template does not derive it automatically.
+
 !!! warning "HTTP-only behavior"
     `--with-openapi` and `--with-validation` are intended for the HTTP template.
     If you pass them to non-HTTP templates, there is no HTTP route to apply
