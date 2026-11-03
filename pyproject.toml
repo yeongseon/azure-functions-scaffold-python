@@ -33,11 +33,11 @@ dev = [
     "build",
     "coverage",
     "hatch",
-    "mypy==2.4.0",
+    "mypy==2.4.1",
     "pre-commit",
     "pytest",
     "pytest-cov",
-    "ruff==0.17.1",
+    "ruff==0.17.3",
     "requests",
     "types-requests",
     # Smoke-test deps: generated project runtime packages needed by

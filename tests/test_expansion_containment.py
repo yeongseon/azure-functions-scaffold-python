@@ -56,6 +56,7 @@ def inventory(root: Path) -> dict[str, tuple[int, int, str]]:
     "surface", ["app/functions", "tests", "function_app.py", "app/functions/__init__.py"]
 )
 def test_cli_refuses_escape_without_any_mutation(tmp_path: Path, kind: str, surface: str) -> None:
+    """Reject escaping paths before changing project or outside content, inodes, or timestamps."""
     root = scaffold_project("project", tmp_path)
     outside = tmp_path / "outside"
     outside.mkdir()
@@ -88,6 +89,7 @@ def test_cli_refuses_escape_without_any_mutation(tmp_path: Path, kind: str, surf
     ],
 )
 def test_resource_and_configuration_escape_preflight(tmp_path: Path, surface: str) -> None:
+    """Preflight every resource and configuration path before any project or outside mutation."""
     root = scaffold_project("project", tmp_path)
     outside = tmp_path / "outside"
     outside.mkdir()
