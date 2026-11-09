@@ -1,0 +1,15 @@
+{
+  "repo": "yeongseon/azure-functions-scaffold-python",
+  "owner_login": "yeongseon",
+  "legacy_repos": [
+    "yeongseon/azure-functions-scaffold"
+  ],
+  "non_human_logins": [
+    "sisyphus-dev-ai"
+  ],
+  "protected": {
+    "v0.7.2": [
+      "Not published to PyPI"
+    ]
+  }
+}
