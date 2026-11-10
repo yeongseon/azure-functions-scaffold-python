@@ -4,6 +4,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # ci/constraints-min.txt is a test fixture that pins the declared minimum of every
+    # dependency on purpose. The pip updater reads every requirements-style *.txt in "/" and in
+    # each directory directly below it, so it proposed newer pins for this file (#487, #488).
+    exclude-paths:
+      - "ci/constraints-min.txt"
     # Let freshly-published versions age before Dependabot proposes them, so a
     # compromised release has time to be yanked/flagged (supply-chain hardening).
     cooldown:
