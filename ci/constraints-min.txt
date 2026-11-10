@@ -3,14 +3,12 @@
 # lowest version allowed by pyproject.toml so compatibility breaks at the
 # declared floor are caught in CI. Keep in sync with pyproject.toml.
 #
-# Lives under ci/, not the repo root: Dependabot's pip ecosystem scans every
-# *.txt constraints/requirements file in its configured directory ("/") and
-# treats this one like a regular manifest to bump to latest, which silently
-# defeats its entire purpose (#445 -- this exact file was bumped to the
-# newest published versions by Dependabot once already, breaking the
-# "Minimum dependencies" CI job's separate floor assertion). Dependabot does
-# not recurse into subdirectories outside its configured `directory`, so this
-# path is not scanned.
+# This is a test fixture, not a dependency manifest, so Dependabot must never raise these pins.
+# Its pip updater reads every requirements-style *.txt in its configured directory and in each
+# directory directly below it, so moving this file into ci/ (#446) was not enough: it still
+# proposed newer pins (#487, #488). The file is therefore excluded with `exclude-paths` in
+# .github/dependabot.yml, and tests/test_dependabot_config.py fails if that exclusion goes away
+# (#495). To raise a floor, change pyproject.toml and these pins together, deliberately.
 jinja2==3.1.0
 typer==0.16.0
 azure-functions==1.21.0
