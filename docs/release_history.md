@@ -63,11 +63,12 @@ pytest without `pytest-cov`:
 exit code 4. This was a defect in the certification step, not in the package.
 
 `v0.9.0` is an ancestor of `v0.9.1`, and the only commits between them are the fix and the release
-commit, so every change in `0.9.0` shipped in `0.9.1`. No `0.9.0` distribution exists anywhere:
-PyPI has no such version, TestPyPI has no project of this name, the failed run uploaded no
-artifact and the Release has no assets. README and docs do not claim `0.9.0` is installable.
-`CHANGELOG.md` has a `0.9.0` section because Release Please writes it when the tag is cut; it is
-not edited.
+commit, so every change in `0.9.0` shipped in `0.9.1`. No `0.9.0` distribution was ever
+published: PyPI has no such version, TestPyPI has no project of this name, the `publish` job (the
+only job that uploads to PyPI) was skipped, and the Release has no assets. The build job did attach
+the built `dist` files to the run as an artifact for the later jobs, with 5-day retention, so they
+can no longer be downloaded. README and docs do not claim `0.9.0` is installable. `CHANGELOG.md`
+has a `0.9.0` section because Release Please writes it when the tag is cut; it is not edited.
 
 **Decision**
 
