@@ -41,11 +41,10 @@ updates:
       interval: "weekly"
     # Let freshly-published versions age before Dependabot proposes them, so a
     # compromised release has time to be yanked/flagged (supply-chain hardening).
+    # GitHub Actions accepts only `default-days` here: with `semver-*-days` GitHub rejects the
+    # whole file and keeps running the last valid one (tests/test_dependabot_config.py).
     cooldown:
       default-days: 7
-      semver-major-days: 30
-      semver-minor-days: 7
-      semver-patch-days: 3
       include:
         - "*"
     # Action bumps never reach users of the published package.
