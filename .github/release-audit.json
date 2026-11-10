@@ -1,0 +1,58 @@
+{
+  "repo": "yeongseon/azure-functions-scaffold-python",
+  "package": "azure-functions-scaffold",
+  "mainline": "main",
+  "tag_prefix": "v",
+  "version_files": [
+    "src/azure_functions_scaffold/__init__.py"
+  ],
+  "changelog": "CHANGELOG.md",
+  "grace_hours": 12,
+  "approved": {
+    "0.1.0": {
+      "codes": [
+        "TAG_ONLY"
+      ],
+      "reason": "The Publish run failed after the build, so the version was never published and has no GitHub Release; 0.3.2 is the first package on PyPI and contains its changes.",
+      "ref": "docs/release_history.md#v010-v030-and-v031-failed-publishes-tag-only"
+    },
+    "0.3.0": {
+      "codes": [
+        "TAG_VERSION_MISMATCH",
+        "TAG_ONLY",
+        "CHANGELOG_MISSING"
+      ],
+      "reason": "Mislabelled duplicate of v0.3.1 on the same commit, which declares 0.3.1; the publish run failed and the version was never on PyPI. The tag is kept as an audit record, with no Release.",
+      "ref": "docs/release_history.md#v010-v030-and-v031-failed-publishes-tag-only"
+    },
+    "0.3.1": {
+      "codes": [
+        "TAG_ONLY"
+      ],
+      "reason": "The publish run failed, so the version was never published and has no GitHub Release; 0.3.2 is the first package on PyPI and contains its changes.",
+      "ref": "docs/release_history.md#v010-v030-and-v031-failed-publishes-tag-only"
+    },
+    "0.5.1": {
+      "codes": [
+        "TAG_VERSION_MISMATCH",
+        "RELEASE_WITHOUT_PYPI"
+      ],
+      "reason": "Tag on a merge commit that still declares 0.5.0; the publish run failed and the version was never on PyPI. 0.6.0 contains its changes. Tag and Release are kept as an audit record.",
+      "ref": "docs/release_history.md#v051-tag-without-a-version-bump-never-published"
+    },
+    "0.7.2": {
+      "codes": [
+        "RELEASE_WITHOUT_PYPI"
+      ],
+      "reason": "Release candidate whose Azure certification failed before publish (generated projects did not index on a real Functions host, #365); 0.7.3 ships the fix and its changes.",
+      "ref": "docs/release_history.md#v072-unpublished-superseded-by-v073"
+    },
+    "0.9.0": {
+      "codes": [
+        "RELEASE_WITHOUT_PYPI"
+      ],
+      "reason": "Release candidate whose Azure certification step failed before publish (pytest coverage options without pytest-cov, #379); 0.9.1 ships the fix and its changes.",
+      "ref": "docs/release_history.md#v090-unpublished-superseded-by-v091"
+    }
+  }
+}
