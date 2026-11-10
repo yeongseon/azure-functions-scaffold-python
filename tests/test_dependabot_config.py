@@ -6,6 +6,9 @@ directory and in each directory directly below it, so it raised these pins again
 even after the file had moved under ``ci/`` (#446). ``exclude-paths`` in ``.github/dependabot.yml``
 is the mechanism that keeps the file out; these tests fail if that entry is removed, misspelled or
 changed to something that no longer matches, or if it grows wide enough to hide ``pyproject.toml``.
+
+The file must also stay valid for GitHub. A cooldown key that GitHub rejects for an ecosystem
+invalidates the whole file, and the exclusion above then never takes effect (#495).
 """
 
 from __future__ import annotations
@@ -90,3 +93,71 @@ def test_the_exclusion_does_not_hide_the_real_manifest() -> None:
             f"exclude-paths {patterns!r} also hides {_MANIFEST}, which would stop Dependabot "
             "from maintaining the runtime and development dependencies."
         )
+
+
+# GitHub documents which package ecosystems accept the ``semver-*-days`` cooldown keys:
+# https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference
+# For the ecosystems below only ``default-days`` is valid. One rejected key invalidates the whole
+# file: GitHub keeps running the last valid configuration and reports the error only in the
+# ``.github/dependabot.yml`` check-run on the default branch, which is not a required check. The
+# published JSON schema accepts these keys everywhere, so schema validation cannot catch it and
+# this test is the local guard.
+_NO_SEMVER_COOLDOWN = frozenset(
+    {
+        "bazel",
+        "devcontainers",
+        "docker",
+        "docker-compose",
+        "github-actions",
+        "gitsubmodule",
+        "helm",
+        "nix",
+        "opentofu",
+        "pre-commit",
+        "terraform",
+        "vcpkg",
+    }
+)
+_SEMVER_COOLDOWN_KEYS = ("semver-major-days", "semver-minor-days", "semver-patch-days")
+
+
+def _rejected_cooldown_keys(config: dict[str, Any]) -> list[tuple[str, str]]:
+    """The ``(ecosystem, key)`` pairs that GitHub would reject as an invalid configuration."""
+    rejected: list[tuple[str, str]] = []
+    for update in config["updates"]:
+        ecosystem = update["package-ecosystem"]
+        if ecosystem in _NO_SEMVER_COOLDOWN:
+            cooldown = update.get("cooldown") or {}
+            rejected.extend((ecosystem, key) for key in _SEMVER_COOLDOWN_KEYS if key in cooldown)
+    return rejected
+
+
+def test_the_guard_flags_semver_cooldown_keys_only_where_github_rejects_them() -> None:
+    tiers = {"default-days": 7, "semver-major-days": 30, "semver-minor-days": 7}
+    flagged = {
+        "updates": [
+            {"package-ecosystem": "github-actions", "cooldown": tiers},
+            {"package-ecosystem": "pip", "cooldown": tiers},
+        ]
+    }
+    assert _rejected_cooldown_keys(flagged) == [
+        ("github-actions", "semver-major-days"),
+        ("github-actions", "semver-minor-days"),
+    ]
+    clean = {
+        "updates": [
+            {"package-ecosystem": "github-actions", "cooldown": {"default-days": 7}},
+            {"package-ecosystem": "github-actions"},
+            {"package-ecosystem": "pip", "cooldown": tiers},
+        ]
+    }
+    assert _rejected_cooldown_keys(clean) == []
+
+
+def test_dependabot_yml_has_no_cooldown_key_that_github_rejects() -> None:
+    config = yaml.safe_load(_CONFIG.read_text(encoding="utf-8"))
+    rejected = _rejected_cooldown_keys(config)
+    assert not rejected, (
+        f"GitHub rejects {rejected!r} and then ignores the whole of .github/dependabot.yml, "
+        "including exclude-paths. Keep only default-days for these ecosystems (#495)."
+    )
