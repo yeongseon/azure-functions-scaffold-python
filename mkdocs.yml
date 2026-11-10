@@ -50,6 +50,7 @@ nav:
       - Test Suite Guide: testing.md
       - Guidelines: contributing/guidelines.md
       - Release Process: release_process.md
+      - Release History: release_history.md
       - Agent Playbook: agent-playbook.md
   - Troubleshooting: guide/troubleshooting.md
   - FAQ: faq.md
