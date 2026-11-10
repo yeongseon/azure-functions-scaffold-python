@@ -8,8 +8,36 @@
     "sisyphus-dev-ai"
   ],
   "protected": {
+    "v0.5.1": [
+      "was not published to PyPI"
+    ],
     "v0.7.2": [
       "Not published to PyPI"
+    ],
+    "v0.9.0": [
+      "was not published to PyPI"
     ]
+  },
+  "annotations": {
+    "v0.4.0": {
+      "notes": [
+        "_This GitHub Release was added afterwards for an already-published package: `0.4.0` was uploaded to PyPI on 2026-04-08 from the existing `v0.4.0` tag (`b33da92`), whose package source matches the PyPI files exactly. No tag, package file or date was changed; the notes are reconstructed from [`CHANGELOG.md`](https://github.com/yeongseon/azure-functions-scaffold-python/blob/main/CHANGELOG.md), cross-checked against the commits between the tags._"
+      ]
+    },
+    "v0.5.0": {
+      "notes": [
+        "_This GitHub Release was added afterwards for an already-published package: `0.5.0` was uploaded to PyPI on 2026-04-09 from the existing `v0.5.0` tag (`1b8a06e`), whose package source matches the PyPI files exactly. No tag, package file or date was changed; the notes are reconstructed from [`CHANGELOG.md`](https://github.com/yeongseon/azure-functions-scaffold-python/blob/main/CHANGELOG.md), cross-checked against the commits between the tags._"
+      ]
+    },
+    "v0.5.1": {
+      "notes": [
+        "> **`v0.5.1` was not published to PyPI.** The tag points at a merge commit (`fdec8e5`) that still declares version `0.5.0`, and its `Publish to PyPI` run failed, so no `0.5.1` package exists. `0.6.0`, the next published release, contains every change listed here. The tag is kept unchanged as an audit record; see [Release history and provenance](https://github.com/yeongseon/azure-functions-scaffold-python/blob/main/docs/release_history.md#v051-tag-without-a-version-bump-never-published)."
+      ]
+    },
+    "v0.9.0": {
+      "notes": [
+        "> **`v0.9.0` was not published to PyPI.** Its release candidate passed the build and library tests, but the Azure release certification failed at the step *Run scaffold structure tests (no Azure)*: the pytest command inherited the library's coverage options without pytest-cov installed and exited with `unrecognized arguments` (exit code 4), so the publish job was skipped. `0.9.1`, tagged about 13 minutes later, is the first published release after `0.8.0` and contains every change listed here. The tag is kept unchanged as an audit record; see [Release history and provenance](https://github.com/yeongseon/azure-functions-scaffold-python/blob/main/docs/release_history.md#v090-unpublished-superseded-by-v091)."
+      ]
+    }
   }
 }
