@@ -17,16 +17,21 @@ make cov
 To run a specific test file or function:
 ```bash
 hatch run pytest tests/test_cli.py
-hatch run pytest tests/test_cli.py::test_init_success
+hatch run pytest tests/test_cli.py::test_templates_command_lists_available_templates
 ```
 
 ## Test Structure
 
-| File | Lines | Description |
-| :--- | :--- | :--- |
-| `test_cli.py` | ~558 | CLI command tests using Typer `CliRunner` |
-| `test_scaffolder.py` | ~437 | Project generation logic with the `tmp_path` fixture |
-| `test_generator.py` | ~171 | Logic for adding new functions to existing projects |
+The canonical, path-checked map of test levels (CLI behavior, template rendering, generated-project
+contract, local host, Azure E2E) is in the [Test Suite Guide](../testing.md#test-structure). The files
+most contributors touch:
+
+| File | Description |
+| :--- | :--- |
+| `tests/test_cli.py`, `tests/test_cli_intents.py` | CLI command tests using Typer `CliRunner` |
+| `tests/test_scaffolder.py` | Project generation logic with the `tmp_path` fixture |
+| `tests/test_generator.py` | Adding functions and resources to existing projects |
+| `tests/test_generated_projects.py` | Generated projects installed and checked in isolated virtual environments |
 
 ## Test Patterns
 
@@ -104,6 +109,20 @@ Each pull request is tested against a matrix of environments to ensure broad com
 `tests/test_generated_projects.py` is the single definition of the generated-project gate. For every registered template, for each `--with-*` feature combination of the `http` template, and for the `afs new` project after `afs api add` / `afs advanced add`, it scaffolds the project, installs it into its own virtual environment (so a dependency the project does not declare fails), runs the project's own `make check-all` (Ruff, mypy, pytest), requires at least one executed test and none skipped, and runs Doctor's required (`--profile minimal`) rules. This catches template-level breakage that unit tests cannot - for example, a marker-string drift between `generator.py` constants and template comments. The required `test` job runs it on every supported Python.
 
 The `templates-smoke.yml` workflow runs the same node ids as parallel matrix cells: one per template on Python 3.11 and 3.12, one per feature combination and one for the add commands on Python 3.12. It runs daily and when a pull request or a push to `main` changes the templates, the scaffolder or the lane. Each cell uploads its JUnit report, a cell that executes no test fails, and no step tolerates a non-zero pytest exit status.
+
+### Known gap: LangGraph template and Doctor's required profile
+
+Every generated project runs Doctor's required (`--profile minimal`) rules **except the `langgraph`
+template** (`DOCTOR_GAP` in `tests/test_generated_projects.py`). A green generated-project suite
+therefore does **not** show that Doctor's required diagnostics pass for a generated LangGraph project.
+
+The generated project exports `func_app = lg_app.function_app`. Released Doctor 0.23.1 reports
+`programming_model=unknown` for it, fails `check_programming_model_v2`, and evaluates one rule instead
+of the required set (tracked in azure-functions-doctor-python#590). The fix is merged on Doctor's
+`main` but unreleased; a Doctor built from that commit evaluates six rules and reports no failure on a
+generated LangGraph project. The exemption is narrow and strict: the known-gap test fails once a Doctor in the
+supported range classifies the project, which is the signal to delete `DOCTOR_GAP` and the test and enable the
+required profile for the template.
 
 Local equivalent (one template; `--no-cov` because a single node cannot reach the coverage threshold):
 
