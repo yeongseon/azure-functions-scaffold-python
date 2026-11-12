@@ -116,6 +116,15 @@ afs advanced new --template cosmosdb --preset standard my-processor
 *   **Generates**: `app/functions/cosmosdb.py`, `app/services/cosmosdb_service.py`, `tests/test_cosmosdb.py`.
 *   **Key points**: Uses `cosmos_db_trigger_v3` binding. Requires `CosmosDBConnection` and a lease container for tracking.
 
+**Try it offline with synthetic change-feed documents**
+
+From a checkout of this repository, `pytest tests/test_worker_smoke_cosmosdb.py --no-cov` generates this
+template into a temporary directory, calls `process_cosmos_changes` with a synthetic
+`azure.functions.DocumentList`, and checks the logged change count and the declared trigger. It does not
+require Azure, the emulator, credentials, network access or a Functions host. It does not validate
+leases, checkpointing, permissions or production change feed behavior; those need a real host and Cosmos
+DB. Inside a generated project, `make test` runs the project's own `tests/test_cosmosdb.py` the same way.
+
 !!! tip "Local Development"
     Use the [CosmosDB Emulator](https://learn.microsoft.com/en-us/azure/cosmos-db/emulator) for local change feed testing.
 
