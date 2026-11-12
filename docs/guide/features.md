@@ -8,7 +8,7 @@ Presets configure `pyproject.toml` with linting, formatting, and testing tools.
 
 | Preset | Included Tools | Recommended For |
 | :--- | :--- | :--- |
-| **minimal** | None | Quick experiments, simple scripts. |
+| **minimal** | None (no dev extras, no generated tests) | A lighter generated project. The layered `app/` structure, logging and runtime dependencies are unchanged; see [Choosing an HTTP starter](templates.md#choosing-an-http-starter). |
 | **standard** | Ruff, Pytest | Most production apps (Default). |
 | **strict** | Ruff, MyPy, Pytest | Large teams, mission-critical systems. |
 
