@@ -69,6 +69,15 @@ afs worker queue my-queue-processor
 *   **Generates**: `app/functions/queue.py`, `app/services/queue_service.py`, `tests/test_queue.py`.
 *   **Key points**: Requires `AzureWebJobsStorage` connection string.
 
+**Try it offline with a synthetic message**
+
+From a checkout of this repository, `pytest tests/test_worker_smoke_queue.py --no-cov` generates this
+worker into a temporary directory, calls `process_queue_message` with a synthetic
+`azure.functions.QueueMessage`, and checks the logged payload and the declared trigger. It does not
+require Azure, Azurite, credentials, network access or a Functions host. Only a real host and Storage
+Queue can verify polling, visibility timeouts, dequeue counts and poison-queue handling. Inside a
+generated project, `make test` runs the project's own `tests/test_queue.py` the same way.
+
 !!! tip "Local Development"
     Use [Azurite](https://github.com/Azure/Azurite) to simulate Azure Storage Queues locally.
 
