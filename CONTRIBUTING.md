@@ -147,6 +147,47 @@ git ls-remote https://github.com/actions/setup-python 'refs/tags/v6' 'refs/tags/
 Single-quote the `refs/...^{}` argument so the `{}` and `^` are not
 interpreted by your shell (notably zsh with `EXTENDED_GLOB`).
 
+## Comments and Docstrings
+
+Ruff (`line-length = 100`) and `ruff format` settle *formatting*. This section is the single
+contributor-facing rule for *what to write*, for the Python in `src/azure_functions_scaffold/`, for the
+Jinja templates under `src/azure_functions_scaffold/templates/`, and for tests. Write English only.
+
+**Generator and CLI code (`*.py`)**
+
+- Public callables (the CLI commands, `scaffold_project`, the `generator` entry points) get a docstring
+  with a one-line summary. Add parameter, return, or raised-error detail only where the contract is not
+  obvious from the signature.
+- Use a short `#` comment for the *why* behind an invariant: rollback and backup ordering, containment of
+  writes to the project root, line-based edits that preserve a user's formatting, and compatibility
+  with older generated output. Cite the issue number (`#409`) when a past defect explains it.
+- Do not narrate obvious code, and do not add docstrings to every private helper.
+
+**Jinja templates (`*.j2`) and generated projects**
+
+- A comment inside a template becomes part of every generated project. Keep it only if it helps the
+  person who owns that project, and write it for them. Explain a surprising rendering decision in a
+  Jinja comment (`{# ... #}`), which does not appear in the generated file.
+- Some strings in templates are **contracts, not comments**. The marker comments
+  `# azure-functions-scaffold: function imports` and `# azure-functions-scaffold: function registrations`
+  in `function_app.py.j2` are located by the generator (`FUNCTION_IMPORT_MARKER` and
+  `FUNCTION_REGISTRATION_MARKER`, plus their legacy `-python` forms). Never reword or remove them
+  as "cleanup".
+- **Starter placeholders are intentional.** `TODO: implement {{ route_name }}` in the generated HTTP
+  handler (`partials/functions/http_module.py.j2`, `partials/route_blueprint.py.j2`) is the user-facing
+  response body the generated test asserts on (`http_test.py.j2`, `route_test.py.j2`). It marks code for
+  the *user* to write; it is not a developer TODO or dead code. Changing the string requires changing
+  its paired test stub in the same commit and is a change to generated output (see Breaking-change
+  classification below). `tests/test_template_placeholders.py` keeps each pair in step.
+- A real developer TODO in generator code is tracked as an issue, not left in the source.
+
+**Tests**: follow the test-comment guidance in
+[`docs/contributing/testing.md`](docs/contributing/testing.md#writing-new-tests); a descriptive test
+name is the default and a one-line docstring is for a non-obvious protected invariant.
+
+No docstring quota and no new lint rule apply. Keep the existing Ruff and pre-commit defaults, and do
+not reformat files only to apply this guidance; touch a comment when you touch the code it describes.
+
 ## Example Coverage Policy
 
 Examples are part of the supported API experience and should stay verified.

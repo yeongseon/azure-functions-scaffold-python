@@ -14,14 +14,24 @@ make cov
 
 ## Test Structure
 
-Tests are located in the `tests/` directory:
+Tests live in `tests/`. This map lists the test *levels*, the representative files for each level,
+the command that runs it, and what it does **not** prove. Every path below is checked against the
+working tree by `tests/test_docs_test_paths.py`, so a renamed or deleted file cannot stay in this guide.
 
-```
-tests/
-  test_new.py        # scaffold new command and template generation
-  test_cli.py        # CLI option parsing and dry-run mode
-  test_templates.py  # Jinja2 template rendering for all function types
-```
+| Level | Representative files | Run with | Proves | Does not prove |
+| :--- | :--- | :--- | :--- | :--- |
+| CLI behavior | `tests/test_cli.py`, `tests/test_cli_intents.py`, `tests/test_docs_cli_examples.py` | `make test` | Command routing, options, exit codes, error messages, and that documented CLI examples match the current command surface. | Anything about the files a command writes beyond the checked output. |
+| Scaffolding and template rendering | `tests/test_scaffolder.py`, `tests/test_generator.py`, `tests/test_rendered_security.py` | `make test` | Project and function generation, `afs ... add` expansion, rollback and containment, and that rendered Jinja templates contain the expected content. Runs in-process with temporary directories, offline. | That the generated project installs or runs. |
+| Generated-project contract | `tests/test_generated_projects.py`, `tests/test_template_smoke.py`, `tests/test_generated_http_indexing.py`, `tests/test_generated_http_option_matrix.py`, `tests/test_generated_security_defaults.py` | `make test`; one template: `pytest --no-cov "tests/test_generated_projects.py::test_generated_project_passes_in_isolated_venv[http]"` | A generated project installs into its own virtual environment and passes its own `make check-all` (Ruff, mypy, pytest), plus its documented option and security defaults. | Behavior on a running Functions host. |
+| Local Functions host | `tests/test_generated_langgraph_host_security.py` (opt-in) and the `generated-host-smoke` job in `.github/workflows/ci-test.yml` | `make security-host` (sets `RUN_LOCAL_HOST_SECURITY=true`); the CI job starts `func start` against Azurite | A generated project starts on a real local Functions host and answers its health route. | Azure hosting, platform authentication or networking. |
+| Real Azure E2E | `tests/e2e/test_scaffold_e2e.py` | `make e2e-azure` (needs `E2E_BASE_URL` and `E2E_SCAFFOLDED_DIR`) | A generated project deployed to a real Function App responds over HTTP. | Anything when the inputs are missing: the run fails instead of skipping. |
+
+Offline generator checks (the first three rows) never start a Functions host or touch Azure. A local
+host run is not Azure evidence, and a passing unit or template test is not evidence that the
+generated project runs. Treat each level as a separate claim.
+
+The generated-project tests are marked `slow` (they spawn subprocesses and create virtual
+environments); the default `pytest` configuration deselects only `e2e`.
 
 ## CI Test Matrix
 
