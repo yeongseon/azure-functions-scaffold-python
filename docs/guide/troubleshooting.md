@@ -56,8 +56,14 @@ afs templates
 afs presets
 ```
 
-Supported templates are `http`, `timer`, `queue`, `blob`, `servicebus`.
+`afs templates` prints the authoritative list; the lines below are checked against it by
+`tests/test_docs_template_inventory.py`.
+
+Supported templates are `http`, `timer`, `queue`, `blob`, `servicebus`, `eventhub`, `cosmosdb`, `durable`, `ai`, `langgraph`.
 Supported presets are `minimal`, `standard`, `strict`.
+
+A template name is not an option or a preset, and optional features differ per template: for
+example `openapi` and `validation` are available on `http` only, and `langgraph` takes only `azd`.
 
 ### Target directory already exists
 
