@@ -17,16 +17,21 @@ make cov
 To run a specific test file or function:
 ```bash
 hatch run pytest tests/test_cli.py
-hatch run pytest tests/test_cli.py::test_init_success
+hatch run pytest tests/test_cli.py::test_templates_command_lists_available_templates
 ```
 
 ## Test Structure
 
-| File | Lines | Description |
-| :--- | :--- | :--- |
-| `test_cli.py` | ~558 | CLI command tests using Typer `CliRunner` |
-| `test_scaffolder.py` | ~437 | Project generation logic with the `tmp_path` fixture |
-| `test_generator.py` | ~171 | Logic for adding new functions to existing projects |
+The canonical, path-checked map of test levels (CLI behavior, template rendering, generated-project
+contract, local host, Azure E2E) is in the [Test Suite Guide](../testing.md#test-structure). The files
+most contributors touch:
+
+| File | Description |
+| :--- | :--- |
+| `tests/test_cli.py`, `tests/test_cli_intents.py` | CLI command tests using Typer `CliRunner` |
+| `tests/test_scaffolder.py` | Project generation logic with the `tmp_path` fixture |
+| `tests/test_generator.py` | Adding functions and resources to existing projects |
+| `tests/test_generated_projects.py` | Generated projects installed and checked in isolated virtual environments |
 
 ## Test Patterns
 
