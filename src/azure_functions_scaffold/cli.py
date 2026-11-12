@@ -8,20 +8,9 @@ import typer
 from azure_functions_scaffold import __version__
 from azure_functions_scaffold.cli_advanced import advanced_app
 from azure_functions_scaffold.cli_ai import ai_app
-from azure_functions_scaffold.cli_api import api_app
-from azure_functions_scaffold.cli_common import (
-    AzdOption,
-    DestinationOption,
-    DryRunOption,
-    GithubActionsOption,
-    GitOption,
-    OverwriteOption,
-    PythonVersionOption,
-    YesOption,
-    run_intent,
-)
+from azure_functions_scaffold.cli_api import api_app, api_new
+from azure_functions_scaffold.cli_common import run_add_function, show_presets, show_templates
 from azure_functions_scaffold.cli_worker import worker_app
-from azure_functions_scaffold.template_registry import list_presets, list_templates
 
 app = typer.Typer(
     add_completion=False,
@@ -59,46 +48,11 @@ def callback(
         raise typer.Exit()
 
 
-@app.command("templates")
-def show_templates() -> None:
-    """List available scaffold templates."""
-    for template in list_templates():
-        typer.echo(f"{template.name}: {template.description}")
-
-
-@app.command("presets")
-def show_presets() -> None:
-    """List available project presets."""
-    for preset in list_presets():
-        tooling = ", ".join(preset.tooling) or "none"
-        typer.echo(f"{preset.name}: {preset.description} [tooling: {tooling}]")
-
-
-@app.command("new")
-def new(
-    project_name: str = typer.Argument(..., help="Directory name for the new project."),
-    destination: DestinationOption = Path("."),
-    python_version: PythonVersionOption = "3.12",
-    include_github_actions: GithubActionsOption = False,
-    initialize_git: GitOption = False,
-    include_azd: AzdOption = False,
-    dry_run: DryRunOption = False,
-    overwrite: OverwriteOption = False,
-    yes: YesOption = False,
-) -> None:
-    """Create a new API project (shortcut for 'afs api new')."""
-    run_intent(
-        "api/new",
-        project_name,
-        destination=destination,
-        python_version=python_version,
-        include_github_actions=include_github_actions,
-        initialize_git=initialize_git,
-        include_azd=include_azd,
-        dry_run=dry_run,
-        overwrite=overwrite,
-        yes=yes,
-    )
+# Listing and creation reuse the callables behind ``afs advanced templates|presets`` and
+# ``afs api new`` so each operation has one implementation and one option surface.
+app.command("templates")(show_templates)
+app.command("presets")(show_presets)
+app.command("new", help="Create a new API project (shortcut for 'afs api new').")(api_new)
 
 
 @app.command(
@@ -126,23 +80,13 @@ def legacy_add(
         f"Use: {replacement}",
         err=True,
     )
-    from azure_functions_scaffold.errors import ScaffoldError
-    from azure_functions_scaffold.generator import add_function, describe_add_function
-
-    try:
-        if dry_run:
-            for line in describe_add_function(
-                project_root=project_root, trigger=normalized, function_name=function_name
-            ):
-                typer.echo(line)
-        else:
-            path = add_function(
-                project_root=project_root, trigger=normalized, function_name=function_name
-            )
-            typer.echo(f"Created: {path}")
-    except ScaffoldError as exc:
-        typer.echo(f"Error: {exc}", err=True)
-        raise typer.Exit(code=1) from exc
+    run_add_function(
+        project_root=project_root,
+        trigger=normalized,
+        function_name=function_name,
+        dry_run=dry_run,
+        legacy=True,
+    )
 
 
 @app.command(

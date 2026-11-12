@@ -205,6 +205,34 @@ future major release. See the [0.6.0 migration guide](../migration/0.6.0.md#7-cl
 | `afs add TRIGGER FUNCTION_NAME` | `afs api add` (http) or `afs advanced add <trigger>` |
 | `afs profiles` | `afs presets` |
 
+## Command Routing: Canonical and Compatibility Paths
+
+Each operation has one implementation in the CLI layer. Equivalent commands are registered as the
+**same callable**, or call the same shared function, so they cannot drift apart in options, output,
+exit codes, or the files they write. No command was added or removed.
+
+| Operation | Canonical path | Also reachable as | Notes |
+| :--- | :--- | :--- | :--- |
+| Create an API project | `afs api new` | `afs new` | Same callable and options; `afs new` only has a different help line. |
+| List templates | `afs templates` | `afs advanced templates` | Same callable. |
+| List presets | `afs presets` | `afs advanced presets`, deprecated `afs profiles` | `afs profiles` prints a deprecation warning, then the same listing. |
+| Add an HTTP function | `afs api add` | `afs advanced add http`, deprecated `afs add http` | All reach `run_add_function`; the deprecated `afs add` keeps its own warning and output format (`Created: <path>`, errors on stderr). |
+| Add a non-HTTP function | `afs advanced add <trigger>` | deprecated `afs add <trigger>` | As above. |
+| Add a route / CRUD resource | `afs api add-route`, `afs api add-resource` | `afs advanced add-route`, `afs advanced add-resource` | Same shared functions. |
+| Create a worker / agent project | `afs worker <type>`, `afs ai agent` | none | Unchanged. |
+
+Genuinely different operations stay separate: adding one function (`add`), one route (`add-route`) and
+a CRUD resource (`add-resource`) generate different files. `afs advanced new` is the power-user path
+with explicit `--template`, `--preset` and `--with-*` options and is not an alias of `afs api new`.
+
+All routes honor `--dry-run`; project creation also honors `--overwrite` and `--yes`, with the same
+atomic rollback behavior. `tests/test_cli_dispatch_contract.py` pins that equivalent routes print the
+same output, return the same exit codes and write identical files.
+
+**Deprecation boundary.** `afs add` and `afs profiles` remain supported until a future major release,
+as published in the [0.6.0 migration guide](../migration/0.6.0.md#7-cli-ergonomic-changes). They are
+not removed on the 0.x line, and their warning text, output and exit codes are unchanged.
+
 ## Exit Codes
 
 | Code | Meaning |
