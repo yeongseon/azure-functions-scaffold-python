@@ -173,7 +173,7 @@ def test_suite_with_an_executed_test_passes_the_lane(tmp_path: Path) -> None:
     raises=AssertionError,
     reason=(
         "azure-functions-doctor-python#590: Doctor cannot classify a LangGraphApp `function_app` "
-        "export (programming_model=unknown), so it evaluates none of its required rules. The fix "
+        "export (programming_model=unknown), so it evaluates only the failing rule, not the required set. The fix "
         "is merged on Doctor's main (its PR #643) but was not in a released Doctor as of 0.23.1; "
         "a Doctor built from main evaluates the required rules on this project. Strict: once a "
         "released Doctor in this repository's dev dependency range supports it this XPASS fails "
