@@ -28,6 +28,25 @@ afs new my-api
 *   **Generates**: `app/functions/health.py`, `app/functions/webhooks.py`, `app/services/health_service.py`, `app/services/webhook_service.py`, `tests/test_health.py`, `tests/test_webhooks.py`.
 *   **Key points**: Includes a `GET /api/health` endpoint (anonymous auth) and a `POST /api/webhooks/inbound` endpoint (FUNCTION auth, HMAC-SHA256 signature verification).
 
+#### Choosing an HTTP starter
+
+`afs new` (identical to `afs api new`) is the **opinionated production API scaffold**, not a minimal
+one. It enables the `strict` preset plus OpenAPI, request validation and Doctor. When you want less
+generated code, choose a different command rather than a different template:
+
+| Command | Files | Runtime dependencies | Dev extras | Notes |
+| :--- | ---: | :--- | :--- | :--- |
+| `afs new <name>` / `afs api new <name>` | 25 | `azure-functions`, `azure-functions-logging`, `orjson`, `azure-functions-openapi`, `azure-functions-validation`, `pydantic`, `azure-functions-doctor` | `pytest`, `ruff`, `mypy` | Production-oriented: OpenAPI docs, validation, Doctor, strict tooling. |
+| `afs advanced new <name>` (preset `standard`) | 25 | `azure-functions`, `azure-functions-logging`, `orjson` | `pytest`, `ruff` | Same layered layout and tests, no OpenAPI/validation/Doctor. |
+| `afs advanced new --preset minimal <name>` | 23 | `azure-functions`, `azure-functions-logging`, `orjson` | none | Smallest generated project from this tool: same layered layout, no generated `tests/`, no dev tooling. |
+| `func init` + `func new` | n/a | `azure-functions` | n/a | Official Core Tools; smallest possible start, no layered structure. |
+
+The `minimal` preset changes **tooling only**: it removes the generated tests and dev extras but keeps
+the layered `app/` structure (`core`, `dependencies`, `functions`, `schemas`, `services`), the health
+and webhook functions, structured logging and `orjson`. It is a lighter project, not a single-file one.
+`tests/test_simple_http_starter_contract.py` pins these file lists and dependency sets, so this table
+cannot drift unnoticed. None of the commands above changed.
+
 ### Timer Template
 
 Triggers functions on a schedule using CRON expressions.
