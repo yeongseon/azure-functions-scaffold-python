@@ -94,6 +94,16 @@ afs worker servicebus my-bus-listener
 *   **Generates**: `app/functions/servicebus.py`, `app/services/servicebus_service.py`, `tests/test_servicebus.py`.
 *   **Key points**: Uses a `ServiceBusConnection` placeholder in your settings.
 
+**Try it offline with a synthetic message**
+
+From a checkout of this repository, `pytest tests/test_worker_smoke_servicebus.py --no-cov` generates
+this worker into a temporary directory, calls `process_servicebus_message` with a synthetic
+`azure.functions.ServiceBusMessage`, and checks the logged payload, the handler signature and the
+declared trigger. It does not require a broker, credentials, network access or a Functions host.
+Message locks, completion and abandon, dead-lettering, sessions and delivery counts can only be verified
+with a real host and Service Bus. Inside a generated project, `make test` runs the project's own
+`tests/test_servicebus.py` the same way.
+
 ### Event Hub Template
 
 Ingests high-throughput event streams from Azure Event Hubs.
