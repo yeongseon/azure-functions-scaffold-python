@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 import logging
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, TypeVar
 
 import typer
 
@@ -19,7 +20,12 @@ from azure_functions_scaffold.generator import (
 )
 from azure_functions_scaffold.models import ProjectOptions
 from azure_functions_scaffold.scaffolder import describe_scaffold_project, scaffold_project
-from azure_functions_scaffold.template_registry import INTENT_SPECS, build_project_options
+from azure_functions_scaffold.template_registry import (
+    INTENT_SPECS,
+    build_project_options,
+    list_presets,
+    list_templates,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -246,8 +252,57 @@ def _print_success_message(
 
 
 # ---------------------------------------------------------------------------
+# Shared listing commands (top level and `advanced` register these same callables)
+# ---------------------------------------------------------------------------
+
+
+def show_templates() -> None:
+    """List available scaffold templates."""
+    for template in list_templates():
+        typer.echo(f"{template.name}: {template.description}")
+
+
+def show_presets() -> None:
+    """List available project presets."""
+    for preset in list_presets():
+        tooling = ", ".join(preset.tooling) or "none"
+        typer.echo(f"{preset.name}: {preset.description} [tooling: {tooling}]")
+
+
+# ---------------------------------------------------------------------------
 # Shared add-* intent execution (used by both `api` and `advanced` groups)
 # ---------------------------------------------------------------------------
+
+_Created = TypeVar("_Created")
+
+
+def _run_add(
+    *,
+    dry_run: bool,
+    preview: Callable[[], Iterable[str]],
+    create: Callable[[], _Created],
+    report: Callable[[_Created], None],
+    legacy: bool = False,
+) -> None:
+    """Preview or perform one add operation with the single error contract.
+
+    ``legacy`` keeps the deprecated ``afs add`` presentation: the error goes to stderr behind an
+    ``Error:`` prefix instead of being printed in red on stdout. Both exit with code 1.
+    """
+    try:
+        if dry_run:
+            for line in preview():
+                typer.echo(line)
+            return
+        created = create()
+    except ScaffoldError as exc:
+        if legacy:
+            typer.echo(f"Error: {exc}", err=True)
+        else:
+            typer.secho(str(exc), fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+
+    report(created)
 
 
 def run_add_function(
@@ -256,27 +311,25 @@ def run_add_function(
     trigger: str,
     function_name: str,
     dry_run: bool = False,
+    legacy: bool = False,
 ) -> None:
-    """Add a function module (or preview via *dry_run*) with unified error handling."""
-    try:
-        if dry_run:
-            for line in describe_add_function(
-                project_root=project_root,
-                trigger=trigger,
-                function_name=function_name,
-            ):
-                typer.echo(line)
-            return
-        function_path = add_function(
-            project_root=project_root,
-            trigger=trigger,
-            function_name=function_name,
-        )
-    except ScaffoldError as exc:
-        typer.secho(str(exc), fg=typer.colors.RED)
-        raise typer.Exit(code=1) from exc
+    """Add a function module (or preview via *dry_run*) with unified error handling.
 
-    typer.echo(f"Created function at {function_path}")
+    ``legacy`` selects the output of the deprecated ``afs add`` shim (``Created: <path>``).
+    """
+    _run_add(
+        dry_run=dry_run,
+        preview=lambda: describe_add_function(
+            project_root=project_root, trigger=trigger, function_name=function_name
+        ),
+        create=lambda: add_function(
+            project_root=project_root, trigger=trigger, function_name=function_name
+        ),
+        report=lambda path: typer.echo(
+            f"Created: {path}" if legacy else f"Created function at {path}"
+        ),
+        legacy=legacy,
+    )
 
 
 def run_add_route(
@@ -286,23 +339,12 @@ def run_add_route(
     dry_run: bool = False,
 ) -> None:
     """Add an HTTP route (or preview via *dry_run*) with unified error handling."""
-    try:
-        if dry_run:
-            for line in describe_add_route(
-                project_root=project_root,
-                route_name=route_name,
-            ):
-                typer.echo(line)
-            return
-        route_path = add_route(
-            project_root=project_root,
-            route_name=route_name,
-        )
-    except ScaffoldError as exc:
-        typer.secho(str(exc), fg=typer.colors.RED)
-        raise typer.Exit(code=1) from exc
-
-    typer.echo(f"Created route at {route_path}")
+    _run_add(
+        dry_run=dry_run,
+        preview=lambda: describe_add_route(project_root=project_root, route_name=route_name),
+        create=lambda: add_route(project_root=project_root, route_name=route_name),
+        report=lambda path: typer.echo(f"Created route at {path}"),
+    )
 
 
 def run_add_resource(
@@ -312,21 +354,16 @@ def run_add_resource(
     dry_run: bool = False,
 ) -> None:
     """Add a CRUD resource (or preview via *dry_run*) with unified error handling."""
-    try:
-        if dry_run:
-            for line in describe_add_resource(
-                project_root=project_root,
-                resource_name=resource_name,
-            ):
-                typer.echo(line)
-            return
-        created = add_resource(
-            project_root=project_root,
-            resource_name=resource_name,
-        )
-    except ScaffoldError as exc:
-        typer.secho(str(exc), fg=typer.colors.RED)
-        raise typer.Exit(code=1) from exc
 
-    for path in created:
-        typer.echo(f"Created {path}")
+    def report(created: Iterable[Path]) -> None:
+        for path in created:
+            typer.echo(f"Created {path}")
+
+    _run_add(
+        dry_run=dry_run,
+        preview=lambda: describe_add_resource(
+            project_root=project_root, resource_name=resource_name
+        ),
+        create=lambda: add_resource(project_root=project_root, resource_name=resource_name),
+        report=report,
+    )

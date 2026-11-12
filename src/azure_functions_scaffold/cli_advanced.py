@@ -18,14 +18,14 @@ from azure_functions_scaffold.cli_common import (
     run_add_resource,
     run_add_route,
     run_scaffold,
+    show_presets,
+    show_templates,
 )
 from azure_functions_scaffold.errors import ScaffoldError
 from azure_functions_scaffold.generator import ADDABLE_TRIGGERS
 from azure_functions_scaffold.template_registry import (
     build_project_options,
     get_template,
-    list_presets,
-    list_templates,
     validate_template_features,
 )
 
@@ -166,19 +166,9 @@ def advanced_add(
     )
 
 
-@advanced_app.command("templates")
-def advanced_templates() -> None:
-    """List available scaffold templates."""
-    for template in list_templates():
-        typer.echo(f"{template.name}: {template.description}")
-
-
-@advanced_app.command("presets")
-def advanced_presets() -> None:
-    """List available project presets."""
-    for preset in list_presets():
-        tooling = ", ".join(preset.tooling) or "none"
-        typer.echo(f"{preset.name}: {preset.description} [tooling: {tooling}]")
+# The same callables as the top-level ``afs templates`` / ``afs presets``: one listing path.
+advanced_app.command("templates")(show_templates)
+advanced_app.command("presets")(show_presets)
 
 
 @advanced_app.command("add-route")
