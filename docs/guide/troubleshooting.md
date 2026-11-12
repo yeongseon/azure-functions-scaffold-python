@@ -73,6 +73,18 @@ Supported presets are `minimal`, `standard`, `strict`.
 !!! warning "Overwrite behavior"
     `--overwrite` removes the existing target directory before generation.
 
+### Destination path contains spaces
+
+Project names cannot contain spaces, but the `--destination` directory can. Quote the path so
+your shell passes it as one argument:
+
+```bash
+afs new orders-api --destination "$HOME/My Azure Projects/team one"
+```
+
+Unquoted, the shell splits the path at each space and the CLI fails with `Got unexpected extra argument`. The generated project is written to
+`<destination>/orders-api`, with `function_app.py` at its root.
+
 ### Permission denied while writing files
 
 **Symptoms**
