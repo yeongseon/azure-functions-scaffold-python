@@ -105,6 +105,20 @@ Each pull request is tested against a matrix of environments to ensure broad com
 
 The `templates-smoke.yml` workflow runs the same node ids as parallel matrix cells: one per template on Python 3.11 and 3.12, one per feature combination and one for the add commands on Python 3.12. It runs daily and when a pull request or a push to `main` changes the templates, the scaffolder or the lane. Each cell uploads its JUnit report, a cell that executes no test fails, and no step tolerates a non-zero pytest exit status.
 
+### Known gap: LangGraph template and Doctor's required profile
+
+Every generated project runs Doctor's required (`--profile minimal`) rules **except the `langgraph`
+template** (`DOCTOR_GAP` in `tests/test_generated_projects.py`). A green generated-project suite
+therefore does **not** show that Doctor's required diagnostics pass for a generated LangGraph project.
+
+The generated project exports `func_app = lg_app.function_app`. Released Doctor 0.23.1 reports
+`programming_model=unknown` for it, fails `check_programming_model_v2`, and evaluates one rule instead
+of the required set (tracked in azure-functions-doctor-python#590). The fix is merged on Doctor's
+`main` but unreleased; a Doctor built from that commit evaluates six rules and reports no failure on a
+generated LangGraph project. The exemption is narrow and strict: the known-gap test fails once a Doctor in the
+supported range classifies the project, which is the signal to delete `DOCTOR_GAP` and the test and enable the
+required profile for the template.
+
 Local equivalent (one template; `--no-cov` because a single node cannot reach the coverage threshold):
 
 ```bash
