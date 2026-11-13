@@ -92,6 +92,16 @@ afs worker blob my-image-resizer
 *   **Generates**: `app/functions/blob.py`, `app/services/blob_service.py`, `tests/test_blob.py`.
 *   **Key points**: Default container path is `samples-workitems/{name}`.
 
+**Try it offline with a fake `InputStream`**
+
+From a checkout of this repository, `pytest tests/test_worker_smoke_blob.py --no-cov` generates this
+worker into a temporary directory, calls `process_blob` with an in-memory `azure.functions.InputStream`
+test double, and checks the logged description and the declared trigger. It does not require Azure,
+Azurite, credentials, network access or a Functions host. What it does not prove: blob event delivery,
+polling latency, blob receipts and poison-blob handling, or the behavior of the real stream object the
+host supplies; those need separate integration certification against a real host and Storage account.
+Inside a generated project, `make test` runs the project's own `tests/test_blob.py` the same way.
+
 ### Service Bus Template
 
 Handles high-throughput enterprise messages from Service Bus queues or topics.
