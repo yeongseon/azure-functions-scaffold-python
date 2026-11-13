@@ -69,6 +69,15 @@ afs worker queue my-queue-processor
 *   **Generates**: `app/functions/queue.py`, `app/services/queue_service.py`, `tests/test_queue.py`.
 *   **Key points**: Requires `AzureWebJobsStorage` connection string.
 
+**Try it offline with a synthetic message**
+
+From a checkout of this repository, `pytest tests/test_worker_smoke_queue.py --no-cov` generates this
+worker into a temporary directory, calls `process_queue_message` with a synthetic
+`azure.functions.QueueMessage`, and checks the logged payload and the declared trigger. It does not
+require Azure, Azurite, credentials, network access or a Functions host. Only a real host and Storage
+Queue can verify polling, visibility timeouts, dequeue counts and poison-queue handling. Inside a
+generated project, `make test` runs the project's own `tests/test_queue.py` the same way.
+
 !!! tip "Local Development"
     Use [Azurite](https://github.com/Azure/Azurite) to simulate Azure Storage Queues locally.
 
@@ -82,6 +91,16 @@ afs worker blob my-image-resizer
 
 *   **Generates**: `app/functions/blob.py`, `app/services/blob_service.py`, `tests/test_blob.py`.
 *   **Key points**: Default container path is `samples-workitems/{name}`.
+
+**Try it offline with a fake `InputStream`**
+
+From a checkout of this repository, `pytest tests/test_worker_smoke_blob.py --no-cov` generates this
+worker into a temporary directory, calls `process_blob` with an in-memory `azure.functions.InputStream`
+test double, and checks the logged description and the declared trigger. It does not require Azure,
+Azurite, credentials, network access or a Functions host. What it does not prove: blob event delivery,
+polling latency, blob receipts and poison-blob handling, or the behavior of the real stream object the
+host supplies; those need separate integration certification against a real host and Storage account.
+Inside a generated project, `make test` runs the project's own `tests/test_blob.py` the same way.
 
 ### Service Bus Template
 
@@ -114,6 +133,15 @@ afs worker eventhub my-event-processor
 
 *   **Generates**: `app/functions/eventhub.py`, `app/services/eventhub_service.py`, `tests/test_eventhub.py`.
 *   **Key points**: Uses an `EventHubConnection` placeholder. Default event hub name is `my-event-hub`.
+
+**Try it offline with a synthetic message**
+
+From a checkout of this repository, `pytest tests/test_worker_smoke_eventhub.py --no-cov` generates
+this worker into a temporary directory, calls `process_event` with a synthetic
+`azure.functions.EventHubEvent`, and checks the logged payload and the declared trigger. It does not
+require Azure, credentials, network access or a Functions host. A real host and Event Hubs are still
+needed to verify listener startup, partition ownership, checkpointing and batching. Inside a generated
+project, `make test` runs the project's own `tests/test_eventhub.py` the same way.
 
 ### CosmosDB Template
 
