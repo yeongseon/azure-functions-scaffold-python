@@ -56,8 +56,8 @@ afs templates
 afs presets
 ```
 
-`afs templates` prints the authoritative list; the lines below are checked against it by
-`tests/test_docs_template_inventory.py`.
+`afs templates` is the authoritative list for the installed version; use it if this page and your CLI
+disagree. The lines below are checked against the registry by `tests/test_docs_template_inventory.py`.
 
 Supported templates are `http`, `timer`, `queue`, `blob`, `servicebus`, `eventhub`, `cosmosdb`, `durable`, `ai`, `langgraph`.
 Supported presets are `minimal`, `standard`, `strict`.
@@ -78,6 +78,18 @@ example `openapi` and `validation` are available on `http` only, and `langgraph`
 
 !!! warning "Overwrite behavior"
     `--overwrite` removes the existing target directory before generation.
+
+### Destination path contains spaces
+
+Project names cannot contain spaces, but the `--destination` directory can. Quote the path so
+your shell passes it as one argument:
+
+```bash
+afs new orders-api --destination "$HOME/My Azure Projects/team one"
+```
+
+Unquoted, the shell splits the path at each space and the CLI fails with `Got unexpected extra argument`. The generated project is written to
+`<destination>/orders-api`, with `function_app.py` at its root.
 
 ### Permission denied while writing files
 
@@ -164,6 +176,14 @@ Use `--project-root` explicitly in scripts and CI.
 **Symptoms**
 
 - add command fails due to existing module
+
+Repeating a command that already succeeded exits with status 1 and a `Function module already exists`
+message, and leaves the project unchanged (existing files are never overwritten):
+
+```bash
+afs api add users --project-root ./my-api   # succeeds the first time
+afs api add users --project-root ./my-api   # fails: Function module already exists
+```
 
 **Fix**
 

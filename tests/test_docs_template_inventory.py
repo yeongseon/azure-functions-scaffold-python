@@ -1,8 +1,8 @@
 """Regression test: the troubleshooting guide must list the registered templates and presets.
 
 The guide names the valid values for ``Unknown template`` and ``Unknown preset`` errors. The lists
-are read from ``list_templates()`` and ``list_presets()`` so a new template or preset cannot be added
-without the guide being updated.
+are read from ``list_templates()`` and ``list_presets()`` so a new template or preset cannot be
+added without the guide being updated.
 """
 
 from __future__ import annotations
@@ -20,7 +20,9 @@ TROUBLESHOOTING = Path(__file__).resolve().parent.parent / "docs" / "guide" / "t
 def _documented(kind: str) -> list[str]:
     text = TROUBLESHOOTING.read_text(encoding="utf-8")
     match = re.search(rf"^Supported {kind} are (.+)\.$", text, flags=re.MULTILINE)
-    assert match is not None, f"docs/guide/troubleshooting.md has no 'Supported {kind} are ...' line"
+    assert match is not None, (
+        f"docs/guide/troubleshooting.md has no 'Supported {kind} are ...' line"
+    )
     return re.findall(r"`([^`]+)`", match.group(1))
 
 
@@ -38,3 +40,7 @@ def test_troubleshooting_lists_every_registered_name(kind: str, registered: list
         f"docs/guide/troubleshooting.md lists {documented} for {kind}, "
         f"but the registry has {registered}"
     )
+
+
+def test_troubleshooting_points_to_authoritative_cli_listing() -> None:
+    assert "`afs templates`" in TROUBLESHOOTING.read_text(encoding="utf-8")
