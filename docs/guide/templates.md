@@ -58,6 +58,15 @@ afs worker timer nightly-job
 *   **Generates**: `app/functions/timer.py`, `app/services/maintenance_service.py`, `tests/test_timer.py`.
 *   **Key points**: Default schedule is set to `0 */5 * * * *` (every 5 minutes) in `host.json` or the trigger decorator.
 
+**Try it offline with a synthetic timer**
+
+From a checkout of this repository, `pytest tests/test_worker_smoke_timer.py --no-cov` generates this
+worker into a temporary directory and calls `cleanup` with a locally constructed
+`azure.functions.TimerRequest` stand-in (on time and past due), so it needs no Azure, credentials,
+network access, Functions host or wall-clock time. Invoking the handler this way does not certify CRON
+scheduling, catch-up behavior or an Azure deployment; only a real host verifies when the trigger fires.
+Inside a generated project, `make test` runs the project's own `tests/test_timer.py` the same way.
+
 ### Queue Template
 
 Reacts to messages added to an Azure Storage Queue.
