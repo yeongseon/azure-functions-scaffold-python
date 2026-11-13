@@ -175,6 +175,14 @@ Use `--project-root` explicitly in scripts and CI.
 
 - add command fails due to existing module
 
+Repeating a command that already succeeded exits with status 1 and a `Function module already exists`
+message, and leaves the project unchanged (existing files are never overwritten):
+
+```bash
+afs api add users --project-root ./my-api   # succeeds the first time
+afs api add users --project-root ./my-api   # fails: Function module already exists
+```
+
 **Fix**
 
 - choose a different function name, or
