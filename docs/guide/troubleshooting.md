@@ -56,8 +56,12 @@ afs templates
 afs presets
 ```
 
-Supported templates are `http`, `timer`, `queue`, `blob`, `servicebus`.
+Supported templates are `http`, `timer`, `queue`, `blob`, `servicebus`, `eventhub`, `cosmosdb`, `durable`, `ai`, `langgraph`.
 Supported presets are `minimal`, `standard`, `strict`.
+
+`afs templates` is the authoritative list for the installed version; use it if this page and your CLI disagree.
+Template names are separate from presets and from optional features: a preset or `--with-*` option is only
+valid for templates that allow it, so it is not enabled on every template.
 
 ### Target directory already exists
 
