@@ -56,12 +56,14 @@ afs templates
 afs presets
 ```
 
+`afs templates` is the authoritative list for the installed version; use it if this page and your CLI
+disagree. The lines below are checked against the registry by `tests/test_docs_template_inventory.py`.
+
 Supported templates are `http`, `timer`, `queue`, `blob`, `servicebus`, `eventhub`, `cosmosdb`, `durable`, `ai`, `langgraph`.
 Supported presets are `minimal`, `standard`, `strict`.
 
-`afs templates` is the authoritative list for the installed version; use it if this page and your CLI disagree.
-Template names are separate from presets and from optional features: a preset or `--with-*` option is only
-valid for templates that allow it, so it is not enabled on every template.
+A template name is not an option or a preset, and optional features differ per template: for
+example `openapi` and `validation` are available on `http` only, and `langgraph` takes only `azd`.
 
 ### Target directory already exists
 

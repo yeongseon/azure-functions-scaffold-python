@@ -1,25 +1,45 @@
-"""The troubleshooting guide must list every registered template (issue #476)."""
+"""Regression test: the troubleshooting guide must list the registered templates and presets.
+
+The guide names the valid values for ``Unknown template`` and ``Unknown preset`` errors. The lists
+are read from ``list_templates()`` and ``list_presets()`` so a new template or preset cannot be
+added without the guide being updated.
+"""
 
 from __future__ import annotations
 
 from pathlib import Path
 import re
 
-from azure_functions_scaffold.template_registry import list_templates
+import pytest
+
+from azure_functions_scaffold.template_registry import list_presets, list_templates
 
 TROUBLESHOOTING = Path(__file__).resolve().parent.parent / "docs" / "guide" / "troubleshooting.md"
-LISTING_RE = re.compile(r"Supported templates are ([^\n]+)\.")
 
 
-def _documented_templates() -> list[str]:
-    match = LISTING_RE.search(TROUBLESHOOTING.read_text(encoding="utf-8"))
-    assert match is not None, "troubleshooting.md must contain a 'Supported templates are ...' line"
+def _documented(kind: str) -> list[str]:
+    text = TROUBLESHOOTING.read_text(encoding="utf-8")
+    match = re.search(rf"^Supported {kind} are (.+)\.$", text, flags=re.MULTILINE)
+    assert match is not None, (
+        f"docs/guide/troubleshooting.md has no 'Supported {kind} are ...' line"
+    )
     return re.findall(r"`([^`]+)`", match.group(1))
 
 
-def test_troubleshooting_lists_exactly_the_registered_templates() -> None:
-    registered = [template.name for template in list_templates()]
-    assert sorted(_documented_templates()) == sorted(registered)
+@pytest.mark.parametrize(
+    ("kind", "registered"),
+    [
+        ("templates", [spec.name for spec in list_templates()]),
+        ("presets", [spec.name for spec in list_presets()]),
+    ],
+)
+def test_troubleshooting_lists_every_registered_name(kind: str, registered: list[str]) -> None:
+    documented = _documented(kind)
+
+    assert sorted(documented) == sorted(registered), (
+        f"docs/guide/troubleshooting.md lists {documented} for {kind}, "
+        f"but the registry has {registered}"
+    )
 
 
 def test_troubleshooting_points_to_authoritative_cli_listing() -> None:
