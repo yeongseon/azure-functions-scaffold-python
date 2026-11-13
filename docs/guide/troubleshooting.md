@@ -56,8 +56,12 @@ afs templates
 afs presets
 ```
 
-Supported templates are `http`, `timer`, `queue`, `blob`, `servicebus`.
+Supported templates are `http`, `timer`, `queue`, `blob`, `servicebus`, `eventhub`, `cosmosdb`, `durable`, `ai`, `langgraph`.
 Supported presets are `minimal`, `standard`, `strict`.
+
+`afs templates` is the authoritative list for the installed version; use it if this page and your CLI disagree.
+Template names are separate from presets and from optional features: a preset or `--with-*` option is only
+valid for templates that allow it, so it is not enabled on every template.
 
 ### Target directory already exists
 
@@ -72,6 +76,18 @@ Supported presets are `minimal`, `standard`, `strict`.
 
 !!! warning "Overwrite behavior"
     `--overwrite` removes the existing target directory before generation.
+
+### Destination path contains spaces
+
+Project names cannot contain spaces, but the `--destination` directory can. Quote the path so
+your shell passes it as one argument:
+
+```bash
+afs new orders-api --destination "$HOME/My Azure Projects/team one"
+```
+
+Unquoted, the shell splits the path at each space and the CLI fails with `Got unexpected extra argument`. The generated project is written to
+`<destination>/orders-api`, with `function_app.py` at its root.
 
 ### Permission denied while writing files
 

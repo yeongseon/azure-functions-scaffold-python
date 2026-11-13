@@ -84,6 +84,11 @@ make check-all   # Run the full local gate
 make doctor      # Report missing required tools (read-only)
 ```
 
+The minimal generated HTTP project is pinned by `tests/fixtures/golden_http_minimal.json`.
+After an intentional template change, refresh it with
+`UPDATE_GOLDEN=1 pytest tests/test_golden_http_minimal.py --no-cov`, review the fixture diff, and
+rerun the test without the variable.
+
 Before opening a PR, run `ruff format --check <changed-python-files>` (or
 `ruff format <changed-python-files>` to fix them). `make format-check` checks
 `src` and `tests` without changing files. CI checks those same trees and also
