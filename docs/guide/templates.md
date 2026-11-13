@@ -105,6 +105,15 @@ afs worker eventhub my-event-processor
 *   **Generates**: `app/functions/eventhub.py`, `app/services/eventhub_service.py`, `tests/test_eventhub.py`.
 *   **Key points**: Uses an `EventHubConnection` placeholder. Default event hub name is `my-event-hub`.
 
+**Try it offline with a synthetic message**
+
+From a checkout of this repository, `pytest tests/test_worker_smoke_eventhub.py --no-cov` generates
+this worker into a temporary directory, calls `process_event` with a synthetic
+`azure.functions.EventHubEvent`, and checks the logged payload and the declared trigger. It does not
+require Azure, credentials, network access or a Functions host. A real host and Event Hubs are still
+needed to verify listener startup, partition ownership, checkpointing and batching. Inside a generated
+project, `make test` runs the project's own `tests/test_eventhub.py` the same way.
+
 ### CosmosDB Template
 
 Reacts to document changes via the Cosmos DB change feed.
