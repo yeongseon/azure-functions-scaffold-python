@@ -1,6 +1,7 @@
 {
   "repo": "yeongseon/azure-functions-scaffold-python",
   "owner_login": "yeongseon",
+  "pypi_project": "azure-functions-scaffold",
   "legacy_repos": [
     "yeongseon/azure-functions-scaffold"
   ],
