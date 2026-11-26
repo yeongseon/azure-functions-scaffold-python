@@ -8,17 +8,15 @@
 > verified in this repository (see "Rollout" below).
 
 This repository runs with zero required native GitHub approvals because the sole maintainer
-cannot approve their own PR. Independent review still happens — GitHub Copilot code review, or
-a human — but prior to this policy nothing recorded *who* reviewed *which commit*, *what* was
+cannot approve their own PR. Before this policy, nothing recorded *who* reviewed *which commit*, *what* was
 found, or whether findings were resolved before merge. This document defines that evidence
 record. It does **not** reopen the zero-approval decision (it stands) and does **not** replace CI.
 
 ## Roles
 
 - **Implementer** — the person or agent that authored the change (may be the maintainer).
-- **Independent reviewer** — a review source distinct from the implementer: GitHub Copilot code
-  review, or a human maintainer/contributor who did not author the diff. A review is only
-  independent evidence if it evaluates the PR's current head commit; a thread opened against an
+- **Independent reviewer** — a maintainer or contributor who did not author the diff.
+  A review is only independent evidence if it evaluates the PR's current head commit; a thread opened against an
   earlier commit is stale once the diff changes (see "SHA binding" below).
 
 Implementer-managed helper reviews (e.g. an agent re-running its own linter and calling the
@@ -94,11 +92,10 @@ exceptions in PR history rather than being recorded as if a review had occurred:
 - **GitHub Actions SHA updates**: never auto-merged; require a human diff check confirming the
   pinned SHA matches its claimed tag (see AGENTS.md). This human check *is* the review evidence —
   record the SHA/tag comparison performed.
-- **Forks**: external PRs are reviewed by a maintainer before merge; Copilot review may be
-  unavailable or restricted on fork PRs depending on repository settings. Routine PRs need no
+- **Forks**: external PRs are reviewed by a maintainer before merge. Routine PRs need no
   availability record; record significant findings and retain the R3 authorization record when applicable.
-- **Reviewer outages / emergencies**: if Copilot review is unavailable (quota, outage, provider
-  error), fall back to human review before merge. Record the outage only when it leaves a material
+- **Reviewer outages / emergencies**: if a review tool is unavailable,
+  fall back to human review before merge. Record the outage only when it leaves a material
   verification gap; routine PRs need no empty review field. R3 authorization remains required.
 
 ## Provenance pitfalls (do not accept as evidence)
